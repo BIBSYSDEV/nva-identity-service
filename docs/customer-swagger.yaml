@@ -1361,7 +1361,7 @@ components:
   examples:
     CustomerExample:
       value:
-        "@context": "https://bibsysdev.github.io/src/customer-api.json"
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
         id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6"
         identifier: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         type: Customer
@@ -1472,7 +1472,7 @@ components:
           - "VisualArts"
     CustomerListExample:
       value:
-        "@context": "https://bibsysdev.github.io/src/customer-api.json"
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
         id: "https://api.test.nva.unit.no/customers"
         type: CustomerList
         customers:
@@ -1495,7 +1495,7 @@ components:
         password: "*******"
     VocabularyListExample:
       value:
-        "@context": "https://bibsysdev.github.io/src/customer-api.json"
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
         id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6/vocabularies"
         type: VocabularyList
         vocabularies:

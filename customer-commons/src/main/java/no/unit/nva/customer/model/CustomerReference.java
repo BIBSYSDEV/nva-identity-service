@@ -2,6 +2,7 @@ package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
@@ -21,6 +22,11 @@ public class CustomerReference {
   private Sector sector;
   private boolean rboInstitution;
 
+  // The deprecated id alias is not serialized in the open customer list; it stays in the
+  // authenticated customer representation until existing clients have migrated.
+  @JsonIgnoreProperties(RightsRetentionStrategyDto.LEGACY_ID_FIELD)
+  private RightsRetentionStrategyDto rightsRetentionStrategy;
+
   public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
     var customerReference = new CustomerReference();
     customerReference.setDisplayName(customerDto.getDisplayName());
@@ -33,6 +39,7 @@ public class CustomerReference {
     customerReference.setServiceCenterUri(extractServiceCenterUri(customerDto));
     customerReference.setSector(customerDto.getSector());
     customerReference.setRboInstitution(customerDto.isRboInstitution());
+    customerReference.setRightsRetentionStrategy(customerDto.getRightsRetentionStrategy());
     return customerReference;
   }
 
@@ -49,7 +56,8 @@ public class CustomerReference {
         isNviInstitution(),
         getServiceCenterUri(),
         getSector(),
-        isRboInstitution());
+        isRboInstitution(),
+        getRightsRetentionStrategy());
   }
 
   @JacocoGenerated
@@ -67,7 +75,8 @@ public class CustomerReference {
         && Objects.equals(isNviInstitution(), that.isNviInstitution())
         && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
         && Objects.equals(getSector(), that.getSector())
-        && Objects.equals(isRboInstitution(), that.isRboInstitution());
+        && Objects.equals(isRboInstitution(), that.isRboInstitution())
+        && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy());
   }
 
   public boolean isActive() {
@@ -149,6 +158,14 @@ public class CustomerReference {
 
   public boolean isRboInstitution() {
     return rboInstitution;
+  }
+
+  public RightsRetentionStrategyDto getRightsRetentionStrategy() {
+    return rightsRetentionStrategy;
+  }
+
+  public void setRightsRetentionStrategy(RightsRetentionStrategyDto rightsRetentionStrategy) {
+    this.rightsRetentionStrategy = rightsRetentionStrategy;
   }
 
   private static String extractDoiPrefix(CustomerDto customerDto) {

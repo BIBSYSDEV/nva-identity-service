@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -61,6 +62,20 @@ class CustomerDtoTest {
 
     assertNull(customer.getCristinId());
     assertNull(customer.getRorId());
+  }
+
+  @Test
+  void shouldSerializeBothPolicyUriAndDeprecatedIdForRightsRetentionStrategy()
+      throws JsonProcessingException {
+    var customer = randomActiveCustomer();
+    var expectedPolicyUri = customer.getRightsRetentionStrategy().getPolicyUri();
+
+    var rightsRetentionStrategy =
+        JsonUtils.dtoObjectMapper.readTree(customer.toString()).get("rightsRetentionStrategy");
+
+    assertEquals(
+        expectedPolicyUri, URI.create(rightsRetentionStrategy.get("policyUri").textValue()));
+    assertEquals(expectedPolicyUri, URI.create(rightsRetentionStrategy.get("id").textValue()));
   }
 
   @Test

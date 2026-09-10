@@ -12,8 +12,12 @@ import nva.commons.core.JacocoGenerated;
 
 public class RightsRetentionStrategyDto implements RightsRetentionStrategy, JsonSerializable {
 
-  /** Deprecated JSON name for {@code policyUri}, kept while existing clients migrate. */
-  static final String LEGACY_ID_FIELD = "id";
+  /**
+   * JSON name {@code id} for the policy link, kept while existing clients migrate.
+   *
+   * @deprecated Use {@code policyUri}. Removed in NP-51737.
+   */
+  @Deprecated static final String LEGACY_ID_FIELD = "id";
 
   private static final String TYPE_FIELD = "type";
   private static final String POLICY_URI_FIELD = "policyUri";
@@ -27,9 +31,16 @@ public class RightsRetentionStrategyDto implements RightsRetentionStrategy, Json
 
   public RightsRetentionStrategyDto(RightsRetentionStrategyType type, URI policyUri) {
     this.type = type;
-    this.policyUri = policyUriOrNull(policyUri);
+    this.policyUri = policyUriOrNull(type, policyUri);
   }
 
+  /**
+   * Jackson creator that also reads the policy link under its old JSON name.
+   *
+   * @deprecated Exists only to accept {@code id} from clients that have not migrated to {@code
+   *     policyUri}. Removed in NP-51737.
+   */
+  @Deprecated
   @ConstructorProperties({TYPE_FIELD, POLICY_URI_FIELD, LEGACY_ID_FIELD})
   private RightsRetentionStrategyDto(
       RightsRetentionStrategyType type, URI policyUri, URI legacyId) {
@@ -84,8 +95,12 @@ public class RightsRetentionStrategyDto implements RightsRetentionStrategy, Json
     return toJsonString();
   }
 
-  /** An empty URI (the frontend sends {@code ""} when RRS is switched off) means no policy page. */
-  private static URI policyUriOrNull(URI policyUri) {
-    return nonNull(policyUri) && !policyUri.toString().isBlank() ? policyUri : null;
+  /**
+   * No policy page when RRS is switched off, or when the URI is empty (the frontend sends {@code
+   * ""} when switching RRS off).
+   */
+  private static URI policyUriOrNull(RightsRetentionStrategyType type, URI policyUri) {
+    var enabled = nonNull(type) && type != RightsRetentionStrategyType.NullRightsRetentionStrategy;
+    return enabled && nonNull(policyUri) && !policyUri.toString().isBlank() ? policyUri : null;
   }
 }

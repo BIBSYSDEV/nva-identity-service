@@ -36,6 +36,7 @@ import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.RightsRetentionStrategyDto;
+import no.unit.nva.customer.model.RightsRetentionStrategyType;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -202,6 +203,28 @@ public class UpdateCustomerHandlerTest {
     sendRequest(input, CustomerDto.class);
     assertThat(customer.getServiceCenter().uri(), is(equalTo(testServiceCenterUri)));
     verify(customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
+  }
+
+  @Test
+  void shouldDropPolicyLinkWhenRightsRetentionStrategyIsSwitchedOff()
+      throws InputException, NotFoundException, IOException {
+    var customer = createCustomer(UUID.randomUUID());
+    when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class)))
+        .thenReturn(customer);
+    // The frontend clears id but echoes policyUri from GET when switching RRS off
+    var request =
+        createInputWithRightsRetentionStrategyJson(
+            customer,
+            Map.of("type", "NullRightsRetentionStrategy", "policyUri", randomUri(), "id", ""));
+
+    var response = sendRequest(request, CustomerDto.class);
+
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    var rightsRetentionStrategy = capturedRightsRetentionStrategy();
+    assertThat(
+        rightsRetentionStrategy.getType(),
+        is(equalTo(RightsRetentionStrategyType.NullRightsRetentionStrategy)));
+    assertThat(rightsRetentionStrategy.getPolicyUri(), is(nullValue()));
   }
 
   @Test

@@ -2,11 +2,13 @@ package no.unit.nva.customer.model;
 
 import static no.unit.nva.customer.testing.CustomerDataGenerator.createSampleCustomerDto;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class CustomerReferenceTest {
@@ -40,6 +42,22 @@ class CustomerReferenceTest {
     var customerReference = CustomerReference.fromCustomerDto(customerDto);
 
     assertEquals(rboInstitution, customerReference.isRboInstitution());
+  }
+
+  @ParameterizedTest
+  @EnumSource(RightsRetentionStrategyType.class)
+  void shouldIncludeCurrentRightsRetentionStrategyInCustomerReference(
+      RightsRetentionStrategyType type) {
+    var rightsRetentionStrategy = new RightsRetentionStrategyDto(type, randomUri());
+    var customerDto =
+        createSampleCustomerDto()
+            .copy()
+            .withRightsRetentionStrategy(rightsRetentionStrategy)
+            .build();
+
+    var customerReference = CustomerReference.fromCustomerDto(customerDto);
+
+    assertEquals(rightsRetentionStrategy, customerReference.getRightsRetentionStrategy());
   }
 
   private static CustomerReference constructExpectedCustomerReference(CustomerDto customerDto) {

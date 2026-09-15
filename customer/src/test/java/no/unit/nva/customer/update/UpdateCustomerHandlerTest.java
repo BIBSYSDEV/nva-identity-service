@@ -21,6 +21,8 @@ import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +35,8 @@ import no.unit.nva.customer.exception.InputException;
 import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
+import no.unit.nva.customer.model.RightsRetentionStrategyDto;
+import no.unit.nva.customer.model.RightsRetentionStrategyType;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.stubs.FakeContext;
 import no.unit.nva.testutils.HandlerRequestBuilder;
@@ -43,6 +47,7 @@ import nva.commons.core.Environment;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.zalando.problem.Problem;
 
 public class UpdateCustomerHandlerTest {
@@ -198,6 +203,65 @@ public class UpdateCustomerHandlerTest {
     sendRequest(input, CustomerDto.class);
     assertThat(customer.getServiceCenter().uri(), is(equalTo(testServiceCenterUri)));
     verify(customerServiceMock, times(1)).updateCustomer(any(UUID.class), eq(customer));
+  }
+
+  @Test
+  void shouldDropPolicyLinkWhenRightsRetentionStrategyIsSwitchedOff()
+      throws InputException, NotFoundException, IOException {
+    var customer = createCustomer(UUID.randomUUID());
+    when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class)))
+        .thenReturn(customer);
+    // The frontend clears id but echoes policyUri from GET when switching RRS off
+    var request =
+        createInputWithRightsRetentionStrategyJson(
+            customer,
+            Map.of("type", "NullRightsRetentionStrategy", "policyUri", randomUri(), "id", ""));
+
+    var response = sendRequest(request, CustomerDto.class);
+
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    var rightsRetentionStrategy = capturedRightsRetentionStrategy();
+    assertThat(
+        rightsRetentionStrategy.getType(),
+        is(equalTo(RightsRetentionStrategyType.NullRightsRetentionStrategy)));
+    assertThat(rightsRetentionStrategy.getPolicyUri(), is(nullValue()));
+  }
+
+  @Test
+  void shouldAcceptDeprecatedIdAsPolicyUriForRightsRetentionStrategy()
+      throws InputException, NotFoundException, IOException {
+    var customer = createCustomer(UUID.randomUUID());
+    var policyUri = randomUri();
+    when(customerServiceMock.updateCustomer(any(UUID.class), any(CustomerDto.class)))
+        .thenReturn(customer);
+    var request =
+        createInputWithRightsRetentionStrategyJson(
+            customer, Map.of("type", "OverridableRightsRetentionStrategy", "id", policyUri));
+
+    var response = sendRequest(request, CustomerDto.class);
+
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_OK)));
+    assertThat(capturedRightsRetentionStrategy().getPolicyUri(), is(equalTo(policyUri)));
+  }
+
+  private RightsRetentionStrategyDto capturedRightsRetentionStrategy()
+      throws InputException, NotFoundException {
+    var captor = ArgumentCaptor.forClass(CustomerDto.class);
+    verify(customerServiceMock).updateCustomer(any(UUID.class), captor.capture());
+    return captor.getValue().getRightsRetentionStrategy();
+  }
+
+  private InputStream createInputWithRightsRetentionStrategyJson(
+      CustomerDto customer, Map<String, Object> rightsRetentionStrategy)
+      throws JsonProcessingException {
+    var body = (ObjectNode) dtoObjectMapper.valueToTree(customer);
+    body.set("rightsRetentionStrategy", dtoObjectMapper.valueToTree(rightsRetentionStrategy));
+    return new HandlerRequestBuilder<JsonNode>(dtoObjectMapper)
+        .withBody(body)
+        .withHeaders(getRequestHeaders())
+        .withAccessRights(randomUri(), MANAGE_CUSTOMERS)
+        .withPathParameters(Map.of(IDENTIFIER, customer.getIdentifier().toString()))
+        .build();
   }
 
   @Test

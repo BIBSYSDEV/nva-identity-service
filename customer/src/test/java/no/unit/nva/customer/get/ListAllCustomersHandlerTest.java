@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 
@@ -27,6 +28,8 @@ import no.unit.nva.customer.model.ApplicationDomain;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.model.CustomerDto.ServiceCenter;
 import no.unit.nva.customer.model.CustomerList;
+import no.unit.nva.customer.model.RightsRetentionStrategyDto;
+import no.unit.nva.customer.model.RightsRetentionStrategyType;
 import no.unit.nva.customer.model.interfaces.DoiAgent;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
@@ -41,6 +44,8 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
 
@@ -141,6 +146,70 @@ class ListAllCustomersHandlerTest extends LocalCustomerServiceDatabase {
     assertThat(
         customerList.getCustomers(),
         hasItem(hasProperty("serviceCenterUri", is(serviceCenterUri))));
+  }
+
+  @ParameterizedTest
+  @EnumSource(RightsRetentionStrategyType.class)
+  void shouldReturnAListOfCustomersContainingCurrentRightsRetentionStrategy(
+      RightsRetentionStrategyType type) throws ApiGatewayException, IOException {
+    var rightsRetentionStrategy = new RightsRetentionStrategyDto(type, randomUri());
+    insertRandomCustomerWithRightsRetentionStrategy(rightsRetentionStrategy);
+
+    var response = sendRequest(sampleRequestWithAccess(), CustomerList.class);
+    var customerList = CustomerList.fromString(response.getBody());
+    assertThat(
+        customerList.getCustomers(),
+        hasItem(hasProperty("rightsRetentionStrategy", is(rightsRetentionStrategy))));
+  }
+
+  @Test
+  void shouldSerializeRightsRetentionStrategyWithTypeAndPolicyUriButWithoutDeprecatedId()
+      throws ApiGatewayException, IOException {
+    var policyUri = randomUri();
+    insertRandomCustomerWithRightsRetentionStrategy(
+        new RightsRetentionStrategyDto(
+            RightsRetentionStrategyType.OverridableRightsRetentionStrategy, policyUri));
+
+    var response = sendRequest(sampleRequestWithAccess(), CustomerList.class);
+    var customers = dtoObjectMapper.readTree(response.getBody()).get(CustomerList.CUSTOMERS);
+    assertThat(customers.size(), is(equalTo(1)));
+    var actualRightsRetentionStrategy = customers.get(0).get("rightsRetentionStrategy");
+    assertThat(
+        actualRightsRetentionStrategy.get("type").textValue(),
+        is(equalTo("OverridableRightsRetentionStrategy")));
+    assertThat(
+        actualRightsRetentionStrategy.get("policyUri").textValue(),
+        is(equalTo(policyUri.toString())));
+    assertThat(actualRightsRetentionStrategy.has("id"), is(false));
+  }
+
+  @Test
+  void shouldReturnNullRightsRetentionStrategyWithoutPolicyUriWhenCustomerHasNotConfiguredIt()
+      throws ApiGatewayException, IOException {
+    insertRandomCustomer();
+
+    var response = sendRequest(sampleRequestWithAccess(), CustomerList.class);
+    var customerList = CustomerList.fromString(response.getBody());
+    assertThat(customerList.getCustomers(), hasSize(1));
+    var rightsRetentionStrategy =
+        customerList.getCustomers().getFirst().getRightsRetentionStrategy();
+    assertThat(
+        rightsRetentionStrategy.getType(),
+        is(equalTo(RightsRetentionStrategyType.NullRightsRetentionStrategy)));
+    assertThat(rightsRetentionStrategy.getPolicyUri(), is(nullValue()));
+  }
+
+  private void insertRandomCustomerWithRightsRetentionStrategy(
+      RightsRetentionStrategyDto rightsRetentionStrategy)
+      throws ConflictException, NotFoundException {
+    var customer =
+        CustomerDto.builder()
+            .withDisplayName(randomString())
+            .withCristinId(randomUri())
+            .withCustomerOf(randomElement(ApplicationDomain.values()))
+            .withRightsRetentionStrategy(rightsRetentionStrategy)
+            .build();
+    customerService.createCustomer(customer);
   }
 
   private void insertRandomCustomerWithDoiPrefix(String doiPrefix)

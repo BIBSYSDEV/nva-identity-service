@@ -1015,30 +1015,49 @@ components:
           format: uri
     NullRightsRetentionStrategy:
       type: object
+      description: rights retention strategy is not enabled for the customer
       properties:
         type:
           type: string
+          enum:
+            - NullRightsRetentionStrategy
           description: Always has the value 'NullRightsRetentionStrategy'
     RightsRetentionStrategy:
       type: object
+      description: rights retention strategy applies to all files and cannot be overridden by the registrator
       properties:
         type:
           type: string
+          enum:
+            - RightsRetentionStrategy
           description: Always has the value 'RightsRetentionStrategy'
+        policyUri:
+          type: string
+          format: uri
+          description: a link to the customer's information page about its rights retention policy
         id:
           type: string
           format: uri
-          description: a link to the rights retention strategy for the customer
+          deprecated: true
+          description: deprecated alias for policyUri, not included in the customer list
     OverridableRightsRetentionStrategy:
       type: object
+      description: rights retention strategy applies, but the registrator may override it per file
       properties:
         type:
           type: string
+          enum:
+            - OverridableRightsRetentionStrategy
           description: Always has the value 'OverridableRightsRetentionStrategy'
+        policyUri:
+          type: string
+          format: uri
+          description: a link to the customer's information page about its rights retention policy
         id:
           type: string
           format: uri
-          description: a link to the rights retention strategy for the customer
+          deprecated: true
+          description: deprecated alias for policyUri, not included in the customer list
     Customer:
       type: object
       properties:
@@ -1220,6 +1239,15 @@ components:
           format: uri
         sector:
           $ref: "#/components/schemas/Sector"
+        rightsRetentionStrategy:
+          description: >-
+            the customer's current rights retention strategy, always present. Not to be confused
+            with rightsRetentionStrategy.configuredType on files in the publication API, which is
+            the customer's configuration at the time the file was registered
+          oneOf:
+            - $ref: "#/components/schemas/NullRightsRetentionStrategy"
+            - $ref: "#/components/schemas/RightsRetentionStrategy"
+            - $ref: "#/components/schemas/OverridableRightsRetentionStrategy"
     ChannelClaimList:
       type: object
       properties:
@@ -1361,7 +1389,7 @@ components:
   examples:
     CustomerExample:
       value:
-        "@context": "https://bibsysdev.github.io/src/customer-api.json"
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
         id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6"
         identifier: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         type: Customer
@@ -1397,6 +1425,7 @@ components:
         sector: UHI
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy
+          policyUri: "https://unirein.no/rights-retention-strategy.html"
           id: "https://unirein.no/rights-retention-strategy.html"
         allowFileUploadForTypes:
           - "AcademicArticle"
@@ -1472,7 +1501,7 @@ components:
           - "VisualArts"
     CustomerListExample:
       value:
-        "@context": "https://bibsysdev.github.io/src/customer-api.json"
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
         id: "https://api.test.nva.unit.no/customers"
         type: CustomerList
         customers:
@@ -1486,6 +1515,9 @@ components:
             rboInstitution: false
             serviceCenterUri: "https://sikt.no/tjenester/nasjonalt-vitenarkiv-nva/hjelpeside-nva"
             sector: "UHI"
+            rightsRetentionStrategy:
+              type: "OverridableRightsRetentionStrategy"
+              policyUri: "https://unirein.no/rights-retention-strategy.html"
     DoiAgentExample:
       value:
         id: "https://example.com/example/#/doiagent"
@@ -1495,7 +1527,7 @@ components:
         password: "*******"
     VocabularyListExample:
       value:
-        "@context": "https://bibsysdev.github.io/src/customer-api.json"
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
         id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6/vocabularies"
         type: VocabularyList
         vocabularies:

@@ -1769,7 +1769,7 @@ Resources:
       LambdaConfig:
         PreTokenGenerationConfig:
           LambdaArn: !Sub "${PreTokenGenerationHandler.Arn}"
-          LambdaVersion: "V2_0"
+          LambdaVersion: "V3_0"
       Schema:
         - Name: nin
           AttributeDataType: String

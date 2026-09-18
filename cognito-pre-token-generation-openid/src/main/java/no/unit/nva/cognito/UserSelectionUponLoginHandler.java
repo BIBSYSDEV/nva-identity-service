@@ -83,6 +83,8 @@ public class UserSelectionUponLoginHandler
       "Failed to retrieve customer for active affiliation %s when logging in as %s with the"
           + " following affiliations: %s";
   public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
+  public static final String TRIGGER_SOURCE_CLIENT_CREDENTIALS =
+      "TokenGeneration_ClientCredentials";
   // private static final String N_A = "N/A";
   private static final String WHITESPACE_REGEX = "\\s+";
   private static final int ONE = 1;
@@ -93,13 +95,15 @@ public class UserSelectionUponLoginHandler
   private final UserEntriesCreatorForPerson userCreator;
   private final PersonRegistry personRegistry;
   private final TermsAndConditionsService termsService;
+  private final M2MTokenEnricher tokenEnricher;
 
   @JacocoGenerated
   public UserSelectionUponLoginHandler() {
+    var identityService = defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
     this.cognitoClient = defaultCognitoClient();
     this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
-    this.userCreator =
-        new UserEntriesCreatorForPerson(defaultIdentityService(DEFAULT_DYNAMO_CLIENT));
+    this.userCreator = new UserEntriesCreatorForPerson(identityService);
+    this.tokenEnricher = new M2MTokenEnricher(identityService);
     this.termsService = new TermsAndConditionsService();
     this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
   }
@@ -124,6 +128,7 @@ public class UserSelectionUponLoginHandler
     this.customerService = customerService;
     this.personRegistry = personRegistry;
     this.userCreator = new UserEntriesCreatorForPerson(identityService);
+    this.tokenEnricher = new M2MTokenEnricher(identityService);
     this.termsService = termsService;
   }
 
@@ -156,11 +161,15 @@ public class UserSelectionUponLoginHandler
   public CognitoUserPoolPreTokenGenerationEventV2 handleRequest(
       CognitoUserPoolPreTokenGenerationEventV2 input, Context context) {
     try {
-      return processInput(input);
+      return isBackendClient(input) ? tokenEnricher.enrichAccessToken(input) : processInput(input);
     } catch (Exception e) {
       LOGGER.error("Failed to process input due to", e);
       throw e;
     }
+  }
+
+  private static boolean isBackendClient(CognitoUserPoolPreTokenGenerationEventV2 input) {
+    return TRIGGER_SOURCE_CLIENT_CREDENTIALS.equals(input.getTriggerSource());
   }
 
   private CognitoUserPoolPreTokenGenerationEventV2 processInput(

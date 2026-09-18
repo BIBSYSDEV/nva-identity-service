@@ -2233,10 +2233,15 @@ Resources:
 
   ExternalUserPool:
     Type: AWS::Cognito::UserPool
+    DependsOn: ClientPreTokenGenerationHandlerTriggerPermission
     Properties:
       UserPoolTier: "ESSENTIALS"
       AutoVerifiedAttributes:
         - email
+      LambdaConfig:
+        PreTokenGenerationConfig:
+          LambdaArn: !Sub "${ClientPreTokenGenerationHandler.Arn}"
+          LambdaVersion: "V3_0"
       UserPoolName: !GetAtt ExternalUserPoolName.Value
 
   ExternalUserPoolDomain:
@@ -2280,6 +2285,86 @@ Resources:
           CRISTIN_API_URL: !Ref CristinApiUrl
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
       Timeout: 20
+
+  ClientPreTokenGenerationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      LoggingConfig:
+        LogGroup: !Ref ClientPreTokenGenerationHandlerLogGroup
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.ClientPreTokenGenerationHandler::handleRequest
+      Policies:
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+      Tracing: Active
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Enabled: true
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+      Timeout: 5 # Amazon Cognito invokes Lambda functions synchronously. When Amazon Cognito calls your Lambda function, it must respond within 5 seconds...
+
+  ClientPreTokenGenerationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/nva-identity-service/ClientPreTokenGenerationHandler/${AWS::AccountId}"
+      RetentionInDays: !Ref LogRetentionInDays
+
+  ClientPreTokenGenerationHandlerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 1
+      ResourceId: !Sub function:${ClientPreTokenGenerationHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: ClientPreTokenGenerationHandlerAliaslive
+
+  ClientPreTokenGenerationHandlerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ClientPreTokenGenerationHandlerScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ClientPreTokenGenerationHandlerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  ClientPreTokenGenerationHandlerTriggerPermission:
+    DependsOn:
+      - ClientPreTokenGenerationHandlerScalingPolicy
+      - ClientPreTokenGenerationHandlerScalableTarget
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "${ClientPreTokenGenerationHandler.Arn}"
+      Principal: cognito-idp.amazonaws.com
+
+  ClientPreTokenGenerationFailedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Too many client pre token generation requests failed
+      AlarmDescription: If this alarm is triggered, then check cloudwatch logs for ClientPreTokenGenerationHandler.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ClientPreTokenGenerationHandler
+      Period: 60
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
 
   PreTokenGenerationHandlerLogGroup:
     Type: AWS::Logs::LogGroup

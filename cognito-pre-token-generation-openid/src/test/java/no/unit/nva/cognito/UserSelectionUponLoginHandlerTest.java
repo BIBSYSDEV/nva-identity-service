@@ -32,6 +32,7 @@ import static no.unit.nva.cognito.LoginEventType.FEIDE;
 import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
+import static no.unit.nva.cognito.UserSelectionUponLoginHandler.TRIGGER_SOURCE_CLIENT_CREDENTIALS;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.USER_NOT_ALLOWED_TO_IMPERSONATE;
 import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
@@ -50,6 +51,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.notNullValue;
@@ -67,9 +69,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Request;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -105,6 +109,7 @@ import no.unit.nva.stubs.FakeSecretsManagerClient;
 import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -1730,5 +1735,51 @@ class UserSelectionUponLoginHandlerTest {
     var impersonatedByClaim = extractClaimFromCognitoUpdateRequest(IMPERSONATED_BY_CLAIM);
 
     assertThat(impersonatedByClaim, is(equalTo(adminName)));
+  }
+
+  @Test
+  void shouldSetClaimsForBackendClientWhenClientCredentialsIsTriggerSource() {
+    var client =
+        ClientDto.newBuilder()
+            .withClientId(randomString())
+            .withCustomer(randomUri())
+            .withCristinOrgUri(randomUri())
+            .withActingUser(randomString())
+            .build();
+    identityService.addExternalClient(client);
+
+    var response = handler.handleRequest(clientCredentialsEvent(client.getClientId()), context);
+
+    var accessTokenClaims =
+        response
+            .getResponse()
+            .getClaimsAndScopeOverrideDetails()
+            .getAccessTokenGeneration()
+            .getClaimsToAddOrOverride();
+    assertThat(
+        accessTokenClaims, hasEntry(CURRENT_CUSTOMER_CLAIM, client.getCustomer().toString()));
+  }
+
+  @Test
+  void shouldNotLookUpPersonWhenTriggeredByClientCredentials() {
+    var client =
+        ClientDto.newBuilder()
+            .withClientId(randomString())
+            .withCustomer(randomUri())
+            .withCristinOrgUri(randomUri())
+            .withActingUser(randomString())
+            .build();
+    identityService.addExternalClient(client);
+
+    handler.handleRequest(clientCredentialsEvent(client.getClientId()), context);
+
+    verifyNoInteractions(personRegistry);
+  }
+
+  private static CognitoUserPoolPreTokenGenerationEventV2 clientCredentialsEvent(String clientId) {
+    var event = new CognitoUserPoolPreTokenGenerationEventV2();
+    event.setTriggerSource(TRIGGER_SOURCE_CLIENT_CREDENTIALS);
+    event.setCallerContext(CallerContext.builder().withClientId(clientId).build());
+    return event;
   }
 }

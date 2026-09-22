@@ -1,59 +1,58 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import java.net.HttpURLConnection;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.GetExternalClientResponse;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-
-import java.net.HttpURLConnection;
 
 public class GetExternalClientUserinfoHandler
     extends HandlerWithEventualConsistency<Void, GetExternalClientResponse> {
 
-    private IdentityService databaseService;
+  private IdentityService databaseService;
 
-    @JacocoGenerated
-    public GetExternalClientUserinfoHandler() {
-        this(
-            IdentityService.defaultIdentityService()
-        );
-    }
+  @JacocoGenerated
+  public GetExternalClientUserinfoHandler() {
+    this(IdentityService.defaultIdentityService(), new Environment());
+  }
 
-    public GetExternalClientUserinfoHandler(IdentityService databaseService) {
-        super(Void.class);
-        this.databaseService = databaseService;
-    }
+  public GetExternalClientUserinfoHandler(
+      IdentityService databaseService, Environment environment) {
+    super(Void.class, environment);
+    this.databaseService = databaseService;
+  }
 
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        //Do nothing
-    }
+  @Override
+  protected void validateRequest(Void unused, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
+    // Do nothing
+  }
 
-    @Override
-    protected GetExternalClientResponse processInput(Void input, RequestInfo requestInfo,
-                                                     Context context)
-        throws ApiGatewayException {
+  @Override
+  protected GetExternalClientResponse processInput(
+      Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
 
-        var query = ClientDto.newBuilder().withClientId(requestInfo.getClientId().orElseThrow()).build();
-        var result = databaseService.getClient(query);
+    var query =
+        ClientDto.newBuilder().withClientId(requestInfo.getClientId().orElseThrow()).build();
+    var result = databaseService.getClient(query);
 
-        return formatResponse(result);
-    }
+    return formatResponse(result);
+  }
 
-    private GetExternalClientResponse formatResponse(ClientDto clientDto) {
-        return new GetExternalClientResponse(
-            clientDto.getClientId(),
-            clientDto.getCustomer(),
-            clientDto.getCristinOrgUri(),
-            clientDto.getActingUser()
-        );
-    }
+  private GetExternalClientResponse formatResponse(ClientDto clientDto) {
+    return new GetExternalClientResponse(
+        clientDto.getClientId(),
+        clientDto.getCustomer(),
+        clientDto.getCristinOrgUri(),
+        clientDto.getActingUser());
+  }
 
-    @Override
-    protected Integer getSuccessStatusCode(Void input, GetExternalClientResponse output) {
-        return HttpURLConnection.HTTP_OK;
-    }
+  @Override
+  protected Integer getSuccessStatusCode(Void input, GetExternalClientResponse output) {
+    return HttpURLConnection.HTTP_OK;
+  }
 }

@@ -1,29 +1,40 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 dependencies {
-    implementation project (':json-config')
-    implementation project (':dynamo-client')
-    implementation project(":user-access-internal-model")
-    implementation project(":user-access-commons")
-    implementation project(":user-access-service")
-    implementation project(":user-access-public-model")
-
-    implementation project(':customer-commons')
-
-    implementation libs.aws.lambda.java.core
-    implementation libs.aws.sdk2.eventbridge
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.dynamodbenhanced
-
-    implementation libs.nva.events
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.bundles.jackson
-    implementation libs.nva.secrets
-    implementation libs.guava
-    implementation libs.bundles.logging
-
-    testImplementation libs.nva.testutils
-    testImplementation project(":user-access-testing")
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.aws.sdk2.eventbridge)
+    api(nvaLibs.core)
+    api(nvaLibs.eventhandlers)
+    api(project(":user-access-public-model"))
+    api(project(':customer-commons'))
+    implementation(nvaCatalog.aws.sdk2.auth)
+    implementation(nvaCatalog.aws.sdk2.aws.core)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.regions)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.aws.sdk2.urlconnection)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(project(":user-access-internal-model"))
+    implementation(project(":user-access-service"))
+    implementation(project(':dynamo-client'))
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.dynamodbenhanced)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.jackson.core)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaLibs.apigateway)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.secrets)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":user-access-commons"))
+    testImplementation(project(":user-access-testing"))
+    testImplementation(project(':json-config'))
 }
 
 

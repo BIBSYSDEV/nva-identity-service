@@ -1,15 +1,5 @@
 package no.unit.nva.customer.model;
 
-import no.unit.nva.customer.testing.CustomerDataGenerator;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
@@ -25,82 +15,93 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.net.URI;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import no.unit.nva.customer.testing.CustomerDataGenerator;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Test;
+
 class CustomerTest {
 
-    @Test
-    void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
-        CustomerDao customerDb = createCustomerDb();
-        CustomerDto customerDto = customerDb.toCustomerDto();
+  @Test
+  void customerMapperCanMapBetweenCustomerDtoAndCustomerDb() {
+    CustomerDao customerDb = createCustomerDb();
+    CustomerDto customerDto = customerDb.toCustomerDto();
 
-        assertNotNull(customerDto);
-        assertNotNull(customerDto.getId());
+    assertNotNull(customerDto);
+    assertNotNull(customerDto.getId());
 
-        CustomerDao mappedCustomerDB = CustomerDao.fromCustomerDto(customerDto);
-        assertNotNull(mappedCustomerDB);
-    }
+    CustomerDao mappedCustomerDB = CustomerDao.fromCustomerDto(customerDto);
+    assertNotNull(mappedCustomerDB);
+  }
 
-    private CustomerDao createCustomerDb() {
-        Instant now = Instant.now();
+  private CustomerDao createCustomerDb() {
+    Instant now = Instant.now();
 
-        Set<VocabularyDao> vocabularySettings = new HashSet<>();
-        vocabularySettings.add(vocabularySetting());
+    Set<VocabularyDao> vocabularySettings = new HashSet<>();
+    vocabularySettings.add(vocabularySetting());
 
-        return new CustomerDao.Builder()
-            .withIdentifier(UUID.randomUUID())
-            .withName("Name")
-            .withShortName("SN")
-            .withCreatedDate(now)
-            .withModifiedDate(now)
-            .withDisplayName("Display Name")
-            .withArchiveName("Archive Name")
-            .withCname("CNAME")
-            .withInstitutionDns("institution.dns")
-            .withFeideOrganizationDomain("123456789")
-            .withCristinId(randomCristinOrgId())
-            .withCustomerOf(randomApplicationDomainUri())
-            .withVocabularySettings(vocabularySettings)
-            .withRorId(randomUri())
-            .withPublicationWorkflow(randomPublicationWorkflow())
-            .withDoiAgent(CustomerDataGenerator.randomDoiAgent(randomString()))
-            .withRightsRetentionStrategy(randomRightsRetentionStrategy())
-            .build();
-    }
+    return new CustomerDao.Builder()
+        .withIdentifier(UUID.randomUUID())
+        .withName("Name")
+        .withShortName("SN")
+        .withCreatedDate(now)
+        .withModifiedDate(now)
+        .withDisplayName("Display Name")
+        .withArchiveName("Archive Name")
+        .withCname("CNAME")
+        .withInstitutionDns("institution.dns")
+        .withFeideOrganizationDomain("123456789")
+        .withCristinId(randomCristinOrgId())
+        .withCustomerOf(randomApplicationDomainUri())
+        .withVocabularySettings(vocabularySettings)
+        .withRorId(randomUri())
+        .withPublicationWorkflow(randomPublicationWorkflow())
+        .withDoiAgent(CustomerDataGenerator.randomDoiAgent(randomString()))
+        .withRightsRetentionStrategy(randomRightsRetentionStrategy())
+        .build();
+  }
 
-    private VocabularyDao vocabularySetting() {
-        return new VocabularyDao(
-            "Vocabulary A",
-            URI.create("http://uri.to.vocabulary.a"),
-            VocabularyStatus.lookUp("Default")
-        );
-    }
+  private VocabularyDao vocabularySetting() {
+    return new VocabularyDao(
+        "Vocabulary A",
+        URI.create("http://uri.to.vocabulary.a"),
+        VocabularyStatus.lookUp("Default"));
+  }
 
-    @Test
-    void customerMapperCanMapCustomerDbToCustomerDto() {
-        CustomerDao customerDb = createCustomerDb();
-        CustomerDto customerDto = customerDb.toCustomerDto();
-        assertNotNull(customerDto);
-        assertNotNull(customerDto.getContext());
-    }
+  @Test
+  void customerMapperCanMapCustomerDbToCustomerDto() {
+    CustomerDao customerDb = createCustomerDb();
+    CustomerDto customerDto = customerDb.toCustomerDto();
+    assertNotNull(customerDto);
+    assertNotNull(customerDto.getContext());
+  }
 
-    @Test
-    void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
-        String value = "Unknown";
-        IllegalArgumentException actual = assertThrows(IllegalArgumentException.class,
-            () -> VocabularyStatus.lookUp(value));
+  @Test
+  void lookupUnknownVocabularyStatusThrowsIllegalArgumentException() {
+    String value = "Unknown";
+    IllegalArgumentException actual =
+        assertThrows(IllegalArgumentException.class, () -> VocabularyStatus.lookUp(value));
 
-        String expectedMessage = format(ERROR_MESSAGE_TEMPLATE, value,
+    String expectedMessage =
+        format(
+            ERROR_MESSAGE_TEMPLATE,
+            value,
             stream(VocabularyStatus.values())
                 .map(VocabularyStatus::toString)
                 .collect(joining(VocabularyStatus.DELIMITER)));
 
-        assertEquals(expectedMessage, actual.getMessage());
-    }
+    assertEquals(expectedMessage, actual.getMessage());
+  }
 
-    @Test
-    void vocacularySettingsDoesNotContainDuplicates() {
-        CustomerDao customerDb = createCustomerDb();
-        customerDb.getVocabularies().add(vocabularySetting());
+  @Test
+  void vocacularySettingsDoesNotContainDuplicates() {
+    CustomerDao customerDb = createCustomerDb();
+    customerDb.getVocabularies().add(vocabularySetting());
 
-        assertThat(customerDb.getVocabularies().size(), Matchers.is(Matchers.equalTo(1)));
-    }
+    assertThat(customerDb.getVocabularies().size(), Matchers.is(Matchers.equalTo(1)));
+  }
 }

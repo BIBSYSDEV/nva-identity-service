@@ -1,39 +1,40 @@
 package no.unit.nva.customer;
 
-import com.google.common.net.MediaType;
-import no.unit.nva.customer.service.CustomerService;
-import nva.commons.apigateway.ApiGatewayHandler;
-import nva.commons.apigateway.MediaTypes;
-import nva.commons.apigateway.RequestInfo;
+import static nva.commons.core.attempt.Try.attempt;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static nva.commons.core.attempt.Try.attempt;
+import no.unit.nva.customer.service.CustomerService;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.MediaType;
+import nva.commons.apigateway.MediaTypes;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.core.Environment;
 
 public abstract class ControlledVocabularyHandler<I, O> extends ApiGatewayHandler<I, O> {
 
-    public static final String IDENTIFIER_PATH_PARAMETER = "identifier";
+  public static final String IDENTIFIER_PATH_PARAMETER = "identifier";
 
-    public static final List<MediaType> SUPPORTED_MEDIA_TYPES =
-        List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
-    protected final CustomerService customerService;
+  public static final List<MediaType> SUPPORTED_MEDIA_TYPES =
+      List.of(MediaType.JSON_UTF_8, MediaTypes.APPLICATION_JSON_LD);
+  protected final CustomerService customerService;
 
-    public ControlledVocabularyHandler(CustomerService customerService, Class<I> inputClass) {
-        super(inputClass);
-        this.customerService = customerService;
-    }
+  public ControlledVocabularyHandler(
+      CustomerService customerService, Class<I> inputClass, Environment environment) {
+    super(inputClass, environment);
+    this.customerService = customerService;
+  }
 
-    protected static UUID extractIdentifier(RequestInfo requestInfo) {
-        return attempt(() -> RequestUtils.getPathParameter(requestInfo, IDENTIFIER_PATH_PARAMETER))
-            .map(Optional::orElseThrow)
-            .map(UUID::fromString)
-            .orElseThrow();
-    }
+  protected static UUID extractIdentifier(RequestInfo requestInfo) {
+    return attempt(() -> RequestUtils.getPathParameter(requestInfo, IDENTIFIER_PATH_PARAMETER))
+        .map(Optional::orElseThrow)
+        .map(UUID::fromString)
+        .orElseThrow();
+  }
 
-    @Override
-    protected final List<MediaType> listSupportedMediaTypes() {
-        return SUPPORTED_MEDIA_TYPES;
-    }
+  @Override
+  protected final List<MediaType> listSupportedMediaTypes() {
+    return SUPPORTED_MEDIA_TYPES;
+  }
 }

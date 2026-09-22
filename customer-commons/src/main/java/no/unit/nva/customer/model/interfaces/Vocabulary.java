@@ -3,27 +3,22 @@ package no.unit.nva.customer.model.interfaces;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import java.net.URI;
 import no.unit.nva.customer.model.VocabularyStatus;
 
-import java.net.URI;
-
-@SuppressWarnings("PMD.ExcessivePublicCount")
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = As.PROPERTY,
-    property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.PROPERTY, property = "type")
 @JsonTypeName("Vocabulary")
 public interface Vocabulary {
 
-    String getName();
+  String getName();
 
-    void setName(String name);
+  void setName(String name);
 
-    URI getId();
+  URI getId();
 
-    void setId(URI id);
+  void setId(URI id);
 
-    VocabularyStatus getStatus();
+  VocabularyStatus getStatus();
 
-    void setStatus(VocabularyStatus status);
+  void setStatus(VocabularyStatus status);
 }

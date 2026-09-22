@@ -1,44 +1,38 @@
-dependencies {
-    implementation project(":json-config")
-    implementation project(":dynamo-client")
-    implementation project (":customer-commons")
-    implementation project (":user-access-commons")
-    implementation project (":user-access-service")
-    implementation project (":user-access-public-model")
-
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.nva.secrets
-    implementation libs.nva.auth
-    implementation libs.nva.json
-
-    implementation libs.aws.java.sdk2.cognitoidp
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.lambda.java.core
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.aws.lambda.events
-    implementation libs.zalando.problem
-    implementation libs.jackson.datatype.problem
-
-
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.secrets
-
-
-    testImplementation libs.guava
-    testImplementation libs.nva.events
-
-    testImplementation project (":user-access-internal-model")
-    testImplementation project (":user-creation-testing")
-    testImplementation project (":customer-testing")
-    testImplementation project(':user-access-testing')
+plugins {
+    id 'nva.identity.service.java-common-conventions'
 }
 
-test{
+dependencies {
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.zalando)
+    api(nvaLibs.secrets)
+    api(project(":customer-commons"))
+    api(project(":user-access-public-model"))
+    api(project(":user-access-service"))
+    implementation(nvaCatalog.jackson.core)
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.apigateway)
+    implementation(nvaLibs.core)
+    implementation(nvaLibs.json)
+    implementation(project(":user-access-commons"))
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.dynamo)
+    testImplementation(nvaCatalog.aws.sdk2.secrets)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.wiremock.junit5)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":customer-testing"))
+    testImplementation(project(":user-creation-testing"))
+    testImplementation(project(':user-access-testing'))
+}
+
+test {
     environment "API_DOMAIN", "localhost"
+    environment "BASE_PATH", "users-roles"
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"

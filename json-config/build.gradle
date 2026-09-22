@@ -1,4 +1,8 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 dependencies{
-    implementation libs.nva.json
-    implementation libs.bundles.jackson
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaLibs.json)
 }

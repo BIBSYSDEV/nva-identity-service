@@ -1,21 +1,5 @@
 package no.unit.nva.database;
 
-import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
-import no.unit.nva.useraccessservice.model.RoleDto;
-import nva.commons.apigateway.exceptions.ConflictException;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.logutils.LogUtils;
-import nva.commons.logutils.TestAppender;
-import org.hamcrest.core.StringContains;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-
-import java.util.Set;
-
 import static no.unit.nva.database.RoleService.ROLE_NOT_FOUND_MESSAGE;
 import static nva.commons.apigateway.AccessRight.MANAGE_DOI;
 import static nva.commons.apigateway.AccessRight.MANAGE_PUBLISHING_REQUESTS;
@@ -29,82 +13,100 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
+import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
+import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
+import no.unit.nva.useraccessservice.model.RoleDto;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.logutils.LogRecorder;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+
 public class IdentityServiceImplTest extends LocalIdentityService {
 
-    public static final String EXPECTED_EXCEPTION_MESSAGE = "ExpectedExceptionMessage";
+  public static final String EXPECTED_EXCEPTION_MESSAGE = "ExpectedExceptionMessage";
 
-    private IdentityService databaseService;
+  private IdentityService databaseService;
 
-    @BeforeEach
-    public void init() throws InvalidEntryInternalException {
-        databaseService = new IdentityServiceImpl(initializeTestDatabase());
-    }
+  @BeforeEach
+  public void init() throws InvalidEntryInternalException {
+    databaseService = new IdentityServiceImpl(initializeTestDatabase());
+  }
 
-    @Test
-    public void shouldThrowExceptionWhenClientThrowsException()
-        throws InvalidEntryInternalException {
+  @Test
+  public void shouldThrowExceptionWhenClientThrowsException() throws InvalidEntryInternalException {
 
-        IdentityService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();
-        RoleDto sampleRole = EntityUtils.createRole(EntityUtils.randomRoleName());
-        Executable action = () -> serviceThrowingException.getRole(sampleRole);
-        RuntimeException exception = assertThrows(RuntimeException.class, action);
+    IdentityService serviceThrowingException = mockServiceThrowsExceptionWhenLoadingRole();
+    RoleDto sampleRole = EntityUtils.createRole(EntityUtils.randomRoleName());
+    Executable action = () -> serviceThrowingException.getRole(sampleRole);
+    RuntimeException exception = assertThrows(RuntimeException.class, action);
 
-        assertThat(exception.getMessage(), containsString(EXPECTED_EXCEPTION_MESSAGE));
-    }
+    assertThat(exception.getMessage(), containsString(EXPECTED_EXCEPTION_MESSAGE));
+  }
 
-    private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
-        DynamoDbClient failingClient = mockMapperThrowingException();
-        return new IdentityServiceImpl(failingClient);
-    }
+  private IdentityService mockServiceThrowsExceptionWhenLoadingRole() {
+    DynamoDbClient failingClient = mockMapperThrowingException();
+    return new IdentityServiceImpl(failingClient);
+  }
 
-    private DynamoDbClient mockMapperThrowingException() {
-        DynamoDbClient failingClient = mock(DynamoDbClient.class);
-        when(failingClient.getItem(any(GetItemRequest.class)))
-            .thenAnswer(ignored -> {
-                throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
+  private DynamoDbClient mockMapperThrowingException() {
+    DynamoDbClient failingClient = mock(DynamoDbClient.class);
+    when(failingClient.getItem(any(GetItemRequest.class)))
+        .thenAnswer(
+            ignored -> {
+              throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
             });
-        return failingClient;
-    }
+    return failingClient;
+  }
 
-    @Test
-    public void getRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
-        TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
-        RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
-        attempt(() -> databaseService.getRole(nonExistingRole));
-        assertThat(testAppender.getMessages(),
-            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
-    }
+  @Test
+  public void getRoleLogsWarningWhenNotFoundExceptionIsThrown()
+      throws InvalidEntryInternalException {
+    var logRecorder = LogRecorder.forClass(RoleService.class);
+    RoleDto nonExistingRole = EntityUtils.createRole(EntityUtils.randomRoleName());
+    attempt(() -> databaseService.getRole(nonExistingRole));
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains(ROLE_NOT_FOUND_MESSAGE));
+  }
 
-    @Test
-    void shouldSucceedUpdatingAnExistingRole() throws InvalidInputException, ConflictException, NotFoundException {
-        var existingRole = EntityUtils.createRole(EntityUtils.randomRoleName(), MANAGE_DOI);
-        databaseService.addRole(existingRole);
+  @Test
+  void shouldSucceedUpdatingAnExistingRole()
+      throws InvalidInputException, ConflictException, NotFoundException {
+    var existingRole = EntityUtils.createRole(EntityUtils.randomRoleName(), MANAGE_DOI);
+    databaseService.addRole(existingRole);
 
-        var updatedAccessRights = Set.of(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS);
-        var roleToUpdate = existingRole.copy().withAccessRights(updatedAccessRights).build();
+    var updatedAccessRights = Set.of(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS);
+    var roleToUpdate = existingRole.copy().withAccessRights(updatedAccessRights).build();
 
-        databaseService.updateRole(roleToUpdate);
+    databaseService.updateRole(roleToUpdate);
 
-        var updatedRole = databaseService.getRole(roleToUpdate);
-        assertThat(updatedRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS));
-    }
+    var updatedRole = databaseService.getRole(roleToUpdate);
+    assertThat(
+        updatedRole.getAccessRights(), containsInAnyOrder(MANAGE_DOI, MANAGE_PUBLISHING_REQUESTS));
+  }
 
-    @Test
-    void updateRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
-        TestAppender testAppender = LogUtils.getTestingAppender(RoleService.class);
-        RoleDto role = EntityUtils.createRole(EntityUtils.randomRoleName());
-        assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
-        assertThat(testAppender.getMessages(),
-            StringContains.containsString(ROLE_NOT_FOUND_MESSAGE));
-    }
+  @Test
+  void updateRoleLogsWarningWhenNotFoundExceptionIsThrown() throws InvalidEntryInternalException {
+    var logRecorder = LogRecorder.forClass(RoleService.class);
+    RoleDto role = EntityUtils.createRole(EntityUtils.randomRoleName());
+    assertThrows(NotFoundException.class, () -> databaseService.updateRole(role));
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains(ROLE_NOT_FOUND_MESSAGE));
+  }
 
-    @Test
-    void shouldListAllUsersWhenDatabseAlsoIncludesRoles() throws ConflictException, InvalidInputException {
-        databaseService.addUser(EntityUtils.createUser());
-        databaseService.addUser(EntityUtils.createUser());
-        databaseService.addRole(EntityUtils.createRole(EntityUtils.randomRoleName()));
+  @Test
+  void shouldListAllUsersWhenDatabseAlsoIncludesRoles()
+      throws ConflictException, InvalidInputException {
+    databaseService.addUser(EntityUtils.createUser());
+    databaseService.addUser(EntityUtils.createUser());
+    databaseService.addRole(EntityUtils.createRole(EntityUtils.randomRoleName()));
 
-        var users = databaseService.listAllUsers();
-        assertThat(users, hasSize(2));
-    }
+    var users = databaseService.listAllUsers();
+    assertThat(users, hasSize(2));
+  }
 }

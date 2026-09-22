@@ -1,11 +1,5 @@
 package no.unit.nva.database;
 
-import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
-import nva.commons.apigateway.exceptions.NotFoundException;
-import nva.commons.core.Environment;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
@@ -16,88 +10,81 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 public class TermsAndConditionsServiceTest {
 
-    private static TermsAndConditionsService termsConditionsService;
+  private static TermsAndConditionsService termsConditionsService;
 
-    @BeforeAll
-    static void initialize() {
-        var client = DatabaseTestConfig
-                .getEmbeddedClient();
-        var termsTable = "TermsTable";
+  @BeforeAll
+  static void initialize() {
+    var client = DatabaseTestConfig.getEmbeddedClient();
+    var termsTable = "TermsTable";
 
-        new SingleTableTemplateCreator(client)
-                .createTable(termsTable);
+    new SingleTableTemplateCreator(client).createTable(termsTable);
 
-        var environment = mock(Environment.class);
-        when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(termsTable);
+    var environment = mock(Environment.class);
+    when(environment.readEnv(TERMS_TABLE_NAME_ENV)).thenReturn(termsTable);
 
-        termsConditionsService = new TermsAndConditionsService(client, environment);
+    termsConditionsService = new TermsAndConditionsService(client, environment);
+  }
 
-    }
+  @Test
+  void shouldUpdateTermsConditions() throws NotFoundException {
+    var cristinPersonId = randomUri();
+    var userId = randomString();
+    var expectedResponse =
+        TermsConditionsResponse.builder().withTermsConditionsUri(randomUri()).build();
 
-    @Test
-    void shouldUpdateTermsConditions() throws NotFoundException {
-        var cristinPersonId = randomUri();
-        var userId = randomString();
-        var expectedResponse = TermsConditionsResponse.builder()
-                .withTermsConditionsUri(randomUri())
-                .build();
+    var response =
+        termsConditionsService.updateTermsAndConditions(
+            cristinPersonId, expectedResponse.termsConditionsUri(), userId);
 
-        var response = termsConditionsService
-                .updateTermsAndConditions(
-                        cristinPersonId,
-                        expectedResponse.termsConditionsUri(),
-                        userId
-                );
+    var fetchedResponse = termsConditionsService.getTermsAndConditionsByPerson(cristinPersonId);
 
-        var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(cristinPersonId);
+    assertThat(expectedResponse, is(equalTo(response)));
+    assertThat(expectedResponse, is(equalTo(fetchedResponse)));
+  }
 
+  @Test
+  void shouldReturnCurrentTermsConditions() {
+    var currentTermsAndConditions = termsConditionsService.getCurrentTermsAndConditions();
+    assertThat(
+        currentTermsAndConditions.termsConditionsUri(),
+        is(equalTo(TermsAndConditionsService.TERMS_URL)));
+  }
 
-        assertThat(expectedResponse, is(equalTo(response)));
-        assertThat(expectedResponse, is(equalTo(fetchedResponse)));
-    }
+  @Test
+  void shouldReturnTermsConditionsByPerson() throws NotFoundException {
+    var cristinPersonId = randomUri();
+    var userId = randomString();
 
-    @Test
-    void shouldReturnCurrentTermsConditions() {
-        var currentTermsAndConditions = termsConditionsService.getCurrentTermsAndConditions();
-        assertThat(currentTermsAndConditions.termsConditionsUri(), is(equalTo(TermsAndConditionsService.TERMS_URL)));
-    }
+    var expectedResponse =
+        TermsConditionsResponse.builder().withTermsConditionsUri(randomUri()).build();
 
-    @Test
-    void shouldReturnTermsConditionsByPerson() throws NotFoundException {
-        var cristinPersonId = randomUri();
-        var userId = randomString();
+    termsConditionsService.updateTermsAndConditions(
+        cristinPersonId, expectedResponse.termsConditionsUri(), userId);
 
-        var expectedResponse = TermsConditionsResponse.builder()
-                .withTermsConditionsUri(randomUri())
-                .build();
+    var fetchedResponse = termsConditionsService.getTermsAndConditionsByPerson(cristinPersonId);
 
-        termsConditionsService
-                .updateTermsAndConditions(
-                    cristinPersonId,
-                        expectedResponse.termsConditionsUri(),
-                        userId
-                );
+    assertThat(expectedResponse, is(equalTo(fetchedResponse)));
+  }
 
-        var fetchedResponse = termsConditionsService
-                .getTermsAndConditionsByPerson(cristinPersonId);
+  @Test
+  void shouldReturnAllTermsConditions() {
+    var allTermsAndConditions = termsConditionsService.getAllTermsAndConditions();
+    assertThat(allTermsAndConditions.size(), is(equalTo(1)));
+  }
 
-        assertThat(expectedResponse, is(equalTo(fetchedResponse)));
-    }
-
-    @Test
-    void shouldReturnAllTermsConditions() {
-        var allTermsAndConditions = termsConditionsService.getAllTermsAndConditions();
-        assertThat(allTermsAndConditions.size(), is(equalTo(1)));
-    }
-
-    @Test
-    void shouldReturnNullWhenTermsConditionsNotFound() {
-        var cristinPersonId = randomUri();
-        var termsAndConditionsByPerson = termsConditionsService.getTermsAndConditionsByPerson(cristinPersonId);
-        assertNull(termsAndConditionsByPerson);
-    }
-
+  @Test
+  void shouldReturnNullWhenTermsConditionsNotFound() {
+    var cristinPersonId = randomUri();
+    var termsAndConditionsByPerson =
+        termsConditionsService.getTermsAndConditionsByPerson(cristinPersonId);
+    assertNull(termsAndConditionsByPerson);
+  }
 }

@@ -1,45 +1,22 @@
-dependencies {
-
-
-    implementation project(":json-config")
-    implementation project(":dynamo-client")
-    implementation project (":customer-commons")
-    implementation project (":user-access-commons")
-    implementation project (":user-access-service")
-    implementation project (":user-access-public-model")
-    implementation project(":user-creation")
-
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.nva.secrets
-    implementation libs.nva.auth
-    implementation libs.nva.json
-
-    implementation libs.aws.java.sdk2.cognitoidp
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.lambda.java.core
-    implementation libs.bundles.jackson
-    implementation libs.aws.lambda.events
-    implementation libs.zalando.problem
-    implementation libs.jackson.datatype.problem
-
-
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.secrets
-
-
-    implementation libs.guava
-    implementation libs.nva.events
-    implementation libs.bundles.testing
-    implementation project (":user-access-internal-model")
-    implementation project (":customer-testing")
-    implementation project(':user-access-testing')
+plugins {
+    id 'nva.identity.service.java-common-conventions'
 }
 
-test{
+dependencies {
+    api(nvaLibs.apigateway)
+    api(project(":customer-commons"))
+    api(project(":user-access-commons"))
+    api(project(":user-access-public-model"))
+    api(project(":user-access-service"))
+    api(project(":user-creation"))
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.wiremock.core)
+    implementation(nvaLibs.core)
+    implementation(nvaLibs.json)
+    implementation(nvaLibs.testutils)
+}
 
+test {
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "localhost"

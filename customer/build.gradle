@@ -1,26 +1,49 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 dependencies {
-    implementation project(":customer-commons")
-    implementation project(":json-config")
-
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.nva.secrets
-    implementation libs.nva.json
-    implementation libs.bundles.aws.lambda
-    implementation libs.bundles.logging
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.guava
-    implementation libs.bundles.jackson
-    testImplementation libs.apache.httpclient
-    testImplementation libs.dynamoDbLocal
-    testImplementation project(":customer-testing")
-    testImplementation project(":user-access-testing")
-
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.aws.lambda.events)
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.aws.sdk2.eventbridge)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.core)
+    api(nvaCatalog.jackson.databind)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    api(nvaLibs.secrets)
+    api(project(":customer-commons"))
+    implementation(nvaCatalog.aws.sdk2.dynamodbenhanced)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.jackson.datatype.jdk8)
+    implementation(nvaCatalog.jackson.datatype.jsr310)
+    implementation(nvaCatalog.jackson.datatype.problem)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.json)
+    implementation(project(":json-config"))
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.aws.core)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.httpcore4)
+    testImplementation(nvaCatalog.httpcore5)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaCatalog.zalando)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":customer-testing"))
 }
 
 test {
     environment "API_DOMAIN", "localhost"
     environment "CUSTOMERS_TABLE_NAME", "nva_customers"
-    environment "ID_NAMESPACE", "https://localhost"
+    environment "ID_NAMESPACE", "https://localhost/customer"
     environment "ALLOWED_ORIGIN", "*"
+    environment "API_HOST", "localhost"
+    environment "PUBLICATION_CHANNEL_PATH", "publication-channels-path"
+    environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }

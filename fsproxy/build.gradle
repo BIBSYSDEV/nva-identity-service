@@ -1,12 +1,19 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 dependencies {
-
-    implementation libs.nva.core
-    implementation libs.nva.json
-    implementation libs.bundles.jackson
-    implementation libs.nva.apigateway
-    implementation libs.bundles.logging
-
-
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.core)
+    api(nvaLibs.json)
+    implementation(nvaCatalog.jackson.databind)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.core)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.wiremock.core)
+    testImplementation(nvaLibs.testutils)
 }
 
 test {

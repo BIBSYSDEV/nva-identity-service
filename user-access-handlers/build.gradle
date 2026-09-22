@@ -1,46 +1,56 @@
-dependencies {
-
-    implementation project(':user-access-commons')
-    implementation project(':user-access-public-model')
-    implementation project(':user-access-service')
-    implementation project(':user-creation')
-    implementation project(':customer-commons')
-    implementation project(':json-config')
-    implementation project(':user-creation')
-
-    implementation libs.aws.java.sdk2.cognitoidp
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.nva.lambdaauthorizer
-    implementation libs.nva.secrets
-    implementation libs.nva.identifiers
-    implementation libs.aws.lambda.events
-    implementation libs.bundles.aws.lambda
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.nva.json
-
-
-    implementation libs.aws.sdk2.secrets
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-
-    testImplementation libs.apache.httpclient
-    testImplementation project(':user-access-internal-model')
-    testImplementation project(':user-access-testing')
-    testImplementation project(':customer-testing')
-    testImplementation project(':user-creation-testing')
+plugins {
+    id 'nva.identity.service.java-common-conventions'
 }
 
-test{
+dependencies {
+    api(libs.aws.sdk2.cognitoidentityprovider)
+    api(nvaCatalog.aws.lambda.core)
+    api(nvaCatalog.aws.sdk2.regions)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaCatalog.jackson.databind)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    api(project(':customer-commons'))
+    api(project(':user-access-commons'))
+    api(project(':user-access-public-model'))
+    api(project(':user-access-service'))
+    api(project(':user-creation'))
+    implementation(nvaCatalog.aws.sdk2.auth)
+    implementation(nvaCatalog.aws.sdk2.aws.core)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.aws.sdk2.urlconnection)
+    implementation(nvaCatalog.jackson.core)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.aws.sdk2.dynamo)
+    testImplementation(nvaCatalog.aws.sdk2.secrets)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.httpcore5)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaCatalog.wiremock.junit5)
+    testImplementation(nvaCatalog.zalando)
+    testImplementation(nvaLibs.json)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.secrets)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(':customer-testing'))
+    testImplementation(project(':json-config'))
+    testImplementation(project(':user-access-testing'))
+    testImplementation(project(':user-creation-testing'))
+}
+
+test {
     environment "TERMS_TABLE_NAME", "TermsTable"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "API_KEY_SECRET_NAME", "ApiKeySecretName"
     environment "API_KEY_SECRET_KEY", "ApiKeySecretKey"
     environment "AWS_REGION", "eu-west-1"
     environment "API_DOMAIN", "localhost" //necessary to be localhost because of wiremock
+    environment "BASE_PATH", "users-roles"
     environment "CUSTOMERS_TABLE_NAME", "CustomersTable"
     environment "SIKT_CRISTIN_ID", "https://example.org/sikt/cristin/id"
     environment "ID_NAMESPACE", "https://www.example.org/namespace/"
@@ -53,4 +63,5 @@ test{
     environment "BOT_FILTER_BYPASS_HEADER_VALUE", "ExampleHeaderValue"
     environment "USER_POOL_ID", "eu-west-1-some-id"
     environment "BACKEND_CLIENT_ID", "some-client-id"
+    environment "COGNITO_AUTHORIZER_URLS", "http://localhost:3000"
 }

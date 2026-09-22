@@ -4,8 +4,7 @@ import java.net.URI;
 
 public interface Resource {
 
-    URI getId();
+  URI getId();
 
-    void setId(URI id);
-
+  void setId(URI id);
 }

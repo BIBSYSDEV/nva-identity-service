@@ -9,20 +9,20 @@ paths:
       summary: Selects Customer for User
       operationId: setLoginCustomer
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/frontend"]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CustomerSelection'
+              $ref: "#/components/schemas/CustomerSelection"
       responses:
-        '200':
+        "200":
           description: Successful login
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerSelectionHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: aws_proxy
   /roles/{role}:
@@ -30,7 +30,7 @@ paths:
       summary: Gets an existing Role
       operationId: getRole
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - in: path
           name: role
@@ -38,31 +38,16 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Successful fetching of role. Returns the requested role
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/Role'
+                $ref: "#/components/schemas/Role"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetRoleHandler.Arn}/invocations
-        responses: { }
-        httpMethod: POST
-        type: aws_proxy
-  /userinfo:
-    get:
-      summary: Selects Customer for User
-      operationId: getUserinfo
-      security:
-        - CognitoUserPool: [ "aws.cognito.signin.user.admin" ]
-      responses:
-        '200':
-          description: Return OpenID user info for testing clients that do not have openid scope
-      x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CognitoUserInfoHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: aws_proxy
   /users:
@@ -70,38 +55,38 @@ paths:
       summary: Create user
       operationId: createUser
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: "#/components/schemas/CreateUserRequest"
       responses:
-        '200':
+        "200":
           description: Ok, user already exists
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/User'
-        '201':
+                $ref: "#/components/schemas/User"
+        "201":
           description: Successful creation of user
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/User'
-        '409':
+                $ref: "#/components/schemas/User"
+        "409":
           description: Conflict
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/Problem'
-        '502':
+                $ref: "#/components/schemas/Problem"
+        "502":
           description: Bad gateway
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateUserHandler.Arn}/invocations
@@ -113,7 +98,7 @@ paths:
       summary: Gets an existing User
       operationId: getUser
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - in: path
           name: username
@@ -121,12 +106,12 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Successful fetching of User. Returns the requested User
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
 
       x-amazon-apigateway-integration:
         uri:
@@ -138,7 +123,7 @@ paths:
       summary: Updates an existing User
       operationId: updateUser
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - in: path
           name: username
@@ -150,9 +135,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: "#/components/schemas/User"
       responses:
-        '202':
+        "202":
           description: Successful request for updating the user. User will be eventually updated
           headers:
             Location:
@@ -170,42 +155,42 @@ paths:
       summary: Updates Terms and agreement for an existing User (person)
       operationId: updatePersonTermsConditionsHandler
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpsertTermsConditionsRequest'
+              $ref: "#/components/schemas/UpsertTermsConditionsRequest"
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpsertTermsConditionsRequest'
-        '401':
+                $ref: "#/components/schemas/UpsertTermsConditionsRequest"
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 UnauthorizedExample:
-                  $ref: '#/components/examples/UnauthorizedProblemExample'
-        '502':
+                  $ref: "#/components/examples/UnauthorizedProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                  $ref: "#/components/examples/BadGatewayProblemExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdatePersonTermsConditionsHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: aws_proxy
   /impersonation/stop:
@@ -213,9 +198,9 @@ paths:
       operationId: impersonationStop
       summary: Stops impersonating as another user. Used by admins for support.
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       responses:
-        '200':
+        "200":
           description: Successful stoped impersonating user. Upon next login you will get your own claims.
       x-amazon-apigateway-integration:
         uri:
@@ -228,15 +213,15 @@ paths:
       summary: Impersonate as another user. Used by admins for support. Will generate login claims as if you were someone else.
       operationId: impersonationStart
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NationalIdentificationNumberBody'
+              $ref: "#/components/schemas/NationalIdentificationNumberBody"
       responses:
-        '200':
+        "200":
           description: Successful impersonated as user. Upon next login you will get claims as if you were the impersonated person
       x-amazon-apigateway-integration:
         uri:
@@ -249,13 +234,13 @@ paths:
       summary: Access current terms & conditions
       operationId: getCurrentTermsConditionsHandler
       responses:
-        '200':
+        "200":
           description: Returns the externalClient
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/TermsConditions'
-        '400':
+                $ref: "#/components/schemas/TermsConditions"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -265,7 +250,7 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetCurrentTermsConditionsHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: aws_proxy
 
@@ -281,14 +266,15 @@ paths:
             - "https://api.nva.unit.no/scopes/third-party/ticket-read"
             - "https://api.nva.unit.no/scopes/third-party/reporting-read"
             - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
+            - "https://api.nva.unit.no/scopes/third-party/approval-upsert"
       responses:
-        '200':
+        "200":
           description: Returns the externalClient
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/ExternalClient'
-        400:
+                $ref: "#/components/schemas/ExternalClient"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -297,28 +283,28 @@ paths:
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetExternalClientUserinfoHandler.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: aws_proxy
     post:
       summary: Adds new external client
       operationId: createExternalClient
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExternalClientRequest'
+              $ref: "#/components/schemas/ExternalClientRequest"
       responses:
-        '200':
+        "200":
           description: Successful creation of external user. Returns the credentials for the generated user
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/ExternalClientWithCredentials'
-        400:
+                $ref: "#/components/schemas/ExternalClientWithCredentials"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -341,15 +327,15 @@ paths:
       summary: Get a stored client and its associated customer
       operationId: getExternalClient
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       responses:
-        '200':
+        "200":
           description: Returns the externalClient
           content:
             "application/json":
               schema:
-                $ref: '#/components/schemas/ExternalClient'
-        400:
+                $ref: "#/components/schemas/ExternalClient"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -366,7 +352,7 @@ paths:
       summary: Lists users of specified
       operationId: listInstitutionUsers
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend"]
       parameters:
         - name: institution
           description: UUID of institution
@@ -387,14 +373,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List of users belonging in the specified institute
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: "#/components/schemas/User"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListByInstitutionHandler.Arn}/invocations
@@ -436,7 +422,7 @@ components:
         accessRight:
           type: array
           items:
-            $ref: '#/components/schemas/AccessRight'
+            $ref: "#/components/schemas/AccessRight"
     User:
       type: object
       properties:
@@ -451,13 +437,13 @@ components:
         roles:
           type: array
           items:
-            $ref: '#/components/schemas/Role'
+            $ref: "#/components/schemas/Role"
         accessRight:
           type: array
           items:
-            $ref: '#/components/schemas/AccessRight'
+            $ref: "#/components/schemas/AccessRight"
         viewingScope:
-          $ref: '#/components/schemas/ViewingScope'
+          $ref: "#/components/schemas/ViewingScope"
     UpsertTermsConditionsRequest:
       type: object
       required:
@@ -481,9 +467,9 @@ components:
         roles:
           type: array
           items:
-            $ref: '#/components/schemas/Role'
+            $ref: "#/components/schemas/Role"
         viewingScope:
-          $ref: '#/components/schemas/ViewingScope'
+          $ref: "#/components/schemas/ViewingScope"
     NationalIdentificationNumberBody:
       properties:
         nin:
@@ -505,7 +491,7 @@ components:
         scopes:
           type: array
           items:
-              type: string
+            type: string
           description: Scopes that the client should have access to
     ExternalClient:
       properties:
@@ -543,10 +529,10 @@ components:
     ViewingScope:
       properties:
         includedUnits:
-            type: array
-            items:
-              type: string
-              format: uri
+          type: array
+          items:
+            type: string
+            format: uri
     CustomerSelection:
       properties:
         customerId:
@@ -559,15 +545,12 @@ components:
       type: object
       description: NVA license agreement
       required:
-        - id
-        - validFrom
+        - termsConditionsUri
       properties:
-        id:
+        termsConditionsUri:
           type: string
-          description: URI to our license agreement
-        validFrom:
-          type: string
-          description: LocalDateTime
+          description: URI to the terms and conditions
+          format: uri
     Problem:
       type: object
       description: NVA error reporting object
@@ -600,26 +583,26 @@ components:
         type: about:blank
         status: 400
         title: Bad Request
-        detail: 'Identifier is not a valid UUID: HelloWorld!'
+        detail: "Identifier is not a valid UUID: HelloWorld!"
         instance: /path/to/resource
     UnauthorizedProblemExample:
       value:
         type: about:blank
         status: 401
         title: Unauthorized
-        detail: 'User is not authorized to perform this action'
+        detail: "User is not authorized to perform this action"
         instance: /path/to/resource
     NotFoundProblemExample:
       value:
         type: about:blank
         status: 404
         title: Not Found
-        detail: 'The requested resource was not found'
+        detail: "The requested resource was not found"
         instance: /path/to/resource
     BadGatewayProblemExample:
       value:
         type: about:blank
         status: 502
         title: Bad Gateway
-        detail: 'Persistence service is unavailable'
+        detail: "Persistence service is unavailable"
         instance: /path/to/resource

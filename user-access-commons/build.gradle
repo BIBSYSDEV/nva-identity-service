@@ -1,17 +1,12 @@
-dependencies {
-
-    implementation project (":json-config")
-    implementation libs.nva.core
-
-    implementation libs.nva.apigateway
-
-    implementation libs.bundles.jackson
-
-    testImplementation libs.apache.httpclient
-    testImplementation libs.bundles.testing
-    testImplementation project(":user-access-testing")
+plugins {
+    id 'nva.identity.service.java-common-conventions'
 }
 
-test{
-
+dependencies {
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.httpcore5)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaLibs.testutils)
 }

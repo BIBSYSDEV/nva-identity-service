@@ -1,9 +1,13 @@
-dependencies {
-    implementation project (":customer-commons")
-    implementation libs.dynamoDbLocal
-    implementation libs.nva.core
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.bundles.testing
-    implementation libs.nva.json
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
 
+dependencies {
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.junit.jupiter.api)
+    api(project(":customer-commons"))
+    implementation(nvaCatalog.aws.sdk2.dynamodblocal)
+    implementation(nvaCatalog.hamcrest)
+    implementation(nvaLibs.core)
+    implementation(nvaLibs.testutils)
 }

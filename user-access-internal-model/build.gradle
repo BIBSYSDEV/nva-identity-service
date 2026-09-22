@@ -1,22 +1,32 @@
+plugins {
+    id 'nva.identity.service.java-common-conventions'
+}
+
 dependencies {
-
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.nva.apigateway
-    implementation libs.nva.core
-    implementation libs.nva.json
-    implementation project(":dynamo-client")
-
-    compileOnly project(":user-access-public-model")
-    testImplementation project(":user-access-public-model")
-
-    compileOnly project(":user-access-commons")
-    testImplementation project(":user-access-commons")
-
-    testImplementation project(":user-access-testing")
-
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.aws.sdk2.dynamodbenhanced)
+    api(nvaCatalog.jackson.annotations)
+    api(nvaLibs.apigateway)
+    api(project(":dynamo-client"))
+    compileOnly(project(":user-access-commons"))
+    compileOnly(project(":user-access-public-model"))
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(nvaLibs.core)
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.jackson.core)
+    testImplementation(nvaCatalog.jackson.databind)
+    testImplementation(nvaCatalog.javers)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.junit.jupiter.params)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaLibs.json)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(":user-access-commons"))
+    testImplementation(project(":user-access-public-model"))
+    testImplementation(project(":user-access-testing"))
 }
 
 test {

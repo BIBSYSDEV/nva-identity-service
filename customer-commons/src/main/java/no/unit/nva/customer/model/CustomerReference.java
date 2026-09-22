@@ -1,6 +1,8 @@
 package no.unit.nva.customer.model;
 
 import static java.util.Objects.nonNull;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
@@ -9,93 +11,172 @@ import nva.commons.core.JacocoGenerated;
 
 public class CustomerReference {
 
-    private URI id;
-    private String displayName;
-    private Instant createdDate;
-    private boolean active;
-    private String doiPrefix;
-    private boolean nviInstitution;
+  private URI id;
+  private URI cristinId;
+  private String displayName;
+  private Instant createdDate;
+  private boolean active;
+  private String doiPrefix;
+  private boolean nviInstitution;
+  private URI serviceCenterUri;
+  private Sector sector;
+  private boolean rboInstitution;
 
-    public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
-        var customerReference = new CustomerReference();
-        customerReference.setDisplayName(customerDto.getDisplayName());
-        customerReference.setId(customerDto.getId());
-        customerReference.setCreatedDate(customerDto.getCreatedDate());
-        customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
-        customerReference.setActive(customerDto.isActive());
-        customerReference.setNviInstitution(customerDto.isNviInstitution());
-        return customerReference;
-    }
+  // The deprecated id alias is not serialized in the open customer list; it stays in the
+  // authenticated customer representation until existing clients have migrated.
+  @JsonIgnoreProperties(RightsRetentionStrategyDto.LEGACY_ID_FIELD)
+  private RightsRetentionStrategyDto rightsRetentionStrategy;
 
-    @JacocoGenerated
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getDisplayName(), getCreatedDate(), isActive(), getDoiPrefix());
-    }
+  public static CustomerReference fromCustomerDto(CustomerDto customerDto) {
+    var customerReference = new CustomerReference();
+    customerReference.setDisplayName(customerDto.getDisplayName());
+    customerReference.setId(customerDto.getId());
+    customerReference.setCristinId(customerDto.getCristinId());
+    customerReference.setCreatedDate(customerDto.getCreatedDate());
+    customerReference.setDoiPrefix(extractDoiPrefix(customerDto));
+    customerReference.setActive(customerDto.isActive());
+    customerReference.setNviInstitution(customerDto.isNviInstitution());
+    customerReference.setServiceCenterUri(extractServiceCenterUri(customerDto));
+    customerReference.setSector(customerDto.getSector());
+    customerReference.setRboInstitution(customerDto.isRboInstitution());
+    customerReference.setRightsRetentionStrategy(customerDto.getRightsRetentionStrategy());
+    return customerReference;
+  }
 
-    @JacocoGenerated
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof CustomerReference that)) {
-            return false;
-        }
-        return isActive() == that.isActive() && Objects.equals(getId(), that.getId()) &&
-               Objects.equals(getDisplayName(), that.getDisplayName()) &&
-               Objects.equals(getCreatedDate(), that.getCreatedDate()) &&
-               Objects.equals(getDoiPrefix(), that.getDoiPrefix());
-    }
+  @JacocoGenerated
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        getId(),
+        getCristinId(),
+        getDisplayName(),
+        getCreatedDate(),
+        isActive(),
+        getDoiPrefix(),
+        isNviInstitution(),
+        getServiceCenterUri(),
+        getSector(),
+        isRboInstitution(),
+        getRightsRetentionStrategy());
+  }
 
-    public boolean isActive() {
-        return active;
+  @JacocoGenerated
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof CustomerReference that)) {
+      return false;
     }
+    return isActive() == that.isActive()
+        && Objects.equals(getId(), that.getId())
+        && Objects.equals(getCristinId(), that.getCristinId())
+        && Objects.equals(getDisplayName(), that.getDisplayName())
+        && Objects.equals(getCreatedDate(), that.getCreatedDate())
+        && Objects.equals(getDoiPrefix(), that.getDoiPrefix())
+        && Objects.equals(isNviInstitution(), that.isNviInstitution())
+        && Objects.equals(getServiceCenterUri(), that.getServiceCenterUri())
+        && Objects.equals(getSector(), that.getSector())
+        && Objects.equals(isRboInstitution(), that.isRboInstitution())
+        && Objects.equals(getRightsRetentionStrategy(), that.getRightsRetentionStrategy());
+  }
 
-    public void setActive(boolean active) {
-        this.active = active;
-    }
+  public boolean isActive() {
+    return active;
+  }
 
-    public URI getId() {
-        return id;
-    }
+  public void setActive(boolean active) {
+    this.active = active;
+  }
 
-    public void setId(URI id) {
-        this.id = id;
-    }
+  public URI getId() {
+    return id;
+  }
 
-    public String getDisplayName() {
-        return displayName;
-    }
+  public void setId(URI id) {
+    this.id = id;
+  }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
+  public URI getCristinId() {
+    return cristinId;
+  }
 
-    public String getDoiPrefix() {
-        return doiPrefix;
-    }
+  public void setCristinId(URI cristinId) {
+    this.cristinId = cristinId;
+  }
 
-    public void setDoiPrefix(String doiPrefix) {
-        this.doiPrefix = doiPrefix;
-    }
+  public String getDisplayName() {
+    return displayName;
+  }
 
-    @SuppressWarnings({"PMD.NullAssignment"})
-    public String getCreatedDate() {
-        return nonNull(createdDate) ? createdDate.toString() : null;
-    }
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
 
-    @SuppressWarnings({"PMD.NullAssignment"})
-    public void setCreatedDate(String createdDate) {
-        this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
-    }
+  public String getDoiPrefix() {
+    return doiPrefix;
+  }
 
-    public boolean isNviInstitution() {
-        return nviInstitution;
-    }
+  public void setDoiPrefix(String doiPrefix) {
+    this.doiPrefix = doiPrefix;
+  }
 
-    public void setNviInstitution(boolean nviInstitution) {
-        this.nviInstitution = nviInstitution;
-    }
+  public String getCreatedDate() {
+    return nonNull(createdDate) ? createdDate.toString() : null;
+  }
 
-    private static String extractDoiPrefix(CustomerDto customerDto) {
-        return Optional.ofNullable(customerDto.getDoiAgent()).map(CustomerDto.DoiAgentDto::getPrefix).orElse(null);
-    }
+  @SuppressWarnings({"PMD.NullAssignment"})
+  public void setCreatedDate(String createdDate) {
+    this.createdDate = nonNull(createdDate) ? Instant.parse(createdDate) : null;
+  }
+
+  public boolean isNviInstitution() {
+    return nviInstitution;
+  }
+
+  public void setNviInstitution(boolean nviInstitution) {
+    this.nviInstitution = nviInstitution;
+  }
+
+  public URI getServiceCenterUri() {
+    return serviceCenterUri;
+  }
+
+  public void setServiceCenterUri(URI serviceCenterUri) {
+    this.serviceCenterUri = serviceCenterUri;
+  }
+
+  public void setSector(Sector sector) {
+    this.sector = sector;
+  }
+
+  public Sector getSector() {
+    return sector;
+  }
+
+  public void setRboInstitution(boolean rboInstitution) {
+    this.rboInstitution = rboInstitution;
+  }
+
+  public boolean isRboInstitution() {
+    return rboInstitution;
+  }
+
+  public RightsRetentionStrategyDto getRightsRetentionStrategy() {
+    return rightsRetentionStrategy;
+  }
+
+  public void setRightsRetentionStrategy(RightsRetentionStrategyDto rightsRetentionStrategy) {
+    this.rightsRetentionStrategy = rightsRetentionStrategy;
+  }
+
+  private static String extractDoiPrefix(CustomerDto customerDto) {
+    return Optional.ofNullable(customerDto.getDoiAgent())
+        .map(CustomerDto.DoiAgentDto::getPrefix)
+        .orElse(null);
+  }
+
+  private static URI extractServiceCenterUri(CustomerDto customerDto) {
+    return Optional.ofNullable(customerDto.getServiceCenter())
+        .map(CustomerDto.ServiceCenter::uri)
+        .orElse(null);
+  }
 }

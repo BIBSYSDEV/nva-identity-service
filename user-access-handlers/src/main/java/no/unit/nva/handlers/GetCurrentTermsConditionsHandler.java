@@ -1,38 +1,44 @@
 package no.unit.nva.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import java.net.HttpURLConnection;
 import no.unit.nva.database.TermsAndConditionsService;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 
-import java.net.HttpURLConnection;
+public class GetCurrentTermsConditionsHandler
+    extends ApiGatewayHandler<Void, TermsConditionsResponse> {
 
-public class GetCurrentTermsConditionsHandler extends ApiGatewayHandler<Void, TermsConditionsResponse> {
+  @JacocoGenerated
+  public GetCurrentTermsConditionsHandler() {
+    this(new Environment());
+  }
 
-    public GetCurrentTermsConditionsHandler() {
-        super(Void.class);
-    }
+  public GetCurrentTermsConditionsHandler(Environment environment) {
+    super(Void.class, environment);
+  }
 
-    @Override
-    protected void validateRequest(Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        // do nothing for now...
-    }
+  @Override
+  protected void validateRequest(Void unused, RequestInfo requestInfo, Context context)
+      throws ApiGatewayException {
+    // do nothing for now...
+  }
 
-    @Override
-    protected TermsConditionsResponse processInput(Void unused, RequestInfo requestInfo, Context context)
-        throws ApiGatewayException {
-        var termsConditionsUri = new TermsAndConditionsService()
-            .getCurrentTermsAndConditions().termsConditionsUri();
+  @Override
+  protected TermsConditionsResponse processInput(
+      Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    var termsConditionsUri =
+        new TermsAndConditionsService().getCurrentTermsAndConditions().termsConditionsUri();
 
-        return TermsConditionsResponse.builder()
-            .withTermsConditionsUri(termsConditionsUri)
-            .build();
-    }
+    return TermsConditionsResponse.builder().withTermsConditionsUri(termsConditionsUri).build();
+  }
 
-    @Override
-    protected Integer getSuccessStatusCode(Void unused, TermsConditionsResponse o) {
-        return HttpURLConnection.HTTP_OK;
-    }
+  @Override
+  protected Integer getSuccessStatusCode(Void unused, TermsConditionsResponse o) {
+    return HttpURLConnection.HTTP_OK;
+  }
 }

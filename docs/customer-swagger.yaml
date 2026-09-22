@@ -1,24 +1,24 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 info:
   title: NVA Customer API
-  version: '1.0'
+  version: "1.0"
   description: >
     The customer data API for NVA returns data about NVA participant institutions. The API has restricted access although no sensitive data is contained within.
-  termsOfService: 'http://nva.unit.no/terms/'
+  termsOfService: "http://nva.unit.no/terms/"
   contact:
-    email: 'nva@unit.no'
+    email: "nva@unit.no"
   license:
     name: MIT/NVA data
     url: https://link.to.license
 externalDocs:
   description: Find out more about NVA
-  url: 'https://nva.unit.no'
+  url: "https://nva.unit.no"
 servers:
-  - url: 'https://api.nva.unit.no/customers'
+  - url: "https://api.nva.unit.no/customers"
     description: production
-  - url: 'https://api.test.unit.no/customers'
+  - url: "https://api.test.unit.no/customers"
     description: test
-  - url: 'https://api.dev.unit.no/customers'
+  - url: "https://api.dev.unit.no/customers"
     description: develop
 paths:
   /:
@@ -26,66 +26,69 @@ paths:
       summary: Create Customer
       operationId: createCustomer
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: "#/components/schemas/Customer"
             examples:
               objectExample:
-                $ref: '#/components/examples/CustomerExample'
+                $ref: "#/components/examples/CustomerExample"
           application/ld+json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: "#/components/schemas/Customer"
             examples:
               objectExample:
-                $ref: '#/components/examples/CustomerExample'
+                $ref: "#/components/examples/CustomerExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerFunction.Arn}/invocations
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerExample'
+                  $ref: "#/components/examples/CustomerExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerExample'
-        '400':
+                  $ref: "#/components/examples/CustomerExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '502':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
     get:
       summary: Get All Customers
       operationId: listCustomers
-      security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaListAllCustomersFunction.Arn}/invocations
@@ -93,137 +96,151 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomerList'
+                $ref: "#/components/schemas/CustomerList"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerListExample'
+                  $ref: "#/components/examples/CustomerListExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/CustomerList'
+                $ref: "#/components/schemas/CustomerList"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerListExample'
-        '400':
+                  $ref: "#/components/examples/CustomerListExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '404':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 NotFoundExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '502':
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
   /{identifier}:
     get:
       summary: Get Customer
       operationId: getCustomer
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to get.
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
+        requestParameters:
+          integration.request.path.identifier: "method.request.path.identifier"
+        cacheKeyParameters:
+          - "method.request.path.identifier"
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerExample'
+                  $ref: "#/components/examples/CustomerExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerExample'
-        '400':
+                  $ref: "#/components/examples/CustomerExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '404':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 NotFoundExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '502':
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadGatewayExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                  $ref: "#/components/examples/BadGatewayProblemExample"
     put:
       summary: Update Customer
       operationId: updateCustomer
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: "#/components/schemas/Customer"
             examples:
               CustomerExample:
-                $ref: '#/components/examples/CustomerExample'
+                $ref: "#/components/examples/CustomerExample"
           application/ld+json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: "#/components/schemas/Customer"
             examples:
               CustomerExample:
-                $ref: '#/components/examples/CustomerExample'
+                $ref: "#/components/examples/CustomerExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerFunction.Arn}/invocations
@@ -231,197 +248,217 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 CustomerExample:
-                  $ref: '#/components/examples/CustomerExample'
+                  $ref: "#/components/examples/CustomerExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 CustomerExample:
-                  $ref: '#/components/examples/CustomerExample'
-        '400':
+                  $ref: "#/components/examples/CustomerExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '502':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
   /{identifier}/doiagent:
     get:
       summary: Get Customer doi agent with secret
       operationId: getDoiAgent
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DoiAgent'
+                $ref: "#/components/schemas/DoiAgent"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/DoiAgentExample'
+                  $ref: "#/components/examples/DoiAgentExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/DoiAgent'
+                $ref: "#/components/schemas/DoiAgent"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/DoiAgentExample'
+                  $ref: "#/components/examples/DoiAgentExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerDoiAgentFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
     put:
       summary: Update Customer doi agent with secret
       operationId: updateCustomerDoiAgent
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DoiAgent'
+              $ref: "#/components/schemas/DoiAgent"
             examples:
               CustomerExample:
-                $ref: '#/components/examples/DoiAgentExample'
+                $ref: "#/components/examples/DoiAgentExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerDoiAgentFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DoiAgent'
+                $ref: "#/components/schemas/DoiAgent"
               examples:
                 CustomerExample:
-                  $ref: '#/components/examples/DoiAgentExample'
+                  $ref: "#/components/examples/DoiAgentExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/DoiAgent'
+                $ref: "#/components/schemas/DoiAgent"
               examples:
                 CustomerExample:
-                  $ref: '#/components/examples/DoiAgentExample'
-        '400':
+                  $ref: "#/components/examples/DoiAgentExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '502':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
   /{identifier}/vocabularies:
     get:
       summary: Gets vocabulary definition for a customer
       operationId: getVocabularies
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VocabularyList'
+                $ref: "#/components/schemas/VocabularyList"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/VocabularyListExample'
+                  $ref: "#/components/examples/VocabularyListExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/VocabularyList'
+                $ref: "#/components/schemas/VocabularyList"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/VocabularyListExample'
+                  $ref: "#/components/examples/VocabularyListExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerVocabulariesFunction.Arn}/invocations
-        responses: { }
+        responses: {}
         httpMethod: POST
         type: AWS_PROXY
     post:
       summary: Create vocabulary definition for customer
       operationId: createVocabularies
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VocabularyList'
+              $ref: "#/components/schemas/VocabularyList"
             examples:
-              VocabulaaryListExample:
-                $ref: '#/components/examples/VocabularyListExample'
+              VocabularyListExample:
+                $ref: "#/components/examples/VocabularyListExample"
           application/ld+json:
             schema:
-              $ref: '#/components/schemas/VocabularyList'
+              $ref: "#/components/schemas/VocabularyList"
             examples:
-              VocabulaaryListExample:
-                $ref: '#/components/examples/VocabularyListExample'
+              VocabularyListExample:
+                $ref: "#/components/examples/VocabularyListExample"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateCustomerVocabulariesFunction.Arn}/invocations
@@ -429,60 +466,65 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VocabularyList'
+                $ref: "#/components/schemas/VocabularyList"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/VocabularyListExample'
+                  $ref: "#/components/examples/VocabularyListExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/VocabularyList'
+                $ref: "#/components/schemas/VocabularyList"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/VocabularyListExample'
-        '400':
+                  $ref: "#/components/examples/VocabularyListExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '502':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
     put:
       summary: Update Vocabularies
       operationId: updateVocabularies
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend","https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: identifier
           description: UUID identifier of the Customer to update
           in: path
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerIdentifier'
+            $ref: "#/components/schemas/CustomerIdentifier"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VocabularyList'
+              $ref: "#/components/schemas/VocabularyList"
           application/ld+json:
             schema:
-              $ref: '#/components/schemas/VocabularyList'
+              $ref: "#/components/schemas/VocabularyList"
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaUpdateCustomerVocabulariesFunction.Arn}/invocations
@@ -490,54 +532,309 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VocabularyList'
+                $ref: "#/components/schemas/VocabularyList"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/VocabularyListExample'
+                  $ref: "#/components/examples/VocabularyListExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/VocabularyList'
+                $ref: "#/components/schemas/VocabularyList"
               examples:
                 VocabularyListExample:
-                  $ref: '#/components/examples/VocabularyListExample'
-        '400':
+                  $ref: "#/components/examples/VocabularyListExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '404':
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '502':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
+  /{identifier}/channel-claim:
+    post:
+      summary: Claim a channel for a customer
+      operationId: PostChannelClaim
+      security:
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin"]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the Customer to claim the channel
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/CustomerIdentifier"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelClaim"
+          application/ld+json:
+            schema:
+              $ref: "#/components/schemas/ChannelClaim"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaCreateChannelClaimFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                BadRequestExample:
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                UnauthorizedExample:
+                  $ref: "#/components/examples/UnauthorizedProblemExample"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                ForbiddenExample:
+                  $ref: "#/components/examples/ForbiddenProblemExample"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                NotFoundExample:
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                InternalServerErrorExample:
+                  $ref: "#/components/examples/InternalServerErrorProblemExample"
+  /{identifier}/channel-claim/{channelClaimIdentifier}:
+    delete:
+      summary: Unclaim a channel claim
+      operationId: UnclaimChannelClaim
+      security:
+        - CognitoUserPool: ["https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin"]
+      parameters:
+        - name: identifier
+          description: UUID identifier of the customer to unclaim channel claim for
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/CustomerIdentifier"
+        - name: channelClaimIdentifier
+          description: UUID identifier of the channel to unclaim
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ChannelClaimIdentifier"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaDeleteChannelClaimFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                BadRequestExample:
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                UnauthorizedExample:
+                  $ref: "#/components/examples/UnauthorizedProblemExample"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                ForbiddenExample:
+                  $ref: "#/components/examples/ForbiddenProblemExample"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                InternalServerErrorExample:
+                  $ref: "#/components/examples/InternalServerErrorProblemExample"
+  /channel-claims:
+    get:
+      summary: List all channel claims
+      operationId: ListChannelClaims
+      security:
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+              "https://api.nva.unit.no/scopes/backend",
+            ]
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaListChannelClaimsFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      parameters:
+        - name: channelType
+          in: query
+          description: "Returns channel claims of channel type"
+          required: false
+          schema:
+            type: string
+            enum:
+              - publisher
+              - serial-publication
+        - name: institution
+          in: query
+          description: "Returns channel claims by institution"
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelClaimList"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                UnauthorizedExample:
+                  $ref: "#/components/examples/UnauthorizedProblemExample"
+        "502":
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
+  /channel-claim/{identifier}:
+    get:
+      summary: Get channel claim by identifier
+      operationId: GetChannelClaim
+      parameters:
+        - name: identifier
+          description: UUID identifier of the channel claim
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ChannelClaimIdentifier"
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaFetchChannelClaimFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimedChannel"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                BadRequestExample:
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                UnauthorizedExample:
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "502":
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
   /orgDomain/{orgDomain}:
     get:
       summary: Get CustomerIdentifiers by orgDomain
       operationId: getCustomerIdentifierByOrgDomain
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: orgDomain
           description: the Feide org domain of the CustomerIdentifiers to get
@@ -552,48 +849,53 @@ paths:
         httpMethod: POST
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomerIdentifiers'
+                $ref: "#/components/schemas/CustomerIdentifiers"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/CustomerIdentifiers'
-        '400':
+                $ref: "#/components/schemas/CustomerIdentifiers"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '404':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 NotFoundExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '502':
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
   /cristinId/{cristinId}:
     get:
       summary: Get Customer by cristinId
       operationId: getCustomerByCristinId
       security:
-        - CognitoUserPool: [ "https://api.nva.unit.no/scopes/backend", "https://api.nva.unit.no/scopes/frontend", "aws.cognito.signin.user.admin" ]
+        - CognitoUserPool:
+            [
+              "https://api.nva.unit.no/scopes/backend",
+              "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
+            ]
       parameters:
         - name: cristinId
           description: CristinId of the Customer to get
@@ -607,50 +909,54 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NvaGetCustomerByCristinIdFunction.Arn}/invocations
         responses: {}
         httpMethod: POST
+        requestParameters:
+          integration.request.path.cristinId: "method.request.path.cristinId"
+        cacheKeyParameters:
+          - "method.request.path.cristinId"
         type: AWS_PROXY
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerExample'
+                  $ref: "#/components/examples/CustomerExample"
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: "#/components/schemas/Customer"
               examples:
                 objectExample:
-                  $ref: '#/components/examples/CustomerExample'
-        '400':
+                  $ref: "#/components/examples/CustomerExample"
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 BadRequestExample:
-                  $ref: '#/components/examples/BadRequestProblemExample'
-        '404':
+                  $ref: "#/components/examples/BadRequestProblemExample"
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
                 NotFoundExample:
-                  $ref: '#/components/examples/NotFoundProblemExample'
-        '502':
+                  $ref: "#/components/examples/NotFoundProblemExample"
+        "502":
           description: Bad Gateway
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               examples:
-                BadGatewatExample:
-                  $ref: '#/components/examples/BadGatewayProblemExample'
+                BadGatewayExample:
+                  $ref: "#/components/examples/BadGatewayProblemExample"
 components:
   securitySchemes:
     CognitoUserPool:
@@ -664,7 +970,21 @@ components:
           - Fn::GetAtt: UserPool.Arn
       description: Allows authenticated users to read data from customers table
   schemas:
+    Sector:
+      type: string
+      enum:
+        - UHI
+        - HEALTH
+        - INSTITUTE
+        - ABM
+        - OTHER
+      description: what sector the customer is part of
     CustomerIdentifier:
+      type: string
+      format: uuid
+      minimum: 1
+      maximum: 1
+    ChannelClaimIdentifier:
       type: string
       format: uuid
       minimum: 1
@@ -680,8 +1000,8 @@ components:
         customers:
           type: array
           items:
-            $ref: '#/components/schemas/CustomerReference'
-        '@context':
+            $ref: "#/components/schemas/CustomerReference"
+        "@context":
           type: string
           format: uri
     CustomerIdentifiers:
@@ -695,30 +1015,49 @@ components:
           format: uri
     NullRightsRetentionStrategy:
       type: object
+      description: rights retention strategy is not enabled for the customer
       properties:
         type:
           type: string
+          enum:
+            - NullRightsRetentionStrategy
           description: Always has the value 'NullRightsRetentionStrategy'
     RightsRetentionStrategy:
       type: object
+      description: rights retention strategy applies to all files and cannot be overridden by the registrator
       properties:
         type:
           type: string
+          enum:
+            - RightsRetentionStrategy
           description: Always has the value 'RightsRetentionStrategy'
+        policyUri:
+          type: string
+          format: uri
+          description: a link to the customer's information page about its rights retention policy
         id:
           type: string
           format: uri
-          description: a link to the rights retention strategy for the customer
+          deprecated: true
+          description: deprecated alias for policyUri, not included in the customer list
     OverridableRightsRetentionStrategy:
       type: object
+      description: rights retention strategy applies, but the registrator may override it per file
       properties:
         type:
           type: string
+          enum:
+            - OverridableRightsRetentionStrategy
           description: Always has the value 'OverridableRightsRetentionStrategy'
+        policyUri:
+          type: string
+          format: uri
+          description: a link to the customer's information page about its rights retention policy
         id:
           type: string
           format: uri
-          description: a link to the rights retention strategy for the customer
+          deprecated: true
+          description: deprecated alias for policyUri, not included in the customer list
     Customer:
       type: object
       properties:
@@ -726,7 +1065,7 @@ components:
           type: string
           format: uri
         identifier:
-          $ref: '#/components/schemas/CustomerIdentifier'
+          $ref: "#/components/schemas/CustomerIdentifier"
         type:
           type: string
         createdDate:
@@ -758,20 +1097,25 @@ components:
         vocabularies:
           type: array
           items:
-            $ref: '#/components/schemas/Vocabulary'
+            $ref: "#/components/schemas/Vocabulary"
         rorId:
           type: string
           format: uri
           description: the customers persistent identifier in the Research Organization Registry (ROR)
         serviceCenter:
-          $ref: '#/components/schemas/ServiceCenter'
+          $ref: "#/components/schemas/ServiceCenter"
         doiAgent:
-          $ref: '#/components/schemas/DoiAgent'
-        '@context':
+          $ref: "#/components/schemas/DoiAgent"
+        "@context":
           type: object
         publicationWorkflow:
           type: string
-          enum: [RegistratorPublishesMetadataOnly, RegistratorPublishesMetadataAndFiles, RegistratorRequiresApprovalForMetadataAndFiles]
+          enum:
+            [
+              RegistratorPublishesMetadataOnly,
+              RegistratorPublishesMetadataAndFiles,
+              RegistratorRequiresApprovalForMetadataAndFiles,
+            ]
         nviInstitution:
           type: boolean
           description: whether or not the institution is part of NVI reporting
@@ -786,19 +1130,12 @@ components:
           format: date-time
           description: the date the customer became inactive, if null the customer is still active
         sector:
-          type: string
-          enum:
-            - UHI
-            - HEALTH
-            - INSTITUTE
-            - ABM
-            - OTHER
-          description: what sector the customer is part of
+          $ref: "#/components/schemas/Sector"
         rightsRetentionStrategy:
           oneOf:
-            - $ref: '#/components/schemas/NullRightsRetentionStrategy'
-            - $ref: '#/components/schemas/RightsRetentionStrategy'
-            - $ref: '#/components/schemas/OverridableRightsRetentionStrategy'
+            - $ref: "#/components/schemas/NullRightsRetentionStrategy"
+            - $ref: "#/components/schemas/RightsRetentionStrategy"
+            - $ref: "#/components/schemas/OverridableRightsRetentionStrategy"
         allowFileUploadForTypes:
           type: array
           items:
@@ -882,6 +1219,9 @@ components:
         id:
           type: string
           format: uri
+        cristinId:
+          type: string
+          format: uri
         displayName:
           type: string
         createdDate:
@@ -889,6 +1229,87 @@ components:
           format: date-time
         doiPrefix:
           type: string
+        nviInstitution:
+          type: boolean
+        rboInstitution:
+          type: boolean
+          description: whether or not the institution is part of result-based redistribution
+        serviceCenterUri:
+          type: string
+          format: uri
+        sector:
+          $ref: "#/components/schemas/Sector"
+        rightsRetentionStrategy:
+          description: >-
+            the customer's current rights retention strategy, always present. Not to be confused
+            with rightsRetentionStrategy.configuredType on files in the publication API, which is
+            the customer's configuration at the time the file was registered
+          oneOf:
+            - $ref: "#/components/schemas/NullRightsRetentionStrategy"
+            - $ref: "#/components/schemas/RightsRetentionStrategy"
+            - $ref: "#/components/schemas/OverridableRightsRetentionStrategy"
+    ChannelClaimList:
+      type: object
+      properties:
+        type:
+          type: string
+        claimedChannels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimedChannel"
+    ClaimedChannel:
+      type: object
+      properties:
+        type:
+          type: string
+        claimedBy:
+          $ref: "#/components/schemas/ClaimedBy"
+        channelClaim:
+          $ref: "#/components/schemas/ChannelClaim"
+    ChannelClaim:
+      type: object
+      required:
+        - channel
+        - constraint
+      properties:
+        type:
+          type: string
+        channel:
+          type: string
+          format: uri
+        constraint:
+          type: object
+          required:
+            - publishingPolicy
+            - editingPolicy
+            - scope
+          properties:
+            type:
+              type: string
+            publishingPolicy:
+              $ref: "#/components/schemas/ChannelConstraintPolicy"
+            editingPolicy:
+              $ref: "#/components/schemas/ChannelConstraintPolicy"
+            scope:
+              type: array
+              items:
+                type: string
+    ChannelConstraintPolicy:
+      type: string
+      enum:
+        - OwnerOnly
+        - Everyone
+    ClaimedBy:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: uri
+        cristinId:
+          type: string
+          format: uri
     DoiAgent:
       type: object
       properties:
@@ -924,7 +1345,7 @@ components:
         vocabularies:
           type: array
           items:
-            $ref: '#/components/schemas/Vocabulary'
+            $ref: "#/components/schemas/Vocabulary"
     Vocabulary:
       type: object
       properties:
@@ -968,43 +1389,44 @@ components:
   examples:
     CustomerExample:
       value:
-        '@context': 'https://bibsysdev.github.io/src/customer-api.json'
-        id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6'
-        identifier: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
+        id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        identifier: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         type: Customer
-        createdDate: '2021-05-07T14:29:04.144Z'
-        modifiedDate: '2021-05-07T14:29:04.144Z'
-        name: 'Universitet for norsk Reindrift'
-        displayName: 'Universitet for Reindrift'
-        shortName: 'UNIREIN'
-        archiveName: 'unirein'
-        cname: 'arkiv.unirein.no'
-        institutionDns: 'unirein.no'
-        feideOrganizationId: '111111111'
-        cristinId: 'https://api.cristin.no/v2/institutions/11110'
-        customerOf: 'nva.unit.no'
+        createdDate: "2021-05-07T14:29:04.144Z"
+        modifiedDate: "2021-05-07T14:29:04.144Z"
+        name: "Universitet for norsk Reindrift"
+        displayName: "Universitet for Reindrift"
+        shortName: "UNIREIN"
+        archiveName: "unirein"
+        cname: "arkiv.unirein.no"
+        institutionDns: "unirein.no"
+        feideOrganizationId: "111111111"
+        cristinId: "https://api.cristin.no/v2/institutions/11110"
+        customerOf: "nva.unit.no"
         vocabularies:
-          - id: 'https://example.org/example#'
-            type: 'Vocabulary'
-            name: 'Example VOC'
-            active: 'default'
-        rorId: 'https://ror.org/026eeyk15'
+          - id: "https://example.org/example#"
+            type: "Vocabulary"
+            name: "Example VOC"
+            active: "default"
+        rorId: "https://ror.org/026eeyk15"
         serviceCenter:
-          uri: 'https://servicecenter.org/wiki/-/wiki/Orakeltjenesten'
-          name: 'Sikt supportsenter'
+          uri: "https://servicecenter.org/wiki/-/wiki/Orakeltjenesten"
+          name: "Sikt supportsenter"
         doiAgent:
           prefix: "1000.10"
-          url: "test.nva.unit.no"
+          url: "https://test.nva.unit.no"
           username: "Doi Register Customer Name"
-        publicationWorkflow: 'RegistratorPublishesMetadataAndFiles'
+        publicationWorkflow: "RegistratorPublishesMetadataAndFiles"
         nviInstitution: false
         rboInstitution: false
         generalSupportEnabled: true
-        inactiveFrom: '2021-05-07T14:29:04.144Z'
+        inactiveFrom: "2021-05-07T14:29:04.144Z"
         sector: UHI
         rightsRetentionStrategy:
           type: OverridableRightsRetentionStrategy
-          id: 'https://unirein.no/rights-retention-strategy.html'
+          policyUri: "https://unirein.no/rights-retention-strategy.html"
+          id: "https://unirein.no/rights-retention-strategy.html"
         allowFileUploadForTypes:
           - "AcademicArticle"
           - "AcademicChapter"
@@ -1079,37 +1501,60 @@ components:
           - "VisualArts"
     CustomerListExample:
       value:
-        '@context': 'https://bibsysdev.github.io/src/customer-api.json'
-        id: 'https://api.test.nva.unit.no/customers'
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
+        id: "https://api.test.nva.unit.no/customers"
         type: CustomerList
         customers:
-          - id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6'
-            createdDate: '2021-05-07T14:29:04.144Z'
-            displayName: 'Universitet for Reindrift'
+          - id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            cristinId: "https://api.test.nva.aws.unit.no/cristin/organization/1.2.3.4"
+            createdDate: "2021-05-07T14:29:04.144Z"
+            active: true
+            displayName: "Universitet for Reindrift"
             doiPrefix: "1000.10"
+            nviInstitution: false
+            rboInstitution: false
+            serviceCenterUri: "https://sikt.no/tjenester/nasjonalt-vitenarkiv-nva/hjelpeside-nva"
+            sector: "UHI"
+            rightsRetentionStrategy:
+              type: "OverridableRightsRetentionStrategy"
+              policyUri: "https://unirein.no/rights-retention-strategy.html"
     DoiAgentExample:
       value:
-        id: 'https://example.com/example/#/doiagent'
-        prefix: '1000.10'
-        url: 'https://namespace.schema.org'
-        username: 'Doi Registrar Username'
-        password: '*******'
+        id: "https://example.com/example/#/doiagent"
+        prefix: "1000.10"
+        url: "https://namespace.schema.org"
+        username: "Doi Registrar Username"
+        password: "*******"
     VocabularyListExample:
       value:
-        '@context': 'https://bibsysdev.github.io/src/customer-api.json'
-        id: 'https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6/vocabularies'
+        "@context": "https://bibsysdev.github.io/src/customer-context.json"
+        id: "https://api.test.nva.unit.no/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6/vocabularies"
         type: VocabularyList
         vocabularies:
           - type: Vocabulary
             active: default
-            id: 'https://example.com/example#'
+            id: "https://example.com/example#"
             name: Example VOC
     BadRequestProblemExample:
       value:
         type: about:blank
         status: 400
         title: Bad Request
-        detail: 'Identifier is not a valid UUID: HelloWorld!'
+        detail: "Identifier is not a valid UUID: HelloWorld!"
+        instance: /path/to/resource
+    UnauthorizedProblemExample:
+      value:
+        type: about:blank
+        status: 401
+        title: Unauthorized
+        detail: "Unauthorized"
+        instance: /path/to/resource
+    ForbiddenProblemExample:
+      value:
+        type: about:blank
+        status: 403
+        title: Forbidden
+        detail: "Forbidden"
         instance: /path/to/resource
     NotFoundProblemExample:
       value:
@@ -1118,10 +1563,17 @@ components:
         title: Not Found
         detail: The requested resource was not found
         instance: /path/to/resource
+    InternalServerErrorProblemExample:
+      value:
+        type: about:blank
+        status: 500
+        title: Internal Server Error
+        detail: "Internal Server Error"
+        instance: /path/to/resource
     BadGatewayProblemExample:
       value:
         type: about:blank
         status: 502
         title: Bad Gateway
-        detail: 'Persistence service is unavailable'
+        detail: "Persistence service is unavailable"
         instance: /path/to/resource

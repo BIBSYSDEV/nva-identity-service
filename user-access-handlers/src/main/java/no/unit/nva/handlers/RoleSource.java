@@ -1,9 +1,9 @@
 package no.unit.nva.handlers;
 
+import java.util.List;
 import no.unit.nva.useraccessservice.model.RoleDto;
 
-import java.util.List;
-
+@FunctionalInterface
 public interface RoleSource {
-    List<RoleDto> roles();
+  List<RoleDto> roles();
 }

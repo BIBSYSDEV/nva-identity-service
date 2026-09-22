@@ -11,29 +11,29 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @JacocoGenerated
 public class DoiAgentConverter implements AttributeConverter<DoiAgentDao> {
 
-    public static final TableSchema<DoiAgentDao> TABLE_SCHEMA = TableSchema.fromBean(DoiAgentDao.class);
+  public static final TableSchema<DoiAgentDao> TABLE_SCHEMA =
+      TableSchema.fromBean(DoiAgentDao.class);
 
-    public DoiAgentConverter() {
-    }
+  public DoiAgentConverter() {}
 
-    @Override
-    public AttributeValue transformFrom(DoiAgentDao input) {
-        var map = TABLE_SCHEMA.itemToMap(input, true);
-        return AttributeValue.builder().m(map).build();
-    }
+  @Override
+  public AttributeValue transformFrom(DoiAgentDao input) {
+    var map = TABLE_SCHEMA.itemToMap(input, true);
+    return AttributeValue.builder().m(map).build();
+  }
 
-    @Override
-    public DoiAgentDao transformTo(AttributeValue input) {
-        return TABLE_SCHEMA.mapToItem(input.m());
-    }
+  @Override
+  public DoiAgentDao transformTo(AttributeValue input) {
+    return TABLE_SCHEMA.mapToItem(input.m());
+  }
 
-    @Override
-    public EnhancedType<DoiAgentDao> type() {
-        return EnhancedType.of(DoiAgentDao.class);
-    }
+  @Override
+  public EnhancedType<DoiAgentDao> type() {
+    return EnhancedType.of(DoiAgentDao.class);
+  }
 
-    @Override
-    public AttributeValueType attributeValueType() {
-        return AttributeValueType.M;
-    }
+  @Override
+  public AttributeValueType attributeValueType() {
+    return AttributeValueType.M;
+  }
 }

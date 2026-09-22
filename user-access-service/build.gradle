@@ -1,31 +1,36 @@
-dependencies {
-
-    implementation project(":dynamo-client")
-    implementation project(":user-access-internal-model")
-    implementation project(":user-access-commons")
-    implementation project(":user-access-public-model")
-    implementation project(':json-config')
-
-    implementation libs.nva.core
-    implementation libs.nva.apigateway
-    implementation libs.aws.sdk2.dynamodbenhanced
-    implementation libs.aws.sdk2.dynamodb
-    implementation libs.aws.sdk2.urlconnection
-    implementation libs.aws.sdk2.cognitoidentityprovider
-
-    implementation libs.bundles.jackson
-    implementation libs.bundles.logging
-    implementation libs.nva.json
-
-    implementation libs.nva.events
-    implementation libs.bundles.aws.lambda
-
-    testImplementation libs.dynamoDbLocal
-    testImplementation project(':user-access-testing')
-
+plugins {
+    id 'nva.identity.service.java-common-conventions'
 }
 
-test{
+dependencies {
+    api(libs.aws.sdk2.cognitoidentityprovider)
+    api(nvaCatalog.aws.sdk2.dynamo)
+    api(nvaCatalog.aws.sdk2.dynamodbenhanced)
+    api(nvaLibs.apigateway)
+    api(nvaLibs.core)
+    api(nvaLibs.eventhandlers)
+    api(project(":dynamo-client"))
+    api(project(":user-access-commons"))
+    api(project(":user-access-internal-model"))
+    api(project(":user-access-public-model"))
+    implementation(nvaCatalog.aws.sdk2.aws.core)
+    implementation(nvaCatalog.aws.sdk2.http.client)
+    implementation(nvaCatalog.aws.sdk2.regions)
+    implementation(nvaCatalog.aws.sdk2.sdk.core)
+    implementation(nvaCatalog.aws.sdk2.urlconnection)
+    implementation(nvaCatalog.log4j.core)
+    implementation(nvaCatalog.slf4j.api)
+    implementation(project(':json-config'))
+    testImplementation(nvaCatalog.assertj.core)
+    testImplementation(nvaCatalog.hamcrest)
+    testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.mockito.core)
+    testImplementation(nvaLibs.logutils)
+    testImplementation(nvaLibs.testutils)
+    testImplementation(project(':user-access-testing'))
+}
+
+test {
     environment "API_DOMAIN", "localhost"
     environment "USERS_AND_ROLES_TABLE", "UsersAndRolesTable"
     environment "CRISTIN_API_URL", "https://cristin.no"

@@ -1,3 +1,35 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    // Redirect nva.* plugin IDs to the Maven Central artifact, our plugins aren't published to the Gradle Plugin Portal
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id.startsWith('nva.')) {
+                useModule("com.github.bibsysdev:nva-gradle-plugins:${requested.version}")
+            }
+        }
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        // Version catalog for third-party dependencies
+        create("nvaCatalog") {
+            from("com.github.bibsysdev:versions:${nvaCommonsVersion}")
+        }
+
+        // Version catalog for libraries in nva-commons
+        create("nvaLibs") {
+            from("com.github.bibsysdev:nva-libs:${nvaCommonsVersion}")
+        }
+    }
+}
+
 rootProject.name = 'nva-identity-service'
 include 'json-config'
 include 'dynamo-client'

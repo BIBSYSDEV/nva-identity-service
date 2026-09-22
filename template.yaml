@@ -1989,7 +1989,7 @@ Resources:
         - !Sub "https://${ApplicationDomain}/logout"
       ClientName: NvaApplicationClient
       DefaultRedirectURI: "http://localhost:3000"
-      EnableTokenRevocation: false
+      EnableTokenRevocation: true
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
         - ALLOW_CUSTOM_AUTH
@@ -2079,7 +2079,7 @@ Resources:
         - !Sub "https://${ApplicationDomain}/logout"
       ClientName: DLRApplicationClient
       DefaultRedirectURI: "http://localhost:3000"
-      EnableTokenRevocation: false
+      EnableTokenRevocation: true
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
         - ALLOW_CUSTOM_AUTH
@@ -2155,7 +2155,7 @@ Resources:
         - !Sub "https://${ApplicationDomain}/logout"
       ClientName: TestingClient3
       DefaultRedirectURI: "http://localhost:3000"
-      EnableTokenRevocation: false
+      EnableTokenRevocation: true
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH
         - ALLOW_CUSTOM_AUTH

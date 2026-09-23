@@ -30,6 +30,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       requestBody:
         required: true
@@ -146,6 +147,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -215,6 +217,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -287,6 +290,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -325,6 +329,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -391,6 +396,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -429,6 +435,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -500,6 +507,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: identifier
@@ -714,6 +722,7 @@ paths:
         - CognitoUserPool:
             [
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
               "https://api.nva.unit.no/scopes/backend",
             ]
       x-amazon-apigateway-integration:
@@ -824,6 +833,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: orgDomain
@@ -884,6 +894,7 @@ paths:
             [
               "https://api.nva.unit.no/scopes/backend",
               "https://api.nva.unit.no/scopes/frontend",
+              "aws.cognito.signin.user.admin",
             ]
       parameters:
         - name: cristinId

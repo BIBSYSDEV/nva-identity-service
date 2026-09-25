@@ -1768,7 +1768,7 @@ Resources:
       UserPoolTier: "ESSENTIALS"
       LambdaConfig:
         PreTokenGenerationConfig:
-          LambdaArn: !Sub "${PreTokenGenerationHandler.Arn}"
+          LambdaArn: !Ref PreTokenGenerationHandler.Alias
           LambdaVersion: "V3_0"
       Schema:
         - Name: nin
@@ -2237,7 +2237,7 @@ Resources:
         - email
       LambdaConfig:
         PreTokenGenerationConfig:
-          LambdaArn: !Sub "${ClientPreTokenGenerationHandler.Arn}"
+          LambdaArn: !Ref ClientPreTokenGenerationHandler.Alias
           LambdaVersion: "V3_0"
       UserPoolName: !GetAtt ExternalUserPoolName.Value
 
@@ -2340,7 +2340,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${ClientPreTokenGenerationHandler.Arn}"
+      FunctionName: !Ref ClientPreTokenGenerationHandler.Alias
       Principal: cognito-idp.amazonaws.com
 
   ClientPreTokenGenerationFailedAlarm:
@@ -2398,7 +2398,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "${PreTokenGenerationHandler.Arn}"
+      FunctionName: !Ref PreTokenGenerationHandler.Alias
       Principal: cognito-idp.amazonaws.com
 
   PreTokenGenerationFailedAlarm:

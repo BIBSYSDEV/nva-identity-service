@@ -20,7 +20,9 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
@@ -73,23 +75,40 @@ public final class CristinPersonRegistry implements PersonRegistry {
   private static final int ONE_HUNDRED = 100;
   private static final int SUCCESS_FAMILY = 2;
   private static final int REDIRECT_FAMILY = 3;
+
+  /**
+   * Time limit for opening a connection to Cristin. Shorter than the request timeout below, which
+   * also covers connecting, so an unreachable Cristin always fails as a connect timeout.
+   */
+  private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(2);
+
+  /**
+   * Time limit per Cristin call, not per login: one login can make several calls in a row. The goal
+   * is that a hanging Cristin fails and is logged long before the Lambda timeout. Some successful
+   * calls take around 3.5 seconds in prod, so the limit stays above that.
+   */
+  private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(4);
+
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
   private final String apiDomain;
   private final HttpHeaders defaultRequestHeaders;
   private final Supplier<CristinCredentials> cristinCredentialsSupplier;
+  private final Duration requestTimeout;
 
   private CristinPersonRegistry(
       HttpClient httpClient,
       URI cristinBaseUri,
       String apiDomain,
       HttpHeaders defaultRequestHeaders,
-      Supplier<CristinCredentials> credentialsSupplier) {
+      Supplier<CristinCredentials> credentialsSupplier,
+      Duration requestTimeout) {
     this.httpClient = httpClient;
     this.cristinBaseUri = cristinBaseUri;
     this.apiDomain = apiDomain;
     this.defaultRequestHeaders = defaultRequestHeaders;
     this.cristinCredentialsSupplier = credentialsSupplier;
+    this.requestTimeout = requestTimeout;
   }
 
   @JacocoGenerated
@@ -97,11 +116,19 @@ public final class CristinPersonRegistry implements PersonRegistry {
     var defaultRequestHeaders =
         new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
     return personRegistry(
-        HttpClient.newBuilder().version(Version.HTTP_1_1).followRedirects(Redirect.NEVER).build(),
+        HttpClient.newBuilder()
+            // Pinned since NP-44746 (May 2023) as a fix for connectivity problems against Cristin,
+            // copied from nva-cristin-service. Whether it is still needed is unknown. Cristin
+            // negotiates HTTP/2 when offered, so removing this changes behaviour, not latency.
+            .version(Version.HTTP_1_1)
+            .followRedirects(Redirect.NEVER)
+            .connectTimeout(CONNECT_TIMEOUT)
+            .build(),
         ServiceConstants.CRISTIN_BASE_URI,
         ServiceConstants.API_DOMAIN,
         defaultRequestHeaders,
-        new SecretsReader());
+        new SecretsReader(),
+        DEFAULT_REQUEST_TIMEOUT);
   }
 
   private static PersonRegistry personRegistry(
@@ -109,13 +136,15 @@ public final class CristinPersonRegistry implements PersonRegistry {
       URI cristinBaseUri,
       String apiDomain,
       HttpHeaders defaultRequestHeaders,
-      SecretsReader secretsReader) {
+      SecretsReader secretsReader,
+      Duration requestTimeout) {
     return new CristinPersonRegistry(
         httpClient,
         cristinBaseUri,
         apiDomain,
         defaultRequestHeaders,
-        secretsReaderCristinCredentialsSupplier(secretsReader));
+        secretsReaderCristinCredentialsSupplier(secretsReader),
+        requestTimeout);
   }
 
   private static Supplier<CristinCredentials> secretsReaderCristinCredentialsSupplier(
@@ -130,8 +159,29 @@ public final class CristinPersonRegistry implements PersonRegistry {
       String apiDomain,
       HttpHeaders defaultRequestHeaders,
       SecretsReader secretsReader) {
+    return customPersonRegistry(
+        httpClient,
+        cristinBaseUri,
+        apiDomain,
+        defaultRequestHeaders,
+        secretsReader,
+        DEFAULT_REQUEST_TIMEOUT);
+  }
+
+  public static PersonRegistry customPersonRegistry(
+      HttpClient httpClient,
+      URI cristinBaseUri,
+      String apiDomain,
+      HttpHeaders defaultRequestHeaders,
+      SecretsReader secretsReader,
+      Duration requestTimeout) {
     return personRegistry(
-        httpClient, cristinBaseUri, apiDomain, defaultRequestHeaders, secretsReader);
+        httpClient,
+        cristinBaseUri,
+        apiDomain,
+        defaultRequestHeaders,
+        secretsReader,
+        requestTimeout);
   }
 
   private static <T> T fromJson(String responseAsString, Class<T> type) {
@@ -215,6 +265,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
   private HttpRequest createGetRequest(URI uri, CristinCredentials cristinCredentials) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)
+            .timeout(requestTimeout)
             .GET()
             .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
 
@@ -228,6 +279,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
       URI uri, String body, CristinCredentials cristinCredentials) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)
+            .timeout(requestTimeout)
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .header(CONTENT_TYPE, APPLICATION_JSON)
             .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
@@ -346,6 +398,14 @@ public final class CristinPersonRegistry implements PersonRegistry {
     var start = Instant.now();
     try {
       response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+    } catch (HttpTimeoutException e) {
+      var maskedUri = maskSensitiveData(request.uri());
+      LOGGER.error(
+          "Cristin call to {} timed out after {} ms",
+          maskedUri,
+          Instant.now().toEpochMilli() - start.toEpochMilli(),
+          e);
+      throw IdentityServiceUnavailableException.withDetails(maskedUri, e);
     } catch (IOException | InterruptedException e) {
       var maskedUri = maskSensitiveData(request.uri());
       LOGGER.error("Failed to connect to Cristin at {}: {}", maskedUri, e.getMessage(), e);

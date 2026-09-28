@@ -22,6 +22,7 @@ dependencies {
     testImplementation(nvaCatalog.aws.sdk2.secrets)
     testImplementation(nvaCatalog.hamcrest)
     testImplementation(nvaCatalog.junit.jupiter.api)
+    testImplementation(nvaCatalog.wiremock.core)
     testImplementation(nvaCatalog.wiremock.junit5)
     testImplementation(nvaLibs.logutils)
     testImplementation(nvaLibs.testutils)

@@ -1,5 +1,9 @@
 package no.unit.nva.useraccessservice.usercreation;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
@@ -17,6 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
+import java.net.http.HttpTimeoutException;
+import java.time.Duration;
+import java.time.Instant;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
@@ -46,6 +53,8 @@ import org.junit.jupiter.api.Test;
 class CristinPersonRegistryTest {
 
   private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
+  private static final Duration SHORT_REQUEST_TIMEOUT = Duration.ofMillis(100);
+  private static final Duration CRISTIN_RESPONSE_DELAY = Duration.ofSeconds(1);
   private PersonRegistry personRegistry;
   private FakeSecretsManagerClient secretsManagerClient;
   private AuthenticationScenarios scenarios;
@@ -121,6 +130,57 @@ class CristinPersonRegistryTest {
     assertThat(exception.getMessage(), not(containsString(nin.toString())));
     Assertions.assertThat(logRecorder.messages())
         .noneMatch(message -> message.contains(nin.toString()));
+  }
+
+  @Test
+  void shouldFailFastWhenCristinDoesNotRespondWithinRequestTimeout(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    stubCristinRespondingSlowly();
+    var registry = personRegistryWithShortRequestTimeout(wireMockRuntimeInfo);
+    var nin = NationalIdentityNumber.fromString(randomNin());
+
+    var start = Instant.now();
+    var exception =
+        assertThrows(
+            IdentityServiceUnavailableException.class, () -> registry.fetchPersonByNin(nin));
+    var elapsed = Duration.between(start, Instant.now());
+
+    Assertions.assertThat(exception).hasCauseInstanceOf(HttpTimeoutException.class);
+    Assertions.assertThat(elapsed).isLessThan(CRISTIN_RESPONSE_DELAY);
+  }
+
+  @Test
+  void shouldLogTimeoutWithElapsedTimeAndWithoutNin(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
+    stubCristinRespondingSlowly();
+    var registry = personRegistryWithShortRequestTimeout(wireMockRuntimeInfo);
+    var nin = NationalIdentityNumber.fromString(randomNin());
+
+    assertThrows(IdentityServiceUnavailableException.class, () -> registry.fetchPersonByNin(nin));
+
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.matches("(?s)Cristin call to .* timed out after \\d+ ms.*"))
+        .noneMatch(message -> message.contains(nin.toString()));
+  }
+
+  private static void stubCristinRespondingSlowly() {
+    stubFor(
+        get(anyUrl())
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withFixedDelay((int) CRISTIN_RESPONSE_DELAY.toMillis())));
+  }
+
+  private PersonRegistry personRegistryWithShortRequestTimeout(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    return CristinPersonRegistry.customPersonRegistry(
+        WiremockHttpClient.create(),
+        URI.create(wireMockRuntimeInfo.getHttpsBaseUrl()),
+        ServiceConstants.API_DOMAIN,
+        new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE),
+        new SecretsReader(secretsManagerClient),
+        SHORT_REQUEST_TIMEOUT);
   }
 
   @Test

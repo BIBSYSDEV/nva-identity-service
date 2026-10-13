@@ -1,0 +1,46 @@
+{
+  "version": "1",
+  "triggerSource": "InboundFederation_ExternalProvider",
+  "region": "eu-west-1",
+  "userPoolId": "eu-west-1_XXXXXXXXX",
+  "userName": "Dataporten_76f8b7a1-2f2e-4d53-9a1e-0b2c3d4e5f60",
+  "callerContext": {
+    "awsSdkVersion": "aws-sdk-unknown-unknown",
+    "clientId": "1234567890abcdefghijklmnop"
+  },
+  "request": {
+    "providerName": "Dataporten",
+    "providerType": "OIDC",
+    "attributes": {
+      "tokenResponse": {
+        "access_token": "secret-access-token",
+        "token_type": "Bearer",
+        "expires_in": "3600"
+      },
+      "idToken": {
+        "sub": "76f8b7a1-2f2e-4d53-9a1e-0b2c3d4e5f60",
+        "iss": "https://auth.dataporten.no",
+        "aud": "1234567890abcdefghijklmnop",
+        "exp": 1760000000,
+        "iat": 1759996400,
+        "https://n.feide.no/claims/nin": "01819000049",
+        "https://n.feide.no/claims/eduPersonPrincipalName": "example@example.no"
+      },
+      "userInfo": {
+        "sub": "76f8b7a1-2f2e-4d53-9a1e-0b2c3d4e5f60",
+        "name": "Example Person",
+        "email": "example@example.no",
+        "norEduPersonNIN": "01819000049",
+        "eduPersonAffiliation": "member,employee",
+        "schacHomeOrganization": "example.no",
+        "https://n.feide.no/claims/nin": "",
+        "nested": {
+          "ignored": true
+        }
+      }
+    }
+  },
+  "response": {
+    "userAttributesToMap": {}
+  }
+}

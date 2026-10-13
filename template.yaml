@@ -1761,6 +1761,7 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
+    DependsOn: InboundFederationHandlerTriggerPermission
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
@@ -1770,6 +1771,9 @@ Resources:
         PreTokenGenerationConfig:
           LambdaArn: !Ref PreTokenGenerationHandler.Alias
           LambdaVersion: "V3_0"
+        InboundFederation:
+          LambdaArn: !GetAtt InboundFederationHandler.Arn
+          LambdaVersion: "V1_0"
       Schema:
         - Name: nin
           AttributeDataType: String
@@ -2420,6 +2424,35 @@ Resources:
       Threshold: 10
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: missing
+
+  # NP-51967 phase 0 prototype: logs attribute keys from the identity provider, returns an empty
+  # mapping. Invoked unqualified on purpose so environment changes apply without a new version.
+  # Deployed from a branch to one non-production environment only; a deploy from main removes it.
+  InboundFederationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      LoggingConfig:
+        LogGroup: !Ref InboundFederationHandlerLogGroup
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.inbound.InboundFederationHandler::handleRequest
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+      Tracing: Active
+      Timeout: 5 # Cognito gives up after 5 seconds
+
+  InboundFederationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/nva-identity-service/InboundFederationHandler/${AWS::AccountId}"
+      RetentionInDays: 7 # short on purpose for the prototype
+
+  InboundFederationHandlerTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref InboundFederationHandler
+      Principal: cognito-idp.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
 
 ### Outputs ############################################################################################################
 

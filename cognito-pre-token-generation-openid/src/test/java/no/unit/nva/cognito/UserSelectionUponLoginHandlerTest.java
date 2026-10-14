@@ -15,8 +15,6 @@ import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
@@ -33,7 +31,6 @@ import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.TRIGGER_SOURCE_CLIENT_CREDENTIALS;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.USER_NOT_ALLOWED_TO_IMPERSONATE;
 import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
 import static no.unit.nva.testutils.RandomDataGenerator.randomElement;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
@@ -736,6 +733,22 @@ class UserSelectionUponLoginHandlerTest {
         extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), containsString(expectedFirstName));
     assertThat(
         extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), containsString(expectedLastName));
+  }
+
+  @Test
+  void shouldIssueClaimsForOwnPersonWhenStaleImpersonatingAttributeIsPresent() {
+    var person = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var otherPerson = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = feideLogin(person);
+    event.getRequest().getUserAttributes().put("custom:impersonating", otherPerson);
+
+    handler.handleRequest(event, context);
+
+    var actualCristinPersonId =
+        URI.create(extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM));
+    assertThat(actualCristinPersonId, is(equalTo(scenarios.getCristinIdForPerson(person))));
+    assertThat(
+        actualCristinPersonId, is(not(equalTo(scenarios.getCristinIdForPerson(otherPerson)))));
   }
 
   @ParameterizedTest(
@@ -1649,92 +1662,6 @@ class UserSelectionUponLoginHandlerTest {
 
     final var personAffiliation = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
     assertThat(personAffiliation, is(notNullValue()));
-  }
-
-  @Test
-  void shouldReturnTokenWithImpersonatedUsersAttributeWhenImpersonationIsSetAndUserIsAppAdmin()
-      throws InvalidInputException, ConflictException {
-    var adminName = randomString();
-    var adminNin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
-
-    var newRole =
-        RoleDto.newBuilder()
-            .withRoleName(RoleName.APPLICATION_ADMIN)
-            .withAccessRights(List.of(AccessRight.ACT_AS))
-            .build();
-    persistRoleIfNotExist(newRole);
-    createUserWithRolesForPerson(adminNin, newRole);
-
-    var event = feideLoginWithImpersonation(adminName, adminNin, otherPersonNin);
-    handler.handleRequest(event, context);
-
-    var expectedFirstName = scenarios.getPersonFromRegistry(otherPersonNin).getFirstname();
-    var expectedLastName = scenarios.getPersonFromRegistry(otherPersonNin).getSurname();
-
-    assertThat(
-        extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), containsString(expectedFirstName));
-    assertThat(
-        extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), containsString(expectedLastName));
-  }
-
-  private CognitoUserPoolPreTokenGenerationEventV2 feideLoginWithImpersonation(
-      String adminUsername, String adminNin, String impersonatedNin) {
-
-    var attributes = new ConcurrentHashMap<String, String>();
-    attributes.put(NIN_FOR_FEIDE_USERS, adminNin);
-    attributes.put(IMPERSONATING_CLAIM, impersonatedNin);
-    attributes.put(NAME_CLAIM, "admin name");
-
-    var request = Request.builder().withUserAttributes(attributes).build();
-    var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
-    loginEvent.setRequest(request);
-    loginEvent.setUserName(adminUsername);
-    loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
-    return loginEvent;
-  }
-
-  private List<UserDto> createUserWithRolesForPerson(String nin, RoleDto role) {
-    return scenarios.createUsersForAllActiveAffiliations(nin, identityService).stream()
-        .map(attempt(user -> addRoleToUser(user, role)))
-        .map(Try::orElseThrow)
-        .collect(Collectors.toList());
-  }
-
-  @Test
-  void shouldThrowExceptionWhenAttemptingToImpersonateAndUserIsNotAppAdmin() {
-    var notAdmin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var otherPerson = scenarios.personWithExactlyOneActiveEmployment().nin();
-
-    var event = feideLoginWithImpersonation(randomString(), notAdmin, otherPerson);
-
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-    assertThrows(Exception.class, () -> handler.handleRequest(event, context));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains(USER_NOT_ALLOWED_TO_IMPERSONATE));
-  }
-
-  @Test
-  void shouldSetImpersonatedByClaimWhenImpersonating()
-      throws InvalidInputException, ConflictException {
-    var adminName = randomString();
-    var adminNin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var otherPersonNin = scenarios.personWithExactlyOneActiveEmployment().nin();
-
-    var newRole =
-        RoleDto.newBuilder()
-            .withRoleName(RoleName.APPLICATION_ADMIN)
-            .withAccessRights(List.of(AccessRight.ACT_AS))
-            .build();
-    persistRoleIfNotExist(newRole);
-    createUserWithRolesForPerson(adminNin, newRole);
-
-    var event = feideLoginWithImpersonation(adminName, adminNin, otherPersonNin);
-    handler.handleRequest(event, context);
-
-    var impersonatedByClaim = extractClaimFromCognitoUpdateRequest(IMPERSONATED_BY_CLAIM);
-
-    assertThat(impersonatedByClaim, is(equalTo(adminName)));
   }
 
   @Test

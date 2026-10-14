@@ -596,66 +596,6 @@ Resources:
       LogGroupName: !Sub "/nva-identity-service/MigrateCuratorsIdentityServiceHandler/${AWS::AccountId}"
       RetentionInDays: !Ref LogRetentionInDays
 
-  SetImpersonationHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      LoggingConfig:
-        LogGroup: !Ref SetImpersonationHandlerLogGroup
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.SetImpersonationHandler::handleRequest
-      Policies:
-        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
-        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: !Ref AllowedOrigins
-          USER_POOL_ID: !GetAtt UserPool.UserPoolId
-          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /impersonation
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
-  SetImpersonationHandlerLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/nva-identity-service/SetImpersonationHandler/${AWS::AccountId}"
-      RetentionInDays: !Ref LogRetentionInDays
-
-  StopImpersonationHandler:
-    Type: AWS::Serverless::Function
-    Properties:
-      LoggingConfig:
-        LogGroup: !Ref StopImpersonationHandlerLogGroup
-      CodeUri: user-access-handlers
-      Handler: no.unit.nva.handlers.StopImpersonationHandler::handleRequest
-      Policies:
-        - !GetAtt CommunicationWithCognitoPolicy.PolicyArn
-        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
-        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: !Ref AllowedOrigins
-          USER_POOL_ID: !GetAtt UserPool.UserPoolId
-          COGNITO_AUTHORIZER_URLS: !GetAtt CognitoAuthorizerUrlsParameter.Value
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /impersonation/stop
-            Method: post
-            RestApiId: !Ref UsersAndRolesApi
-
-  StopImpersonationHandlerLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/nva-identity-service/StopImpersonationHandler/${AWS::AccountId}"
-      RetentionInDays: !Ref LogRetentionInDays
-
   CreateExternalClientHandler:
     Type: AWS::Serverless::Function
     Properties:

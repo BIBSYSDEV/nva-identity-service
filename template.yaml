@@ -1998,8 +1998,6 @@ Resources:
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
         - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
         - custom:feidememberrole
         - custom:orgFeideDomain
         - custom:firstName
@@ -2012,8 +2010,6 @@ Resources:
         - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
-        - custom:impersonating
-        - custom:impersonatedBy
         - custom:currentTerms
         - custom:acceptedTerms
         - custom:viewingScopeIncluded
@@ -2088,8 +2084,6 @@ Resources:
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
         - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
         - custom:feidememberrole
         - custom:orgFeideDomain
         - custom:firstName
@@ -2165,8 +2159,6 @@ Resources:
       PreventUserExistenceErrors: LEGACY
       ReadAttributes:
         - custom:feideId
-        - custom:nin
-        - custom:feideIdNin
         - custom:feidememberrole
         - custom:orgFeideDomain
         - custom:firstName

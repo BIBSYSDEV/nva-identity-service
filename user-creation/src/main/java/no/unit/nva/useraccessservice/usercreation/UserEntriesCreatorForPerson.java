@@ -43,9 +43,7 @@ public class UserEntriesCreatorForPerson {
     var feideIdentifier = context.getFeideIdentifier();
     var personId = context.getPerson().getId();
     var customerCristinId = customer.getCristinId();
-    var username =
-        createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(
-            person.getIdentifier(), customerCristinId);
+    var username = usernameFor(person.getIdentifier(), customerCristinId);
     var user =
         UserDto.newBuilder()
             .withUsername(username)
@@ -61,12 +59,12 @@ public class UserEntriesCreatorForPerson {
     return user.build();
   }
 
-  // Create a username that will allow the user to access their resources even if the identity
-  // service stack
-  // gets totally destroyed.
-  private String createConsistentUsernameBasedOnPersonIdentifierAndOrgIdentifier(
-      String personIdentifier, URI customerCristinId) {
-
+  /**
+   * The username of the user entry for a person at a customer. Derived from the two identifiers, so
+   * the user keeps access to their resources even if the identity service stack is destroyed, and
+   * so the entry can be read by key without an index.
+   */
+  public static String usernameFor(String personIdentifier, URI customerCristinId) {
     var customerIdentifier = UriWrapper.fromUri(customerCristinId).getLastPathElement();
     return personIdentifier + AT + customerIdentifier;
   }

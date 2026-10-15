@@ -89,6 +89,15 @@ public class UserService extends DatabaseSubService {
   }
 
   /**
+   * Fetches a user by username with a strongly consistent read, for callers that read an entry
+   * right after it was written.
+   */
+  public Optional<UserDto> fetchUserConsistently(String username) {
+    var item = table.getItem(request -> request.key(UserDao.keyFor(username)).consistentRead(true));
+    return Optional.ofNullable(item).map(UserDao::toUserDto);
+  }
+
+  /**
    * List all users at all institutions. Uses an expansive scan-operation and should not be used
    * outside of migration-code
    */

@@ -34,6 +34,7 @@ import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -97,6 +98,12 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
   public static Builder newBuilder() {
     return new Builder();
+  }
+
+  /** The table key of the user entry with the given username. */
+  public static Key keyFor(String username) {
+    var keyValue = String.join(FIELD_DELIMITER, TYPE_VALUE, username);
+    return Key.builder().partitionValue(keyValue).sortValue(keyValue).build();
   }
 
   private static Set<RoleDb> createRoleDbSet(UserDto userDto) {

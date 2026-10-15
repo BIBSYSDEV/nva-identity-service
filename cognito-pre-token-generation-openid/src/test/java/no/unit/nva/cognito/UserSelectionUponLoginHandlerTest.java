@@ -15,6 +15,7 @@ import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.IDENTITIES_ATTRIBUTE;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
@@ -61,6 +62,8 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -79,6 +82,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -107,6 +111,8 @@ import no.unit.nva.stubs.WiremockHttpClient;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.model.ClientDto;
+import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -118,6 +124,7 @@ import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingLinkException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingNinException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
 import nva.commons.apigateway.AccessRight;
@@ -139,6 +146,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -151,10 +160,14 @@ class UserSelectionUponLoginHandlerTest {
   public static final boolean INACTIVE = false;
   public static final String TERMS_TABLE = "TermsTable";
   public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
+  public static final String TRIGGER_SOURCE_HOSTED_AUTH = "TokenGeneration_HostedAuth";
   public static final String TRIGGER_SOURCE_AUTHENTICATION = "TokenGeneration_Authentication";
   public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
   private static final String COMMA = ",";
   private static final String EXAMPLE_NAME = "Håkon Østby Ærland";
+  private static final String FEDERATED_USERNAME_PREFIX = "Dataporten_";
+  private static final String FEDERATED_IDENTITIES =
+      "[{\"providerName\":\"Dataporten\",\"providerType\":\"OIDC\",\"primary\":\"true\"}]";
 
   private final Context context = new FakeContext();
   private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -280,13 +293,19 @@ class UserSelectionUponLoginHandlerTest {
       }
       userAttributes.put(CUSTOMER_ACCEPTED_TERMS, TERMS_URI.toString());
       userAttributes.put(CURRENT_TERMS, TERMS_URI.toString());
+      userAttributes.put(IDENTITIES_ATTRIBUTE, FEDERATED_IDENTITIES);
       request = Request.builder().withUserAttributes(userAttributes).build();
     } else {
-      request = Request.builder().withUserAttributes(Map.of("SOME", "VALUE")).build();
+      request =
+          Request.builder()
+              .withUserAttributes(
+                  Map.of("SOME", "VALUE", IDENTITIES_ATTRIBUTE, FEDERATED_IDENTITIES))
+              .build();
     }
     var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
-    loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
+    loginEvent.setTriggerSource(TRIGGER_SOURCE_HOSTED_AUTH);
     loginEvent.setRequest(request);
+    loginEvent.setUserName(randomString());
     return loginEvent;
   }
 
@@ -301,8 +320,9 @@ class UserSelectionUponLoginHandlerTest {
             .withUserAttributes(setupUserAttributesForFeideLogin(nin, feideDomain))
             .build();
     var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
-    loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
+    loginEvent.setTriggerSource(TRIGGER_SOURCE_HOSTED_AUTH);
     loginEvent.setRequest(request);
+    loginEvent.setUserName(FEDERATED_USERNAME_PREFIX + randomString());
     return loginEvent;
   }
 
@@ -310,6 +330,7 @@ class UserSelectionUponLoginHandlerTest {
       String nin, String feideDomain) {
     var attributes = new ConcurrentHashMap<String, String>();
     attributes.put(NIN_FOR_FEIDE_USERS, nin);
+    attributes.put(IDENTITIES_ATTRIBUTE, FEDERATED_IDENTITIES);
     attributes.put(FEIDE_ID, "feideid@domain.no");
     attributes.put(FIRST_NAME_CLAIM, "[%22L%C3%B8k%22]");
     attributes.put(LAST_NAME_CLAIM, "[%22R%C3%A6l%20%C3%85l%22]");
@@ -403,26 +424,20 @@ class UserSelectionUponLoginHandlerTest {
   }
 
   @Test
-  void shouldLogUserAttributesIfNinExtractFails() {
+  void shouldFailWithMissingNinAndNotDumpRequestWhenNothingIdentifiesFederatedUser() {
     var personLoggingIn = scenarios.personWithoutNin();
     var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
     var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
 
-    assertThrows(
-        IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
+    var exception =
+        assertThrows(
+            IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
 
+    assertThat(exception.getErrorCode(), is(equalTo("1003")));
+    verifyNoInteractions(personRegistry);
     Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains("Could not extract required data from request"))
-        .anySatisfy(
-            message ->
-                Assertions.assertThat(message)
-                    .contains(
-                        "User name: null",
-                        "userPoolId: null",
-                        "userAttributes={SOME=VALUE}",
-                        "scopes=null",
-                        "groupConfiguration=null",
-                        "clientMetadata=null"));
+        .noneMatch(message -> message.contains("userAttributes="))
+        .noneMatch(message -> message.contains("SOME=VALUE"));
   }
 
   @Test
@@ -749,6 +764,476 @@ class UserSelectionUponLoginHandlerTest {
     assertThat(actualCristinPersonId, is(equalTo(scenarios.getCristinIdForPerson(person))));
     assertThat(
         actualCristinPersonId, is(not(equalTo(scenarios.getCristinIdForPerson(otherPerson)))));
+  }
+
+  @ParameterizedTest(name = "Login event type: {0}")
+  @DisplayName("should write link and person rows when the person registry resolved the person")
+  @EnumSource(LoginEventType.class)
+  void shouldWriteLinkAndPersonRowsWhenPersonIsResolvedFromRegistry(LoginEventType loginEventType) {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, loginEventType);
+
+    handler.handleRequest(event, context);
+
+    var expectedCristinId = scenarios.getCristinIdForPerson(nin);
+    var link = identityService.fetchLink(event.getUserName()).orElseThrow();
+    assertThat(link.cristinId(), is(equalTo(expectedCristinId)));
+    assertThat(link.feideIdentifier(), is(equalTo(extractFeideIdentifierFromInputEvent(event))));
+    assertThat(link.orgFeideDomain(), is(equalTo(extractFeideDomainFromInputEvent(event))));
+    assertThat(link.modified(), is(notNullValue()));
+
+    var registryPerson = scenarios.getPersonFromRegistry(nin);
+    var expectedCustomers =
+        scenarios.fetchCustomersForPerson(nin).stream()
+            .map(CustomerDto::getId)
+            .collect(Collectors.toSet());
+    var linkedPerson = identityService.fetchLinkedPerson(expectedCristinId).orElseThrow();
+    assertThat(linkedPerson.givenName(), is(equalTo(registryPerson.getFirstname())));
+    assertThat(linkedPerson.familyName(), is(equalTo(registryPerson.getSurname())));
+    assertThat(linkedPerson.customers(), is(equalTo(expectedCustomers)));
+    assertThat(linkedPerson.lastVerified(), is(notNullValue()));
+  }
+
+  private static String extractFeideIdentifierFromInputEvent(
+      CognitoUserPoolPreTokenGenerationEventV2 event) {
+    return event.getRequest().getUserAttributes().get(FEIDE_ID);
+  }
+
+  @ParameterizedTest(name = "Login event type: {0}")
+  @DisplayName(
+      "should give the same claims from the link on refresh as from the person registry, without"
+          + " calling the registry")
+  @EnumSource(LoginEventType.class)
+  void shouldGiveSameClaimsFromLinkOnRefreshAsFromPersonRegistry(LoginEventType loginEventType)
+      throws NotFoundException, InvalidInputException, ConflictException {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var role = persistRoleToDatabase(randomAccessRights());
+    createUsersWithRolesForPerson(nin, role);
+    termsAndConditionsService.updateTermsAndConditions(
+        scenarios.getCristinIdForPerson(nin), TERMS_URI, randomString());
+    var login = newLoginEvent(nin, loginEventType);
+    var loginResponse = handler.handleRequest(login, context);
+    var claimsFromRegistry = cognitoClient.getAdminUpdateUserRequest().userAttributes();
+    var groupsFromRegistry = groupsToOverride(loginResponse);
+    var selectedCustomer = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+    clearInvocations(personRegistry);
+
+    var refresh = refreshFor(login);
+    refresh.getRequest().getUserAttributes().put(CURRENT_CUSTOMER_CLAIM, selectedCustomer);
+    var refreshResponse = handler.handleRequest(refresh, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(groupsFromRegistry, is(not(empty())));
+    assertThat(extractClaimFromCognitoUpdateRequest(ROLES_CLAIM), is(not(emptyString())));
+    assertThat(extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM), is(not(emptyString())));
+    assertThat(
+        cognitoClient.getAdminUpdateUserRequest().userAttributes(),
+        is(equalTo(claimsFromRegistry)));
+    assertThat(groupsToOverride(refreshResponse), is(equalTo(groupsFromRegistry)));
+  }
+
+  private static List<String> groupsToOverride(CognitoUserPoolPreTokenGenerationEventV2 event) {
+    return Arrays.asList(
+        event
+            .getResponse()
+            .getClaimsAndScopeOverrideDetails()
+            .getGroupOverrideDetails()
+            .getGroupsToOverride());
+  }
+
+  @Test
+  void shouldUseNinFromNonFeideAttributeWhenFeideNinAttributeIsBlank() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, NON_FEIDE);
+    var attributes = new HashMap<>(event.getRequest().getUserAttributes());
+    attributes.put(NIN_FOR_FEIDE_USERS, " ");
+    attributes.put(NIN_FOR_NON_FEIDE_USERS, nin);
+    event.getRequest().setUserAttributes(attributes);
+
+    handler.handleRequest(event, context);
+
+    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
+    assertThat(identityService.fetchLink(event.getUserName()).isPresent(), is(true));
+  }
+
+  @Test
+  void shouldLogInWithoutRowsWhenWritingLinkAndPersonRowsFails() {
+    var failingIdentityService = spy(identityService);
+    doThrow(new RuntimeException("DynamoDB is unavailable"))
+        .when(failingIdentityService)
+        .saveLinkedPerson(any());
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            failingIdentityService,
+            personRegistry,
+            termsAndConditionsService);
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, NON_FEIDE);
+    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
+
+    handler.handleRequest(event, context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
+        is(equalTo(scenarios.getCristinIdForPerson(nin).toString())));
+    assertThat(identityService.fetchLink(event.getUserName()).isPresent(), is(false));
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains("Could not write link and person rows"));
+  }
+
+  @Test
+  void shouldTakeFeideDetailsFromLinkWhenLoginHasNoNinAndNoFeideAttributes() {
+    var nin = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers().nin();
+    var login = feideLogin(nin);
+    handler.handleRequest(login, context);
+    var customerFromRegistry = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+    var feideIdFromRegistry = extractClaimFromCognitoUpdateRequest(FEIDE_ID);
+
+    var withoutFeideAttributes = withoutNin(login);
+    withoutFeideAttributes.getRequest().getUserAttributes().remove(FEIDE_ID);
+    withoutFeideAttributes.getRequest().getUserAttributes().remove(ORG_FEIDE_DOMAIN);
+    handler.handleRequest(withoutFeideAttributes, context);
+
+    assertThat(customerFromRegistry, is(not(equalTo(EMPTY_CLAIM))));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(customerFromRegistry)));
+    assertThat(extractClaimFromCognitoUpdateRequest(FEIDE_ID), is(equalTo(feideIdFromRegistry)));
+  }
+
+  @Test
+  void shouldFailWithMissingLinkWhenLinkPointsToPersonWithoutRow() {
+    var username = FEDERATED_USERNAME_PREFIX + randomString();
+    identityService.saveLink(new IdentityLink(username, randomUri(), null, null, Instant.now()));
+    var event = linkPathLogin(username);
+
+    var exception =
+        assertThrows(
+            IdentityServiceMissingLinkException.class, () -> handler.handleRequest(event, context));
+
+    assertThat(exception.getErrorCode(), is(equalTo("1004")));
+    verifyNoInteractions(personRegistry);
+  }
+
+  @Test
+  void shouldResolvePasswordUserFromAdminSetCristinIdOnLoginAndRefreshWithoutNin()
+      throws NotFoundException, InvalidInputException, ConflictException {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var cristinId = scenarios.getCristinIdForPerson(nin);
+    var role = persistRoleToDatabase(randomAccessRights());
+    var user =
+        scenarios.createUsersForAllActiveAffiliations(nin, identityService).stream()
+            .map(attempt(created -> addRoleToUser(created, role)))
+            .map(Try::orElseThrow)
+            .collect(SingletonCollector.collect());
+    termsAndConditionsService.updateTermsAndConditions(cristinId, TERMS_URI, user.getUsername());
+    var login = passwordLogin(cristinId, null);
+
+    var loginResponse = handler.handleRequest(login, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
+        is(equalTo(cristinId.toString())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(user.getInstitution().toString())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM), is(equalTo(user.getUsername())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), is(equalTo(user.getGivenName())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), is(equalTo(user.getFamilyName())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(ROLES_CLAIM),
+        containsString(role.getRoleName().getValue()));
+    assertThat(extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM), is(not(emptyString())));
+    assertThat(groupsToOverride(loginResponse), is(not(empty())));
+
+    var refresh = passwordLogin(cristinId, null);
+    refresh.setUserName(login.getUserName());
+    refresh.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+    refresh
+        .getRequest()
+        .getUserAttributes()
+        .put(CURRENT_CUSTOMER_CLAIM, user.getInstitution().toString());
+    handler.handleRequest(refresh, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(user.getInstitution().toString())));
+  }
+
+  @Test
+  void shouldIgnoreNinForPasswordUser() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    scenarios.createUsersForAllActiveAffiliations(nin, identityService);
+    var cristinId = scenarios.getCristinIdForPerson(nin);
+    var event = passwordLogin(cristinId, nin);
+
+    handler.handleRequest(event, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
+        is(equalTo(cristinId.toString())));
+  }
+
+  @ParameterizedTest(name = "custom:cristinId: {0}")
+  @NullSource
+  @ValueSource(strings = {" ", "not a uri"})
+  void shouldFailWithMissingLinkWhenPasswordUserHasNoUsableCristinId(String cristinId) {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = passwordLogin(null, nin);
+    if (nonNull(cristinId)) {
+      event.getRequest().getUserAttributes().put(PERSON_CRISTIN_ID_CLAIM, cristinId);
+    }
+
+    var exception =
+        assertThrows(
+            IdentityServiceMissingLinkException.class, () -> handler.handleRequest(event, context));
+
+    assertThat(exception.getErrorCode(), is(equalTo("1004")));
+    verifyNoInteractions(personRegistry);
+  }
+
+  @Test
+  void shouldNotGrantAccessToCustomerThatIsNoLongerRememberedForPerson() throws NotFoundException {
+    var nin = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+    var cristinId = scenarios.getCristinIdForPerson(nin);
+    termsAndConditionsService.updateTermsAndConditions(cristinId, TERMS_URI, randomString());
+    var login = newLoginEvent(nin, NON_FEIDE);
+    handler.handleRequest(login, context);
+    var remembered = identityService.fetchLinkedPerson(cristinId).orElseThrow();
+    var remainingCustomer = remembered.customers().iterator().next();
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            cristinId,
+            remembered.givenName(),
+            remembered.familyName(),
+            Set.of(remainingCustomer),
+            remembered.lastVerified()));
+
+    handler.handleRequest(withoutNin(login), context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM),
+        is(equalTo(remainingCustomer.toString())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(remainingCustomer.toString())));
+  }
+
+  @Test
+  void shouldUseNamesFromLinkWhenRememberedPersonHasNoCustomer() {
+    var username = FEDERATED_USERNAME_PREFIX + randomString();
+    var cristinId = randomUri();
+    var firstName = randomString();
+    var lastName = randomString();
+    identityService.saveLink(new IdentityLink(username, cristinId, null, null, Instant.now()));
+    identityService.saveLinkedPerson(
+        new LinkedPerson(cristinId, firstName, lastName, Set.of(), Instant.now()));
+    var event = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
+    event.setUserName(username);
+
+    handler.handleRequest(event, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), is(equalTo(firstName)));
+    assertThat(extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), is(equalTo(lastName)));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM), is(equalTo(EMPTY_CLAIM)));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM), is(equalTo(EMPTY_CLAIM)));
+  }
+
+  @Test
+  void shouldSkipRememberedCustomerThatCannotBeFetchedOnLinkPath() {
+    var username = FEDERATED_USERNAME_PREFIX + randomString();
+    var cristinId = randomUri();
+    identityService.saveLink(new IdentityLink(username, cristinId, null, null, Instant.now()));
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            cristinId, randomString(), randomString(), Set.of(randomUri()), Instant.now()));
+    var event = linkPathLogin(username);
+
+    handler.handleRequest(event, context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM), is(equalTo(EMPTY_CLAIM)));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM), is(equalTo(EMPTY_CLAIM)));
+  }
+
+  @Test
+  void shouldGiveNoAccessToRememberedCustomerWithoutUserEntryOnLinkPath() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var customerWithoutUserEntry = fetchCustomersWithActiveEmploymentsForPerson(nin).get(0);
+    var username = FEDERATED_USERNAME_PREFIX + randomString();
+    var cristinId = scenarios.getCristinIdForPerson(nin);
+    identityService.saveLink(new IdentityLink(username, cristinId, null, null, Instant.now()));
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            cristinId,
+            randomString(),
+            randomString(),
+            Set.of(customerWithoutUserEntry),
+            Instant.now()));
+    var event = linkPathLogin(username);
+
+    handler.handleRequest(event, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM), is(equalTo(EMPTY_CLAIM)));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM), is(equalTo(EMPTY_CLAIM)));
+  }
+
+  /** A federated login without an identity number for a user that only exists as link rows. */
+  private CognitoUserPoolPreTokenGenerationEventV2 linkPathLogin(String username) {
+    var event = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
+    event.setUserName(username);
+    return event;
+  }
+
+  @Test
+  void shouldKeepSelectedCustomerWhenRefreshingThroughLink() {
+    var nin = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+    var login = newLoginEvent(nin, NON_FEIDE);
+    handler.handleRequest(login, context);
+    var selectedCustomer = fetchCustomersWithActiveEmploymentsForPerson(nin).iterator().next();
+
+    var refresh = withoutNin(login);
+    refresh
+        .getRequest()
+        .getUserAttributes()
+        .put(CURRENT_CUSTOMER_CLAIM, selectedCustomer.toString());
+    refresh.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+    handler.handleRequest(refresh, context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(selectedCustomer.toString())));
+  }
+
+  @Test
+  void shouldClearSelectedCustomerWithoutFailingWhenRefreshingThroughLinkAndCustomerIsNotAllowed() {
+    var nin = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
+    var login = newLoginEvent(nin, NON_FEIDE);
+    handler.handleRequest(login, context);
+
+    var refresh = withoutNin(login);
+    refresh.getRequest().getUserAttributes().put(CURRENT_CUSTOMER_CLAIM, randomUri().toString());
+    refresh.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+    handler.handleRequest(refresh, context);
+
+    assertThatCustomerSelectionClaimsAreCleared();
+  }
+
+  @Test
+  void shouldFindUserEntryWithLegacyUsernameThroughIndexOnLinkPath() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var login = feideLogin(nin);
+    var feideIdentifier = extractFeideIdentifierFromInputEvent(login);
+    var legacyUser =
+        scenarios
+            .createLegacyUsersForAllActiveAffiliations(nin, feideIdentifier, identityService)
+            .stream()
+            .collect(SingletonCollector.collect());
+    handler.handleRequest(login, context);
+
+    handler.handleRequest(withoutNin(login), context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM),
+        is(equalTo(legacyUser.getUsername())));
+    assertThat(scanAllUsers(), hasSize(SINGLE_EXPECTED_USER));
+  }
+
+  @Test
+  void shouldLogTriggerSourceForEveryInvocation() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, NON_FEIDE);
+    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
+
+    handler.handleRequest(event, context);
+
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(
+            message ->
+                message.contains("Trigger source " + TRIGGER_SOURCE_HOSTED_AUTH)
+                    && message.contains(event.getUserName()));
+  }
+
+  @Test
+  void shouldUsePersonRegistryOnRefreshWhenUserHasNoLinkYet() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var refresh = refreshFor(newLoginEvent(nin, NON_FEIDE));
+
+    handler.handleRequest(refresh, context);
+
+    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
+    assertThat(identityService.fetchLink(refresh.getUserName()).isPresent(), is(true));
+  }
+
+  @Test
+  void shouldUsePersonRegistryOnLoginEvenWhenUserHasLink() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var login = newLoginEvent(nin, NON_FEIDE);
+    handler.handleRequest(login, context);
+    clearInvocations(personRegistry);
+
+    handler.handleRequest(login, context);
+
+    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
+  }
+
+  /** The same user refreshing tokens, with the stored attributes as Cognito sends them. */
+  private static CognitoUserPoolPreTokenGenerationEventV2 refreshFor(
+      CognitoUserPoolPreTokenGenerationEventV2 login) {
+    var event = new CognitoUserPoolPreTokenGenerationEventV2();
+    event.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
+    event.setUserName(login.getUserName());
+    event.setUserPoolId(login.getUserPoolId());
+    event.setRequest(
+        Request.builder()
+            .withUserAttributes(new HashMap<>(login.getRequest().getUserAttributes()))
+            .build());
+    return event;
+  }
+
+  /** The same user logging in again, as if the identity provider delivered no identity number. */
+  private static CognitoUserPoolPreTokenGenerationEventV2 withoutNin(
+      CognitoUserPoolPreTokenGenerationEventV2 original) {
+    var attributes = new HashMap<>(original.getRequest().getUserAttributes());
+    attributes.remove(NIN_FOR_FEIDE_USERS);
+    attributes.remove(NIN_FOR_NON_FEIDE_USERS);
+    var event = new CognitoUserPoolPreTokenGenerationEventV2();
+    event.setTriggerSource(original.getTriggerSource());
+    event.setUserName(original.getUserName());
+    event.setUserPoolId(original.getUserPoolId());
+    event.setRequest(Request.builder().withUserAttributes(attributes).build());
+    return event;
+  }
+
+  private static CognitoUserPoolPreTokenGenerationEventV2 passwordLogin(URI cristinId, String nin) {
+    Map<String, String> userAttributes = new HashMap<>();
+    if (nonNull(cristinId)) {
+      userAttributes.put(PERSON_CRISTIN_ID_CLAIM, cristinId.toString());
+    }
+    if (nonNull(nin)) {
+      userAttributes.put(NIN_FOR_NON_FEIDE_USERS, nin);
+    }
+    userAttributes.put(NAME_CLAIM, EXAMPLE_NAME);
+    var event = new CognitoUserPoolPreTokenGenerationEventV2();
+    event.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
+    event.setUserName(randomString());
+    event.setRequest(Request.builder().withUserAttributes(userAttributes).build());
+    return event;
   }
 
   @ParameterizedTest(

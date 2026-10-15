@@ -57,6 +57,13 @@ public final class IdentityServiceErrorCodes {
    */
   public static final ServiceErrorCode MISSING_NIN = new ServiceErrorCode(1003, HTTP_BAD_REQUEST);
 
+  /**
+   * 1004: Missing identity link. Used when a login carries no National Identity Number and nothing
+   * stored links the Cognito user to a person.
+   */
+  public static final ServiceErrorCode MISSING_IDENTITY_LINK =
+      new ServiceErrorCode(1004, HTTP_BAD_REQUEST);
+
   // 2xxx - Resource-related errors (already exists, not found, etc.)
 
   /** 2001: Person not found. Used when a requested person cannot be found in the registry. */

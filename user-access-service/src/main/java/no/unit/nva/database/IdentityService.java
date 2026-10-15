@@ -4,10 +4,13 @@ import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import no.unit.nva.events.models.ScanDatabaseRequestV2;
 import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
 import no.unit.nva.useraccessservice.model.ClientDto;
+import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -29,6 +32,9 @@ public interface IdentityService {
   }
 
   UserDto getUser(UserDto queryObject) throws NotFoundException;
+
+  /** Fetches a user by username with a strongly consistent read. */
+  Optional<UserDto> fetchUserConsistently(String username);
 
   List<UserDto> listAllUsers();
 
@@ -53,6 +59,18 @@ public interface IdentityService {
   void addExternalClient(ClientDto clientDto);
 
   ClientDto getClient(ClientDto queryObject) throws NotFoundException;
+
+  /** Writes or overwrites the link from a Cognito user to a person. */
+  void saveLink(IdentityLink link);
+
+  /** Reads the link for a Cognito username with a strongly consistent read. */
+  Optional<IdentityLink> fetchLink(String username);
+
+  /** Writes or overwrites what is known about a person. */
+  void saveLinkedPerson(LinkedPerson person);
+
+  /** Reads what is known about a person with a strongly consistent read. */
+  Optional<LinkedPerson> fetchLinkedPerson(URI cristinId);
 
   final class Constants {
 

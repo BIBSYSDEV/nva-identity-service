@@ -26,6 +26,11 @@ public final class CognitoClaims {
   public static final String VIEWING_SCOPE_EXCLUDED_CLAIM = "custom:viewingScopeExcluded";
   public static final String NAME_CLAIM = "name";
 
+  /**
+   * Present among the user attributes only for users that signed in through an identity provider.
+   */
+  public static final String IDENTITIES_ATTRIBUTE = "identities";
+
   static final String[] CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC = {
     NIN_FOR_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS
   };

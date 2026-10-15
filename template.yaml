@@ -98,6 +98,11 @@ Parameters:
     Type: Number
     Default: 300
     Description: TTL in seconds for API Gateway cache
+  EnableNativeLoginOnApplicationClient:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Adds the COGNITO identity provider to ApplicationClient, for environments whose tests log in with username and password.
 
 Mappings:
   Constants:
@@ -107,6 +112,7 @@ Mappings:
 
 Conditions:
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
+  NativeLoginOnApplicationClient: !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
 
 Globals:
   Function:
@@ -2022,8 +2028,11 @@ Resources:
         AccessToken: hours
         IdToken: hours
         RefreshToken: hours
-      SupportedIdentityProviders:
-        - !Ref ConnectionToDataporten
+      SupportedIdentityProviders: !If
+        - NativeLoginOnApplicationClient
+        - - COGNITO
+          - !Ref ConnectionToDataporten
+        - - !Ref ConnectionToDataporten
       UserPoolId: !Ref UserPool
       WriteAttributes:
         - custom:feideId

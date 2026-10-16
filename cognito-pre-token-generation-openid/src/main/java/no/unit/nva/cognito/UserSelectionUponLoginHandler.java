@@ -34,11 +34,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.database.TermsAndConditionsService;
+import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
@@ -82,13 +83,18 @@ public class UserSelectionUponLoginHandler
   public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
   public static final String TRIGGER_SOURCE_CLIENT_CREDENTIALS =
       "TokenGeneration_ClientCredentials";
-  // private static final String N_A = "N/A";
   private static final String WHITESPACE_REGEX = "\\s+";
   private static final int ONE = 1;
   private static final String ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE =
       "Could not decode feide name value: {}";
+  public static final String TRIGGER_SOURCE_MESSAGE = "Trigger source {} for user {}";
+  private static final String COULD_NOT_WRITE_ROWS_MESSAGE =
+      "Could not write link and person rows for person {}, the login continues without them";
+  private static final String COULD_NOT_EXTRACT_NAME_MESSAGE =
+      "Could not extract name from user attributes with keys {}";
   private final CustomerService customerService;
   private final CognitoIdentityProviderClient cognitoClient;
+  private final IdentityService identityService;
   private final UserEntriesCreatorForPerson userCreator;
   private final PersonRegistry personRegistry;
   private final TermsAndConditionsService termsService;
@@ -96,7 +102,7 @@ public class UserSelectionUponLoginHandler
 
   @JacocoGenerated
   public UserSelectionUponLoginHandler() {
-    var identityService = defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
+    this.identityService = defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
     this.cognitoClient = defaultCognitoClient();
     this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
     this.userCreator = new UserEntriesCreatorForPerson(identityService);
@@ -123,6 +129,7 @@ public class UserSelectionUponLoginHandler
 
     this.cognitoClient = cognitoClient;
     this.customerService = customerService;
+    this.identityService = identityService;
     this.personRegistry = personRegistry;
     this.userCreator = new UserEntriesCreatorForPerson(identityService);
     this.tokenEnricher = new M2MTokenEnricher(identityService);
@@ -176,6 +183,9 @@ public class UserSelectionUponLoginHandler
     }
 
     final var start = Instant.now();
+    // TODO: Added to see which path each invocation takes while the link path rolls out. Reduce to
+    // debug or remove once it has run in production for a while.
+    LOGGER.info(TRIGGER_SOURCE_MESSAGE, input.getTriggerSource(), input.getUserName());
 
     final var authenticationDetails = extractAuthenticationDetails(input);
 
@@ -186,6 +196,7 @@ public class UserSelectionUponLoginHandler
 
     var person =
         personRegistry.fetchPersonByNin(nin).or(() -> createPerson(attributes, nin)).orElseThrow();
+    var registryAnswered = Instant.now();
 
     logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
 
@@ -195,6 +206,8 @@ public class UserSelectionUponLoginHandler
             authenticationDetails, customersForPerson, input.getTriggerSource(), attributes);
 
     var users = createUsers(person, customersForPerson, authenticationDetails);
+    writeLinkAndPersonRowsOrLog(
+        person, customersForPerson, authenticationDetails, registryAnswered);
     var currentTerms = termsService.getCurrentTermsAndConditions().termsConditionsUri();
     var acceptedTerms = getAcceptedTerms(person);
     var hasAcceptedTerms = currentTerms.equals(acceptedTerms);
@@ -237,6 +250,46 @@ public class UserSelectionUponLoginHandler
     return input;
   }
 
+  /**
+   * Remembers what the person registry answered, so later token generations can resolve the Cognito
+   * user without the registry. Written on every login that reached the registry. The rows are a
+   * cache: the login must not fail because they could not be written.
+   */
+  @SuppressWarnings("PMD.AvoidCatchingGenericException")
+  private void writeLinkAndPersonRowsOrLog(
+      Person person,
+      Set<CustomerDto> customers,
+      AuthenticationDetails authenticationDetails,
+      Instant registryAnswered) {
+    try {
+      writeLinkAndPersonRows(person, customers, authenticationDetails, registryAnswered);
+    } catch (RuntimeException e) {
+      LOGGER.warn(COULD_NOT_WRITE_ROWS_MESSAGE, person.getId(), e);
+    }
+  }
+
+  private void writeLinkAndPersonRows(
+      Person person,
+      Set<CustomerDto> customers,
+      AuthenticationDetails authenticationDetails,
+      Instant registryAnswered) {
+    var customerIds = customers.stream().map(CustomerDto::getId).collect(Collectors.toSet());
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            person.getId(),
+            person.getFirstname(),
+            person.getSurname(),
+            customerIds,
+            registryAnswered));
+    identityService.saveLink(
+        new IdentityLink(
+            authenticationDetails.getUsername(),
+            person.getId(),
+            authenticationDetails.getFeideIdentifier(),
+            authenticationDetails.getFeideDomain(),
+            registryAnswered));
+  }
+
   private Optional<Person> createPerson(
       Map<String, String> attributes, NationalIdentityNumber nin) {
     var lastName = extractLastName(attributes);
@@ -261,10 +314,7 @@ public class UserSelectionUponLoginHandler
 
   private static IllegalStateException getIllegalStateException(
       String message, Map<String, String> attributes) {
-    attributes.remove(NIN_FOR_FEIDE_USERS);
-    attributes.remove(NIN_FOR_NON_FEIDE_USERS);
-    LOGGER.error(
-        attempt(() -> JsonUtils.dtoObjectMapper.writeValueAsString(attributes)).orElseThrow());
+    LOGGER.error(COULD_NOT_EXTRACT_NAME_MESSAGE, attributes.keySet());
     return new IllegalStateException(
         message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
   }
@@ -366,26 +416,15 @@ public class UserSelectionUponLoginHandler
     return users;
   }
 
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
-  private AuthenticationDetails extractAuthenticationDetails(
+  private static AuthenticationDetails extractAuthenticationDetails(
       CognitoUserPoolPreTokenGenerationEventV2 input) {
-    try {
-      var nin = extractNin(input.getRequest().getUserAttributes());
-      var feideDomain = extractOrgFeideDomain(input.getRequest().getUserAttributes());
-      var feideIdentifier = extractFeideIdentifier(input.getRequest().getUserAttributes());
-      var userPoolId = input.getUserPoolId();
-      var username = input.getUserName();
-
-      return new AuthenticationDetails(nin, feideIdentifier, feideDomain, userPoolId, username);
-    } catch (Exception e) {
-      LOGGER.error("Could not extract required data from request", e);
-      LOGGER.error(
-          "User name: {}, userPoolId: {}, input request: {}",
-          input.getUserName(),
-          input.getUserPoolId(),
-          input.getRequest());
-      throw e;
-    }
+    var attributes = input.getRequest().getUserAttributes();
+    return new AuthenticationDetails(
+        extractNin(attributes),
+        extractFeideIdentifier(attributes),
+        extractOrgFeideDomain(attributes),
+        input.getUserPoolId(),
+        input.getUserName());
   }
 
   private UserDto getCurrentUser(CustomerDto currentCustomer, Collection<UserDto> users) {

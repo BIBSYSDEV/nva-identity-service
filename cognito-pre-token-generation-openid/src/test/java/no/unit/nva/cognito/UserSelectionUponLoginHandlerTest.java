@@ -61,6 +61,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -155,6 +156,7 @@ class UserSelectionUponLoginHandlerTest {
   public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
   private static final String COMMA = ",";
   private static final String EXAMPLE_NAME = "Håkon Østby Ærland";
+  private static final String FEDERATED_USERNAME_PREFIX = "Dataporten_";
 
   private final Context context = new FakeContext();
   private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -287,6 +289,7 @@ class UserSelectionUponLoginHandlerTest {
     var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
     loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
     loginEvent.setRequest(request);
+    loginEvent.setUserName(randomString());
     return loginEvent;
   }
 
@@ -303,6 +306,7 @@ class UserSelectionUponLoginHandlerTest {
     var loginEvent = new CognitoUserPoolPreTokenGenerationEventV2();
     loginEvent.setTriggerSource(TRIGGER_SOURCE_AUTHENTICATION);
     loginEvent.setRequest(request);
+    loginEvent.setUserName(FEDERATED_USERNAME_PREFIX + randomString());
     return loginEvent;
   }
 
@@ -403,26 +407,19 @@ class UserSelectionUponLoginHandlerTest {
   }
 
   @Test
-  void shouldLogUserAttributesIfNinExtractFails() {
+  void shouldFailWithMissingNinAndNotDumpRequestWhenNothingIdentifiesFederatedUser() {
     var personLoggingIn = scenarios.personWithoutNin();
     var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
     var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
 
-    assertThrows(
-        IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
+    var exception =
+        assertThrows(
+            IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
 
+    assertThat(exception.getErrorCode(), is(equalTo("1003")));
     Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains("Could not extract required data from request"))
-        .anySatisfy(
-            message ->
-                Assertions.assertThat(message)
-                    .contains(
-                        "User name: null",
-                        "userPoolId: null",
-                        "userAttributes={SOME=VALUE}",
-                        "scopes=null",
-                        "groupConfiguration=null",
-                        "clientMetadata=null"));
+        .noneMatch(message -> message.contains("userAttributes="))
+        .noneMatch(message -> message.contains("SOME=VALUE"));
   }
 
   @Test
@@ -751,6 +748,100 @@ class UserSelectionUponLoginHandlerTest {
         actualCristinPersonId, is(not(equalTo(scenarios.getCristinIdForPerson(otherPerson)))));
   }
 
+  @ParameterizedTest(name = "Login event type: {0}")
+  @DisplayName("should write link and person rows when the person registry resolved the person")
+  @EnumSource(LoginEventType.class)
+  void shouldWriteLinkAndPersonRowsWhenPersonIsResolvedFromRegistry(LoginEventType loginEventType) {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, loginEventType);
+
+    handler.handleRequest(event, context);
+
+    var expectedCristinId = scenarios.getCristinIdForPerson(nin);
+    var link = identityService.fetchLink(event.getUserName()).orElseThrow();
+    assertThat(link.cristinId(), is(equalTo(expectedCristinId)));
+    assertThat(link.feideIdentifier(), is(equalTo(extractFeideIdentifierFromInputEvent(event))));
+    assertThat(link.orgFeideDomain(), is(equalTo(extractFeideDomainFromInputEvent(event))));
+    assertThat(link.modified(), is(notNullValue()));
+
+    var registryPerson = scenarios.getPersonFromRegistry(nin);
+    var expectedCustomers =
+        scenarios.fetchCustomersForPerson(nin).stream()
+            .map(CustomerDto::getId)
+            .collect(Collectors.toSet());
+    var linkedPerson = identityService.fetchLinkedPerson(expectedCristinId).orElseThrow();
+    assertThat(linkedPerson.givenName(), is(equalTo(registryPerson.getFirstname())));
+    assertThat(linkedPerson.familyName(), is(equalTo(registryPerson.getSurname())));
+    assertThat(linkedPerson.customers(), is(equalTo(expectedCustomers)));
+    assertThat(linkedPerson.lastVerified(), is(notNullValue()));
+  }
+
+  @Test
+  void shouldOnlyRememberCustomersWithActiveAffiliationInPersonRow() {
+    var nin = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
+    var event = newLoginEvent(nin, NON_FEIDE);
+
+    handler.handleRequest(event, context);
+
+    var expectedCustomers =
+        scenarios.getCristinUriForInstitutionAffiliations(nin, ACTIVE).stream()
+            .map(attempt(customerService::getCustomerByCristinId))
+            .map(Try::orElseThrow)
+            .map(CustomerDto::getId)
+            .collect(Collectors.toSet());
+    var linkedPerson =
+        identityService.fetchLinkedPerson(scenarios.getCristinIdForPerson(nin)).orElseThrow();
+    assertThat(linkedPerson.customers(), is(equalTo(expectedCustomers)));
+    assertThat(linkedPerson.customers(), hasSize(1));
+  }
+
+  @Test
+  void shouldLogInWithoutRowsWhenWritingLinkAndPersonRowsFails() {
+    var failingIdentityService = spy(identityService);
+    doThrow(new RuntimeException("DynamoDB is unavailable"))
+        .when(failingIdentityService)
+        .saveLinkedPerson(any());
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            failingIdentityService,
+            personRegistry,
+            termsAndConditionsService);
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, NON_FEIDE);
+    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
+
+    handler.handleRequest(event, context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
+        is(equalTo(scenarios.getCristinIdForPerson(nin).toString())));
+    assertThat(identityService.fetchLink(event.getUserName()).isPresent(), is(false));
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(message -> message.contains("Could not write link and person rows"));
+  }
+
+  @Test
+  void shouldLogTriggerSourceForEveryInvocation() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var event = newLoginEvent(nin, NON_FEIDE);
+    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
+
+    handler.handleRequest(event, context);
+
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(
+            message ->
+                message.contains("Trigger source " + TRIGGER_SOURCE_AUTHENTICATION)
+                    && message.contains(event.getUserName()));
+  }
+
+  private static String extractFeideIdentifierFromInputEvent(
+      CognitoUserPoolPreTokenGenerationEventV2 event) {
+    return event.getRequest().getUserAttributes().get(FEIDE_ID);
+  }
+
   @ParameterizedTest(
       name = "should handle splitting name into firstName and lastName in claims when logging in")
   @MethodSource("differentCorrectNames")
@@ -833,6 +924,27 @@ class UserSelectionUponLoginHandlerTest {
     var event = feideLogin(mockPerson.nin());
     event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, "   ");
     assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
+  }
+
+  @Test
+  void shouldNameTheFailingNameButNotLogAttributeValuesWhenNameCannotBeExtracted() {
+    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
+    var event = feideLogin(mockPerson.nin());
+    event.getRequest().getUserAttributes().put(NAME_CLAIM, "Alice");
+    event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, "   ");
+    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
+
+    var exception =
+        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
+
+    assertThat(exception.getMessage(), containsString("Alice"));
+    Assertions.assertThat(logRecorder.messages())
+        .anyMatch(
+            message ->
+                message.contains("Could not extract name from user attributes with keys")
+                    && message.contains(FEIDE_ID))
+        .noneMatch(message -> message.contains("feideid@domain.no"))
+        .noneMatch(message -> message.contains(mockPerson.nin()));
   }
 
   @Test

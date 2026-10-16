@@ -1978,7 +1978,6 @@ Resources:
         - custom:allowedCustomers
         - custom:roles
         - custom:nvaUsername
-        - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
         - custom:currentTerms
@@ -2139,7 +2138,6 @@ Resources:
         - custom:allowedCustomers
         - custom:roles
         - custom:nvaUsername
-        - custom:cristinId
         - custom:topOrgCristinId
         - custom:personAffiliation
         - custom:currentTerms

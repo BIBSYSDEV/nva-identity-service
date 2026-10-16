@@ -213,7 +213,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     if (cristinPerson.isPresent()) {
       return fetchUserAtCustomer(cristinPerson.get(), input.customerId());
     } else {
-      throw new ConflictException(personIsNotRegisteredError(input.nationalIdentityNumber()));
+      throw new ConflictException(personIsNotRegisteredError(input));
     }
   }
 
@@ -242,8 +242,11 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
   }
 
-  private String personIsNotRegisteredError(String nin) {
-    return String.format("Person %s is not registered in the Person Registry", nin);
+  private String personIsNotRegisteredError(CreateUserRequest input) {
+    var personDescription =
+        Optional.ofNullable(input.cristinIdentifier())
+            .orElse("with the given national identity number");
+    return String.format("Person %s is not registered in the Person Registry", personDescription);
   }
 
   @Override

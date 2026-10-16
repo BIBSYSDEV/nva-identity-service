@@ -17,6 +17,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsIterableContaining.hasItems;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -583,6 +585,7 @@ class CreateUserHandlerTest extends HandlerTest {
 
     var message = response.getBodyObject(Problem.class).getDetail();
     assertThat(message, matchesPattern(".*Person (.*) is not registered in the Person Registry.*"));
+    assertThat(message, not(containsString(person.nin())));
   }
 
   @Test

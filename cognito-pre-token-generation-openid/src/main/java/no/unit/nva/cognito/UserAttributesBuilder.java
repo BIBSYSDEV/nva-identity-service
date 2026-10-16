@@ -11,7 +11,6 @@ import static no.unit.nva.cognito.CognitoClaims.ELEMENTS_DELIMITER;
 import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
-import static no.unit.nva.cognito.CognitoClaims.IMPERSONATED_BY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
@@ -49,7 +48,6 @@ public class UserAttributesBuilder {
   private Set<CustomerDto> customersForPerson;
   private CustomerDto currentCustomer;
   private AuthenticationDetails authenticationDetails;
-  private String impersonatedBy;
   private UserDto currentUser;
   private List<String> accessRightsPersistedFormat;
   private static final String EMPTY_STRING = "";
@@ -90,11 +88,6 @@ public class UserAttributesBuilder {
     return this;
   }
 
-  public UserAttributesBuilder withImpersonatedBy(String impersonatedBy) {
-    this.impersonatedBy = impersonatedBy;
-    return this;
-  }
-
   public UserAttributesBuilder withCurrentUser(UserDto currentUser) {
     this.currentUser = currentUser;
     return this;
@@ -130,8 +123,6 @@ public class UserAttributesBuilder {
     }
 
     userAttributes.add(createAttribute(PERSON_CRISTIN_ID_CLAIM, person.getId().toString()));
-    userAttributes.add(
-        createAttribute(IMPERSONATED_BY_CLAIM, isNull(impersonatedBy) ? "" : impersonatedBy));
     userAttributes.add(createAttribute(CURRENT_TERMS, currentTerms.toString()));
     userAttributes.add(
         createAttribute(

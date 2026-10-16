@@ -1,6 +1,5 @@
 package no.unit.nva.handlers.data;
 
-import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.apigateway.AccessRight.MANAGE_ALL_PROJECTS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CHANNEL_CLAIMS;
 import static nva.commons.apigateway.AccessRight.MANAGE_CUSTOMERS;
@@ -126,7 +125,6 @@ public class DefaultRoleSourceTest {
         containsInAnyOrder(
             MANAGE_CUSTOMERS,
             MANAGE_EXTERNAL_CLIENTS,
-            ACT_AS,
             MANAGE_NVI,
             MANAGE_IMPORT,
             MANAGE_CHANNEL_CLAIMS));

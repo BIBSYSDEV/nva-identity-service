@@ -6,13 +6,11 @@ import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_INCLUDED_IN_ACCESS_
 import static no.unit.nva.cognito.CognitoClaims.CLAIMS_TO_BE_SUPPRESSED_FROM_PUBLIC;
 import static no.unit.nva.cognito.CognitoClaims.CURRENT_CUSTOMER_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
-import static no.unit.nva.cognito.CognitoClaims.IMPERSONATING_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.customer.Constants.defaultCustomerService;
 import static no.unit.nva.database.DatabaseConfig.DEFAULT_DYNAMO_CLIENT;
 import static no.unit.nva.database.IdentityService.defaultIdentityService;
-import static nva.commons.apigateway.AccessRight.ACT_AS;
 import static nva.commons.core.StringUtils.isBlank;
 import static nva.commons.core.attempt.Try.attempt;
 
@@ -75,7 +73,6 @@ public class UserSelectionUponLoginHandler
   public static final String ORG_FEIDE_DOMAIN = "custom:orgFeideDomain";
   public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR =
       "Could not find user for customer: ";
-  public static final String USER_NOT_ALLOWED_TO_IMPERSONATE = "User not allowed to impersonate";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
   private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE =
       "Customer is inactive {} when logging in as {} with the following affiliations: {}";
@@ -185,15 +182,12 @@ public class UserSelectionUponLoginHandler
     var startFetchingPerson = Instant.now();
 
     var attributes = input.getRequest().getUserAttributes();
-    var impersonating = attributes.get(IMPERSONATING_CLAIM);
-    var nin = getCurrentNin(impersonating, authenticationDetails);
+    var nin = authenticationDetails.getNin();
 
     var person =
         personRegistry.fetchPersonByNin(nin).or(() -> createPerson(attributes, nin)).orElseThrow();
 
     logIfDebug("Got person details from registry in {} ms.", startFetchingPerson);
-
-    var impersonatedBy = getImpersonatedBy(impersonating, authenticationDetails);
 
     var customersForPerson = fetchCustomersWithActiveAffiliations(person);
     var currentCustomer =
@@ -227,7 +221,6 @@ public class UserSelectionUponLoginHandler
             .withCustomersForPerson(customersForPerson)
             .withCurrentCustomer(currentCustomer)
             .withAuthenticationDetails(authenticationDetails)
-            .withImpersonatedBy(impersonatedBy)
             .withCurrentUser(currentUser)
             .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
             .build();
@@ -351,45 +344,6 @@ public class UserSelectionUponLoginHandler
     }
 
     return currentCustomer;
-  }
-
-  private NationalIdentityNumber getCurrentNin(
-      String impersonating, AuthenticationDetails authenticationDetails) {
-
-    if (isNull(impersonating)) {
-      return authenticationDetails.getNin();
-    }
-    var impersonator = personRegistry.fetchPersonByNin(authenticationDetails.getNin()).get();
-
-    LOGGER.info(
-        "User {} {} impersonating: {}",
-        impersonator.getIdentifier(),
-        authenticationDetails.getUsername(),
-        impersonating);
-
-    var customerForImpersonators = fetchCustomersWithActiveAffiliations(impersonator);
-    var usersForImpersonator =
-        createUsers(impersonator, customerForImpersonators, authenticationDetails);
-    var impersonatorsAccessRights =
-        usersForImpersonator.stream()
-            .map(user -> UserAccessRightForCustomer.fromUser(user, customerForImpersonators, true))
-            .flatMap(Collection::stream)
-            .map(UserAccessRightForCustomer::getAccessRight)
-            .collect(Collectors.toSet());
-
-    var isAllowedToImpersonate = impersonatorsAccessRights.contains(ACT_AS);
-
-    if (!isAllowedToImpersonate) {
-      LOGGER.warn(USER_NOT_ALLOWED_TO_IMPERSONATE);
-      throw new IllegalStateException(USER_NOT_ALLOWED_TO_IMPERSONATE);
-    }
-
-    return NationalIdentityNumber.fromString(impersonating);
-  }
-
-  private String getImpersonatedBy(
-      String impersonating, AuthenticationDetails authenticationDetails) {
-    return isNull(impersonating) ? null : authenticationDetails.getUsername();
   }
 
   private URI getAcceptedTerms(Person person) {

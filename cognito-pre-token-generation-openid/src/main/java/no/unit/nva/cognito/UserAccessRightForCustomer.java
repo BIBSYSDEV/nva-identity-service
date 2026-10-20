@@ -10,7 +10,6 @@ import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.SingletonCollector;
 
 public class UserAccessRightForCustomer {
 
@@ -22,17 +21,18 @@ public class UserAccessRightForCustomer {
     this.customer = customerDto;
   }
 
+  /** A user entry at a customer that is not among the given customers gives no rights. */
   public static List<UserAccessRightForCustomer> fromUser(
       UserDto user, Set<CustomerDto> customers, boolean hasAcceptedTerms) {
     if (FALSE.equals(hasAcceptedTerms)) {
       return List.of();
     }
 
-    var customer =
-        customers.stream()
-            .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
-            .collect(SingletonCollector.collect());
-    return createAccessRightsForExistingCustomer(user, customer);
+    return customers.stream()
+        .filter(candidateCustomer -> candidateCustomer.getId().equals(user.getInstitution()))
+        .findFirst()
+        .map(customer -> createAccessRightsForExistingCustomer(user, customer))
+        .orElse(List.of());
   }
 
   private static List<UserAccessRightForCustomer> createAccessRightsForExistingCustomer(

@@ -903,14 +903,18 @@ class UserSelectionUponLoginHandlerTest {
   }
 
   @Test
-  void shouldTakeFeideDetailsFromLinkWhenLoginHasNoNinAndNoFeideAttributes() {
+  void shouldTakeFeideDetailsFromLinkOnRefreshWithoutNinAndFeideAttributes() {
     var nin = scenarios.personWithTwoActiveEmploymentsInNonFeideAndFeideCustomers().nin();
     var login = feideLogin(nin);
     handler.handleRequest(login, context);
     var customerFromRegistry = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
     var feideIdFromRegistry = extractClaimFromCognitoUpdateRequest(FEIDE_ID);
 
-    var withoutFeideAttributes = withoutNin(login);
+    var withoutFeideAttributes = refreshFor(withoutNin(login));
+    withoutFeideAttributes
+        .getRequest()
+        .getUserAttributes()
+        .put(CURRENT_CUSTOMER_CLAIM, customerFromRegistry);
     withoutFeideAttributes.getRequest().getUserAttributes().remove(FEIDE_ID);
     withoutFeideAttributes.getRequest().getUserAttributes().remove(ORG_FEIDE_DOMAIN);
     handler.handleRequest(withoutFeideAttributes, context);
@@ -923,10 +927,10 @@ class UserSelectionUponLoginHandlerTest {
   }
 
   @Test
-  void shouldFailWithMissingLinkWhenLinkPointsToPersonWithoutRow() {
+  void shouldFailWithMissingLinkOnRefreshWithoutNinWhenLinkPointsToPersonWithoutRow() {
     var username = FEDERATED_USERNAME_PREFIX + randomString();
     identityService.saveLink(new IdentityLink(username, randomUri(), null, null, Instant.now()));
-    var event = linkPathLogin(username);
+    var event = linkPathRefresh(username);
 
     var exception =
         assertThrows(
@@ -934,6 +938,109 @@ class UserSelectionUponLoginHandlerTest {
 
     assertThat(exception.getErrorCode(), is(equalTo("1004")));
     verifyNoInteractions(personRegistry);
+  }
+
+  @Test
+  void shouldUsePersonRegistryOnRefreshWithNinWhenLinkPointsToPersonWithoutRow() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var cristinId = scenarios.getCristinIdForPerson(nin);
+    var login = feideLogin(nin);
+    var staleCristinId = randomUri();
+    identityService.saveLink(
+        new IdentityLink(login.getUserName(), staleCristinId, null, null, Instant.now()));
+    var refresh = refreshFor(login);
+
+    handler.handleRequest(refresh, context);
+
+    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
+    assertThat(
+        identityService.fetchLink(login.getUserName()).orElseThrow().personId(),
+        is(equalTo(cristinId)));
+    assertThat(identityService.fetchLinkedPerson(cristinId).isPresent(), is(true));
+  }
+
+  @Test
+  void shouldFailWithMissingNinOnLoginWithoutNinEvenWhenUserHasLink() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var login = feideLogin(nin);
+    handler.handleRequest(login, context);
+    clearInvocations(personRegistry);
+    var loginWithoutNin = withoutNin(login);
+
+    var exception =
+        assertThrows(
+            IdentityServiceMissingNinException.class,
+            () -> handler.handleRequest(loginWithoutNin, context));
+
+    assertThat(exception.getErrorCode(), is(equalTo("1003")));
+    verifyNoInteractions(personRegistry);
+  }
+
+  @Test
+  void shouldGiveNoAccessForUserEntryAtCustomerThatNoLongerExistsWhenPasswordUserLogsIn()
+      throws NotFoundException, InvalidInputException, ConflictException {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var cristinId = scenarios.getCristinIdForPerson(nin);
+    var role = persistRoleToDatabase(randomAccessRights());
+    var user =
+        scenarios.createUsersForAllActiveAffiliations(nin, identityService).stream()
+            .map(attempt(created -> addRoleToUser(created, role)))
+            .map(Try::orElseThrow)
+            .collect(SingletonCollector.collect());
+    identityService.addUser(
+        user.copy()
+            .withUsername(randomString())
+            .withInstitution(randomUri())
+            .withInstitutionCristinId(randomUri())
+            .build());
+    termsAndConditionsService.updateTermsAndConditions(cristinId, TERMS_URI, user.getUsername());
+    var login = passwordLogin(cristinId, null);
+
+    var response = handler.handleRequest(login, context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(user.getInstitution().toString())));
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM),
+        is(equalTo(user.getInstitution().toString())));
+    assertThat(groupsToOverride(response), is(not(empty())));
+  }
+
+  @Test
+  void shouldLogTheFailureWhenUserEntryLookupThroughIndexFailsOnLinkPath() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var login = feideLogin(nin);
+    var feideIdentifier = extractFeideIdentifierFromInputEvent(login);
+    scenarios.createLegacyUsersForAllActiveAffiliations(nin, feideIdentifier, identityService);
+    handler.handleRequest(login, context);
+    var failingIdentityService = spy(identityService);
+    doThrow(new RuntimeException("Index unavailable"))
+        .when(failingIdentityService)
+        .getUserByPersonCristinIdAndCustomerCristinId(any(), any());
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            failingIdentityService,
+            personRegistry,
+            termsAndConditionsService);
+    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
+    var refresh = refreshFor(withoutNin(login));
+    refresh
+        .getRequest()
+        .getUserAttributes()
+        .put(
+            CURRENT_CUSTOMER_CLAIM,
+            fetchCustomersWithActiveEmploymentsForPerson(nin).get(0).toString());
+
+    handler.handleRequest(refresh, context);
+
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM), is(equalTo(EMPTY_CLAIM)));
+    Assertions.assertThat(logRecorder.asString())
+        .contains("No user entry for person")
+        .contains("Index unavailable");
   }
 
   @Test
@@ -1036,7 +1143,12 @@ class UserSelectionUponLoginHandlerTest {
             Set.of(remainingCustomer),
             remembered.lastVerified()));
 
-    handler.handleRequest(withoutNin(login), context);
+    var refresh = refreshFor(withoutNin(login));
+    refresh
+        .getRequest()
+        .getUserAttributes()
+        .put(CURRENT_CUSTOMER_CLAIM, remainingCustomer.toString());
+    handler.handleRequest(refresh, context);
 
     assertThat(
         extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM),
@@ -1055,8 +1167,7 @@ class UserSelectionUponLoginHandlerTest {
     identityService.saveLink(new IdentityLink(username, cristinId, null, null, Instant.now()));
     identityService.saveLinkedPerson(
         new LinkedPerson(cristinId, firstName, lastName, Set.of(), Instant.now()));
-    var event = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
-    event.setUserName(username);
+    var event = linkPathRefresh(username);
 
     handler.handleRequest(event, context);
 
@@ -1077,7 +1188,7 @@ class UserSelectionUponLoginHandlerTest {
     identityService.saveLinkedPerson(
         new LinkedPerson(
             cristinId, randomString(), randomString(), Set.of(randomUri()), Instant.now()));
-    var event = linkPathLogin(username);
+    var event = linkPathRefresh(username);
 
     handler.handleRequest(event, context);
 
@@ -1101,7 +1212,7 @@ class UserSelectionUponLoginHandlerTest {
             randomString(),
             Set.of(customerWithoutUserEntry),
             Instant.now()));
-    var event = linkPathLogin(username);
+    var event = linkPathRefresh(username);
 
     handler.handleRequest(event, context);
 
@@ -1112,11 +1223,11 @@ class UserSelectionUponLoginHandlerTest {
         extractClaimFromCognitoUpdateRequest(ALLOWED_CUSTOMERS_CLAIM), is(equalTo(EMPTY_CLAIM)));
   }
 
-  /** A federated login without an identity number for a user that only exists as link rows. */
-  private CognitoUserPoolPreTokenGenerationEventV2 linkPathLogin(String username) {
+  /** A token refresh without an identity number for a user that only exists as link rows. */
+  private CognitoUserPoolPreTokenGenerationEventV2 linkPathRefresh(String username) {
     var event = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
     event.setUserName(username);
-    return event;
+    return refreshFor(event);
   }
 
   @Test
@@ -1164,8 +1275,13 @@ class UserSelectionUponLoginHandlerTest {
             .stream()
             .collect(SingletonCollector.collect());
     handler.handleRequest(login, context);
+    var refresh = refreshFor(withoutNin(login));
+    refresh
+        .getRequest()
+        .getUserAttributes()
+        .put(CURRENT_CUSTOMER_CLAIM, legacyUser.getInstitution().toString());
 
-    handler.handleRequest(withoutNin(login), context);
+    handler.handleRequest(refresh, context);
 
     assertThat(
         extractClaimFromCognitoUpdateRequest(NVA_USERNAME_CLAIM),

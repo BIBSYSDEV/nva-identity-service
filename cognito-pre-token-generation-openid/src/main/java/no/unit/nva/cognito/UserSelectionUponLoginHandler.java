@@ -100,6 +100,8 @@ public class UserSelectionUponLoginHandler
   private static final String COULD_NOT_FETCH_CUSTOMER_MESSAGE =
       "Could not fetch customer {} remembered for person {}";
   private static final String NO_USER_ENTRY_MESSAGE = "No user entry for person {} at customer {}";
+  private static final String LINK_WITHOUT_PERSON_MESSAGE =
+      "Link for user {} points to person {} without a row, resolving through the registry";
   private static final String COULD_NOT_WRITE_ROWS_MESSAGE =
       "Could not write link and person rows for person {}, the login continues without them";
   private static final String COULD_NOT_EXTRACT_NAME_MESSAGE =
@@ -269,11 +271,9 @@ public class UserSelectionUponLoginHandler
       AuthenticationDetails authenticationDetails) {}
 
   /**
-   * A federated login that delivers a national identity number goes to the person registry, so a
-   * reused Feide account or a merged person is caught at every login. A token refresh, and a login
-   * without the number, use the link written at an earlier login. A federated user without the
-   * number and without a link has never been resolved; a login that delivers the number fixes that,
-   * so the error is the same as for a missing number.
+   * A federated login must deliver a national identity number and goes to the person registry, so a
+   * reused Feide account or a merged person is caught at every login. A token refresh uses the rows
+   * written at that login; a refresh without usable rows goes to the registry like a login.
    */
   private ResolvedPerson resolvePerson(
       AuthenticationDetails authenticationDetails,
@@ -282,15 +282,14 @@ public class UserSelectionUponLoginHandler
     if (!authenticationDetails.isFederated()) {
       return resolvePasswordUser(authenticationDetails, attributes);
     }
-    var ninMissing = authenticationDetails.getNin().isEmpty();
-    if (ninMissing || TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource)) {
-      var link = identityService.fetchLink(authenticationDetails.getUsername());
-      if (link.isPresent()) {
-        return resolveFederatedUserFromLink(authenticationDetails, link.get());
+    if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource)) {
+      var resolvedFromRows = resolveFederatedUserFromRows(authenticationDetails);
+      if (resolvedFromRows.isPresent()) {
+        return resolvedFromRows.get();
       }
-      if (ninMissing) {
-        throw new IdentityServiceMissingNinException();
-      }
+    }
+    if (authenticationDetails.getNin().isEmpty()) {
+      throw new IdentityServiceMissingNinException();
     }
     return resolveFromPersonRegistry(authenticationDetails, attributes);
   }
@@ -310,13 +309,31 @@ public class UserSelectionUponLoginHandler
     return new ResolvedPerson(person, customers, users, authenticationDetails);
   }
 
-  /** A link without its person row is a data problem and gets its own error code. */
+  /**
+   * Empty when the user has no link. A link without its person row is a data problem: a refresh
+   * that carries the number repairs it through the registry, one without it gets its own error.
+   */
+  private Optional<ResolvedPerson> resolveFederatedUserFromRows(
+      AuthenticationDetails authenticationDetails) {
+    var link = identityService.fetchLink(authenticationDetails.getUsername());
+    if (link.isEmpty()) {
+      return Optional.empty();
+    }
+    var linkedPerson = identityService.fetchLinkedPerson(link.get().personId());
+    if (linkedPerson.isPresent()) {
+      return Optional.of(
+          resolveFederatedUserFromLink(authenticationDetails, link.get(), linkedPerson.get()));
+    }
+    if (authenticationDetails.getNin().isEmpty()) {
+      throw new IdentityServiceMissingLinkException();
+    }
+    LOGGER.warn(
+        LINK_WITHOUT_PERSON_MESSAGE, authenticationDetails.getUsername(), link.get().personId());
+    return Optional.empty();
+  }
+
   private ResolvedPerson resolveFederatedUserFromLink(
-      AuthenticationDetails authenticationDetails, IdentityLink link) {
-    var linkedPerson =
-        identityService
-            .fetchLinkedPerson(link.personId())
-            .orElseThrow(IdentityServiceMissingLinkException::new);
+      AuthenticationDetails authenticationDetails, IdentityLink link, LinkedPerson linkedPerson) {
     var person = toPerson(linkedPerson);
     var rememberedCustomers = fetchActiveCustomers(linkedPerson.customers(), person);
     var users = fetchUsersForCustomers(person, rememberedCustomers);
@@ -417,7 +434,10 @@ public class UserSelectionUponLoginHandler
             () ->
                 identityService.getUserByPersonCristinIdAndCustomerCristinId(
                     person.getId(), customer.getCristinId()))
-        .toOptional(fail -> LOGGER.warn(NO_USER_ENTRY_MESSAGE, person.getId(), customer.getId()));
+        .toOptional(
+            fail ->
+                LOGGER.warn(
+                    NO_USER_ENTRY_MESSAGE, person.getId(), customer.getId(), fail.getException()));
   }
 
   /**

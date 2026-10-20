@@ -12,6 +12,8 @@ import static no.unit.nva.cognito.CognitoClaims.EMPTY_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.FEIDE_ID;
 import static no.unit.nva.cognito.CognitoClaims.FIRST_NAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.LAST_NAME_CLAIM;
+import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_FEIDE_USERS;
+import static no.unit.nva.cognito.CognitoClaims.NIN_FOR_NON_FEIDE_USERS;
 import static no.unit.nva.cognito.CognitoClaims.NVA_USERNAME_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_AFFILIATION_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.PERSON_CRISTIN_ID_CLAIM;
@@ -50,6 +52,7 @@ public class UserAttributesBuilder {
   private AuthenticationDetails authenticationDetails;
   private UserDto currentUser;
   private List<String> accessRightsPersistedFormat;
+  private boolean ninAttributesCleared;
   private static final String EMPTY_STRING = "";
 
   public UserAttributesBuilder withPerson(Person person) {
@@ -99,10 +102,25 @@ public class UserAttributesBuilder {
     return this;
   }
 
+  /**
+   * Transition for NP-51772: an empty value deletes the attribute from the Cognito user, so users
+   * that still carry a national identity number lose it at their next token generation. Removed in
+   * NP-51975 together with the attributes.
+   */
+  public UserAttributesBuilder withNinAttributesCleared(boolean ninAttributesCleared) {
+    this.ninAttributesCleared = ninAttributesCleared;
+    return this;
+  }
+
   public List<AttributeType> build() {
     var userAttributes = new ArrayList<AttributeType>();
     userAttributes.add(createAttribute(FIRST_NAME_CLAIM, person.getFirstname()));
     userAttributes.add(createAttribute(LAST_NAME_CLAIM, person.getSurname()));
+
+    if (ninAttributesCleared) {
+      userAttributes.add(createAttribute(NIN_FOR_NON_FEIDE_USERS, EMPTY_STRING));
+      userAttributes.add(createAttribute(NIN_FOR_FEIDE_USERS, EMPTY_STRING));
+    }
 
     var userAcceptedTerms = currentTerms.equals(acceptedTerms);
 

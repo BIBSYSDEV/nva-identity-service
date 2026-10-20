@@ -98,6 +98,16 @@ Parameters:
     Type: Number
     Default: 300
     Description: TTL in seconds for API Gateway cache
+  # Transition parameter for the rollout of NP-51772. Removed in NP-51975 once it is on everywhere,
+  # together with the InboundFederationEnabled condition and everything that refers to it.
+  EnableInboundFederation:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Resolves the person in the inbound federation Lambda at every federated login and stops
+      storing the national identity number on the Cognito user. Requires the link rows from
+      NP-51969 to be written in the environment first. Transition parameter, see NP-51975.
 
 Mappings:
   Constants:
@@ -107,6 +117,8 @@ Mappings:
 
 Conditions:
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
+  # Transition, removed in NP-51975.
+  InboundFederationEnabled: !Equals [!Ref EnableInboundFederation, "true"]
 
 Globals:
   Function:
@@ -1701,6 +1713,7 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
+    DependsOn: InboundFederationHandlerTriggerPermission # so the trigger is invokable when the pool is created with it
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
@@ -1710,6 +1723,12 @@ Resources:
         PreTokenGenerationConfig:
           LambdaArn: !Ref PreTokenGenerationHandler.Alias
           LambdaVersion: "V3_0"
+        # Transition: the condition goes in NP-51975, the trigger stays.
+        InboundFederation: !If
+          - InboundFederationEnabled
+          - LambdaArn: !Ref InboundFederationHandler.Alias
+            LambdaVersion: "V1_0"
+          - !Ref AWS::NoValue
       Schema:
         - Name: nin
           AttributeDataType: String
@@ -1815,15 +1834,25 @@ Resources:
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
-      AttributeMapping:
-        custom:nin: https://n.feide.no/claims/nin
-        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:feidememberrole: eduPersonAffiliation
-        custom:feideIdNin: norEduPersonNIN
-        custom:orgFeideDomain: schacHomeOrganization
-        custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
-        custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
-        name: name
+      # With inbound federation on, the national identity number is used by the inbound Lambda and
+      # never stored on the user, so the two attributes that carried it are left out of the mapping.
+      # Transition: NP-51975 keeps only the first mapping and drops the condition.
+      AttributeMapping: !If
+        - InboundFederationEnabled
+        - custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+          custom:feidememberrole: eduPersonAffiliation
+          custom:orgFeideDomain: schacHomeOrganization
+          custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
+          custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
+          name: name
+        - custom:nin: https://n.feide.no/claims/nin
+          custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+          custom:feidememberrole: eduPersonAffiliation
+          custom:feideIdNin: norEduPersonNIN
+          custom:orgFeideDomain: schacHomeOrganization
+          custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
+          custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
+          name: name
       ProviderDetails:
         client_id: "{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}"
         client_secret: "{{resolve:secretsmanager:DataportenClient:SecretString:secret}}"
@@ -2211,6 +2240,11 @@ Resources:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
+          # Transition: where the inbound Lambda resolves the person, the stored national identity
+          # number is blanked at every token generation (users from before the switch are cleaned
+          # too) and a login without the number is resolved from the link rows. Goes away with the
+          # one-time cleanup in NP-51973 and NP-51975.
+          INBOUND_FEDERATION_ENABLED: !If [InboundFederationEnabled, "true", "false"]
       Timeout: 20
 
   ClientPreTokenGenerationHandler:
@@ -2350,6 +2384,172 @@ Resources:
       Threshold: 10
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: missing
+
+  # Runs at every federated login, before Cognito stores the user. Looks the person up in the
+  # person registry, creates or updates the user entries and writes the link and person rows, so
+  # the pre-token Lambda never needs the national identity number. Always deployed. Transition:
+  # attached to the user pool and given provisioned concurrency only while EnableInboundFederation
+  # is on; NP-51975 makes both unconditional.
+  InboundFederationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      LoggingConfig:
+        LogGroup: !Ref InboundFederationHandlerLogGroup
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.inbound.InboundFederationHandler::handleRequest
+      Policies:
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+      Tracing: Active
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Enabled: true
+        Type: AllAtOnce
+      ProvisionedConcurrencyConfig: !If
+        - InboundFederationEnabled
+        - ProvisionedConcurrentExecutions: 1
+        - !Ref AWS::NoValue
+      Environment:
+        Variables:
+          API_DOMAIN: !Ref ApiDomain
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          CRISTIN_API_URL: !Ref CristinApiUrl
+      Timeout: 5 # Cognito gives up after 5 seconds
+
+  InboundFederationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/nva-identity-service/InboundFederationHandler/${AWS::AccountId}"
+      RetentionInDays: !Ref LogRetentionInDays
+
+  InboundFederationHandlerTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref InboundFederationHandler.Alias
+      Principal: cognito-idp.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  InboundFederationHandlerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Condition: InboundFederationEnabled # Transition, see InboundFederationHandler
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 1
+      ResourceId: !Sub function:${InboundFederationHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: InboundFederationHandlerAliaslive
+
+  InboundFederationHandlerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Condition: InboundFederationEnabled # Transition, see InboundFederationHandler
+    Properties:
+      PolicyName: InboundFederationHandlerScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref InboundFederationHandlerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  InboundFederationFailedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation requests failed
+      AlarmDescription: Federated logins fail in the inbound federation Lambda. Check its CloudWatch logs.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref InboundFederationHandler
+      Period: 60
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
+
+  InboundFederationSlowAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation is slow
+      AlarmDescription: p99 duration of the inbound federation Lambda is over 4 seconds. Cognito gives up at 5, and then the login fails.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: Duration
+      Namespace: AWS/Lambda
+      ExtendedStatistic: p99
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref InboundFederationHandler
+      Period: 300
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 4000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  InboundFederationLinkRewrittenMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref InboundFederationHandlerLogGroup
+      FilterPattern: '"Link rewritten"'
+      MetricTransformations:
+        - MetricName: InboundFederationLinkRewritten
+          MetricNamespace: NvaIdentityService
+          MetricValue: "1"
+          DefaultValue: 0
+
+  InboundFederationLinkRewrittenAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation rewrote a link
+      AlarmDescription: A Cognito user resolved to a different person than its link pointed to. Check the inbound federation logs for the old and new person identifiers.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: InboundFederationLinkRewritten
+      Namespace: NvaIdentityService
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  InboundFederationAdmittedOnLinkMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref InboundFederationHandlerLogGroup
+      FilterPattern: '"Admitted on link"'
+      MetricTransformations:
+        - MetricName: InboundFederationAdmittedOnLink
+          MetricNamespace: NvaIdentityService
+          MetricValue: "1"
+          DefaultValue: 0
+
+  InboundFederationAdmittedOnLinkAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation admitted users on their link
+      AlarmDescription: The person registry did not answer in time and users were let in on their stored link. Check the person registry.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: InboundFederationAdmittedOnLink
+      Namespace: NvaIdentityService
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
 
 ### Outputs ############################################################################################################
 

@@ -44,11 +44,12 @@ import no.unit.nva.useraccessservice.model.IdentityLink;
 import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.ActiveCustomers;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
-import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
+import no.unit.nva.useraccessservice.usercreation.person.PersonName;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingLinkException;
@@ -57,7 +58,6 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,12 +91,11 @@ public class UserSelectionUponLoginHandler
   public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR =
       "Could not find user for customer: ";
   public static final String TRIGGER_SOURCE_MESSAGE = "Trigger source {} for user {}";
+
+  /** Transition for NP-51772, set from the template where the inbound trigger is on. */
+  public static final String INBOUND_FEDERATION_ENABLED_ENV = "INBOUND_FEDERATION_ENABLED";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
-  private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE =
-      "Customer is inactive {} when logging in as {} with the following affiliations: {}";
-  private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION =
-      "Failed to retrieve customer for active affiliation %s when logging in as %s with the"
-          + " following affiliations: %s";
   private static final String COULD_NOT_FETCH_CUSTOMER_MESSAGE =
       "Could not fetch customer {} remembered for person {}";
   private static final String NO_USER_ENTRY_MESSAGE = "No user entry for person {} at customer {}";
@@ -109,8 +108,6 @@ public class UserSelectionUponLoginHandler
   public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
   public static final String TRIGGER_SOURCE_CLIENT_CREDENTIALS =
       "TokenGeneration_ClientCredentials";
-  private static final String WHITESPACE_REGEX = "\\s+";
-  private static final int ONE = 1;
   private static final String EMPTY_NAME = "";
   private static final String ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE =
       "Could not decode feide name value: {}";
@@ -121,16 +118,20 @@ public class UserSelectionUponLoginHandler
   private final PersonRegistry personRegistry;
   private final TermsAndConditionsService termsService;
   private final M2MTokenEnricher tokenEnricher;
+  private final boolean inboundFederationEnabled;
 
   @JacocoGenerated
   public UserSelectionUponLoginHandler() {
-    this.identityService = defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
-    this.cognitoClient = defaultCognitoClient();
-    this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
-    this.userCreator = new UserEntriesCreatorForPerson(identityService);
-    this.tokenEnricher = new M2MTokenEnricher(identityService);
-    this.termsService = new TermsAndConditionsService();
-    this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
+    this(
+        defaultCognitoClient(),
+        defaultCustomerService(DEFAULT_DYNAMO_CLIENT),
+        defaultIdentityService(DEFAULT_DYNAMO_CLIENT),
+        CristinPersonRegistry.defaultPersonRegistry(),
+        new TermsAndConditionsService(),
+        ENVIRONMENT
+            .readEnvOpt(INBOUND_FEDERATION_ENABLED_ENV)
+            .map(Boolean::parseBoolean)
+            .orElse(false));
   }
 
   @JacocoGenerated
@@ -148,6 +149,16 @@ public class UserSelectionUponLoginHandler
       IdentityService identityService,
       PersonRegistry personRegistry,
       TermsAndConditionsService termsService) {
+    this(cognitoClient, customerService, identityService, personRegistry, termsService, false);
+  }
+
+  public UserSelectionUponLoginHandler(
+      CognitoIdentityProviderClient cognitoClient,
+      CustomerService customerService,
+      IdentityService identityService,
+      PersonRegistry personRegistry,
+      TermsAndConditionsService termsService,
+      boolean inboundFederationEnabled) {
 
     this.cognitoClient = cognitoClient;
     this.customerService = customerService;
@@ -156,6 +167,7 @@ public class UserSelectionUponLoginHandler
     this.userCreator = new UserEntriesCreatorForPerson(identityService);
     this.tokenEnricher = new M2MTokenEnricher(identityService);
     this.termsService = termsService;
+    this.inboundFederationEnabled = inboundFederationEnabled;
   }
 
   private static Optional<NationalIdentityNumber> extractNin(Map<String, String> userAttributes) {
@@ -249,6 +261,7 @@ public class UserSelectionUponLoginHandler
             .withAuthenticationDetails(authenticationDetails)
             .withCurrentUser(currentUser)
             .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
+            .withNinAttributesCleared(inboundFederationEnabled)
             .build();
 
     updateCognitoUserAttributes(
@@ -273,7 +286,10 @@ public class UserSelectionUponLoginHandler
   /**
    * A federated login must deliver a national identity number and goes to the person registry, so a
    * reused Feide account or a merged person is caught at every login. A token refresh uses the rows
-   * written at that login; a refresh without usable rows goes to the registry like a login.
+   * written at that login; a refresh without usable rows goes to the registry like a login. Where
+   * the inbound trigger is on, it has already checked the number and written the rows, so every
+   * login is resolved from the rows as a refresh is; a number still stored on a user from before
+   * the switch must not override what the trigger decided.
    */
   private ResolvedPerson resolvePerson(
       AuthenticationDetails authenticationDetails,
@@ -282,13 +298,14 @@ public class UserSelectionUponLoginHandler
     if (!authenticationDetails.isFederated()) {
       return resolvePasswordUser(authenticationDetails, attributes);
     }
-    if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource)) {
+    var ninMissing = authenticationDetails.getNin().isEmpty();
+    if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource) || inboundFederationEnabled) {
       var resolvedFromRows = resolveFederatedUserFromRows(authenticationDetails);
       if (resolvedFromRows.isPresent()) {
         return resolvedFromRows.get();
       }
     }
-    if (authenticationDetails.getNin().isEmpty()) {
+    if (ninMissing) {
       throw new IdentityServiceMissingNinException();
     }
     return resolveFromPersonRegistry(authenticationDetails, attributes);
@@ -489,11 +506,8 @@ public class UserSelectionUponLoginHandler
   }
 
   private String extractFirstName(Map<String, String> attributes) {
-    return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
-        .filter(fullName -> !fullName.isBlank())
-        .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
-        .filter(parts -> parts.length > ONE)
-        .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
+    return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
+        .map(PersonName::givenName)
         .or(() -> decodeFeideName(attributes.get(CognitoClaims.FIRST_NAME_CLAIM)))
         .map(String::trim)
         .filter(name -> !name.isBlank())
@@ -544,10 +558,8 @@ public class UserSelectionUponLoginHandler
 
   @JacocoGenerated
   private String extractLastName(Map<String, String> attributes) {
-    return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
-        .filter(fullName -> !fullName.isBlank())
-        .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
-        .map(parts -> parts[parts.length - ONE])
+    return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
+        .map(PersonName::familyName)
         .or(() -> decodeFeideName(attributes.get(CognitoClaims.LAST_NAME_CLAIM)))
         .map(String::trim)
         .filter(name -> !name.isBlank())
@@ -655,42 +667,7 @@ public class UserSelectionUponLoginHandler
   }
 
   private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
-    return person.getAffiliations().stream()
-        .map(Affiliation::getInstitutionId)
-        .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
-        .flatMap(Optional::stream)
-        .filter(customer -> logInactiveInstitutions(customer, person))
-        .collect(Collectors.toSet());
-  }
-
-  private boolean logInactiveInstitutions(CustomerDto customerDto, Person person) {
-    if (!customerDto.isActive()) {
-      LOGGER.info(
-          CUSTOMER_IS_INACTIVE_ERROR_MESSAGE,
-          customerDto,
-          person.getId(),
-          person.getAffiliations());
-    }
-    return customerDto.isActive();
-  }
-
-  private Optional<CustomerDto> getCustomerByCristinIdOrLogError(
-      URI organizationId, Person person) {
-    return attempt(() -> customerService.getCustomerByCristinId(organizationId))
-        .map(Optional::of)
-        .orElse(fail -> logFailure(fail, organizationId, person));
-  }
-
-  private Optional<CustomerDto> logFailure(
-      Failure<Optional<CustomerDto>> fail, URI organizationId, Person person) {
-    var message =
-        String.format(
-            FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION,
-            organizationId,
-            person.getId(),
-            person.getAffiliations());
-    LOGGER.info(message, fail.getException());
-    return Optional.empty();
+    return ActiveCustomers.forPerson(person, customerService);
   }
 
   private void updateCognitoUserAttributes(

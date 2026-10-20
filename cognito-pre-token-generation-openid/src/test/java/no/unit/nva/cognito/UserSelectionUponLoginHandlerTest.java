@@ -168,6 +168,8 @@ class UserSelectionUponLoginHandlerTest {
   private static final String FEDERATED_USERNAME_PREFIX = "Dataporten_";
   private static final String FEDERATED_IDENTITIES =
       "[{\"providerName\":\"Dataporten\",\"providerType\":\"OIDC\",\"primary\":\"true\"}]";
+  private static final Set<String> NIN_ATTRIBUTES =
+      Set.of(NIN_FOR_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS);
 
   private final Context context = new FakeContext();
   private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -2349,5 +2351,135 @@ class UserSelectionUponLoginHandlerTest {
     event.setTriggerSource(TRIGGER_SOURCE_CLIENT_CREDENTIALS);
     event.setCallerContext(CallerContext.builder().withClientId(clientId).build());
     return event;
+  }
+
+  @Test
+  void shouldWriteEmptyNinAttributesWhenInboundFederationIsEnabled() {
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            identityService,
+            personRegistry,
+            termsAndConditionsService,
+            true);
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+
+    handler.handleRequest(newLoginEvent(nin, FEIDE), context);
+
+    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
+        .filteredOn(attribute -> NIN_ATTRIBUTES.contains(attribute.name()))
+        .extracting(AttributeType::value)
+        .containsExactly("", "");
+  }
+
+  @Test
+  void shouldLeaveNinAttributesAloneByDefault() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+
+    handler.handleRequest(newLoginEvent(nin, FEIDE), context);
+
+    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
+        .extracting(AttributeType::name)
+        .doesNotContainAnyElementsOf(NIN_ATTRIBUTES);
+  }
+
+  @Test
+  void shouldResolveLoginWithoutNinFromLinkWhenInboundFederationIsEnabled() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var login = feideLogin(nin);
+    handler.handleRequest(login, context);
+    var customerFromRegistry = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+    clearInvocations(personRegistry);
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            identityService,
+            personRegistry,
+            termsAndConditionsService,
+            true);
+
+    handler.handleRequest(withoutNin(login), context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(customerFromRegistry)));
+  }
+
+  @Test
+  void shouldResolveLoginFromRowsBeforeStoredNinWhenInboundFederationIsEnabled() {
+    var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
+    handler.handleRequest(login, context);
+    var otherNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var otherCristinId = scenarios.getCristinIdForPerson(otherNin);
+    var otherUser =
+        scenarios.createUsersForAllActiveAffiliations(otherNin, identityService).stream()
+            .collect(SingletonCollector.collect());
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            otherCristinId,
+            randomString(),
+            randomString(),
+            Set.of(otherUser.getInstitution()),
+            Instant.now()));
+    identityService.saveLink(
+        new IdentityLink(login.getUserName(), otherCristinId, null, null, Instant.now()));
+    clearInvocations(personRegistry);
+    handler = handlerWithInboundFederationEnabled();
+
+    handler.handleRequest(login, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
+        is(equalTo(otherCristinId.toString())));
+  }
+
+  @Test
+  void shouldFailWithMissingNinOnLoginWithoutNinAndRowsWhenInboundFederationIsEnabled() {
+    handler = handlerWithInboundFederationEnabled();
+    var login = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
+
+    var exception =
+        assertThrows(
+            IdentityServiceMissingNinException.class, () -> handler.handleRequest(login, context));
+
+    assertThat(exception.getErrorCode(), is(equalTo("1003")));
+    verifyNoInteractions(personRegistry);
+  }
+
+  @Test
+  void shouldWriteEmptyNinAttributesOnRefreshAndForPasswordUsersWhenInboundFederationIsEnabled() {
+    handler = handlerWithInboundFederationEnabled();
+    var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
+    handler.handleRequest(login, context);
+
+    handler.handleRequest(refreshFor(login), context);
+    assertThatNinAttributesAreCleared();
+
+    var passwordUsersNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    scenarios.createUsersForAllActiveAffiliations(passwordUsersNin, identityService);
+    handler.handleRequest(
+        passwordLogin(scenarios.getCristinIdForPerson(passwordUsersNin), null), context);
+    assertThatNinAttributesAreCleared();
+  }
+
+  private UserSelectionUponLoginHandler handlerWithInboundFederationEnabled() {
+    return new UserSelectionUponLoginHandler(
+        cognitoClient,
+        customerService,
+        identityService,
+        personRegistry,
+        termsAndConditionsService,
+        true);
+  }
+
+  private void assertThatNinAttributesAreCleared() {
+    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
+        .filteredOn(attribute -> NIN_ATTRIBUTES.contains(attribute.name()))
+        .extracting(AttributeType::value)
+        .containsExactly("", "");
   }
 }

@@ -3,8 +3,8 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions;
 import static no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes.MISSING_IDENTITY_LINK;
 
 /**
- * Exception thrown when a login carries no National Identity Number and nothing stored links the
- * Cognito user to a person, so the user cannot be resolved.
+ * Exception thrown when nothing usable links the Cognito user to a person: a password user without
+ * a valid person identifier, or a stored link whose person row is missing.
  */
 public class IdentityServiceMissingLinkException extends IdentityServiceException {
 

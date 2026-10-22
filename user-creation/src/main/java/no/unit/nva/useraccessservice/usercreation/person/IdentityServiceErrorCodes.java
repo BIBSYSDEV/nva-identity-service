@@ -64,6 +64,14 @@ public final class IdentityServiceErrorCodes {
   public static final ServiceErrorCode MISSING_IDENTITY_LINK =
       new ServiceErrorCode(1004, HTTP_BAD_REQUEST);
 
+  /**
+   * 1005: Login not completed. Used when the inbound federation trigger could not resolve the
+   * person behind a login, for any reason other than a missing National Identity Number. The client
+   * shows a generic failure and may ask the user to try again.
+   */
+  public static final ServiceErrorCode LOGIN_NOT_COMPLETED =
+      new ServiceErrorCode(1005, HTTP_INTERNAL_ERROR);
+
   // 2xxx - Resource-related errors (already exists, not found, etc.)
 
   /** 2001: Person not found. Used when a requested person cannot be found in the registry. */

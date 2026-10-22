@@ -72,7 +72,7 @@ public class UserEntriesCreatorForPerson {
   private UserDto getExistingUserOrCreateNew(UserDto user, UserCreationContext context) {
     return attempt(() -> fetchUserBasedOnCristinIdentifiers(user, context.getPerson()))
         .or(() -> fetchLegacyUserWithFeideIdentifier(user, context))
-        .or(() -> addUser(user))
+        .or(() -> addUser(user, context.getPerson()))
         .orElseThrow();
   }
 
@@ -112,8 +112,19 @@ public class UserEntriesCreatorForPerson {
     return identityService.updateUser(updatedUser);
   }
 
-  private UserDto addUser(UserDto user) throws ConflictException {
-    identityService.addUser(user);
-    return user;
+  /**
+   * An entry that exists but that the eventually consistent index did not return yet, for example
+   * when a login is retried, answers with a conflict and is read by its key instead.
+   */
+  private UserDto addUser(UserDto user, Person person) {
+    try {
+      identityService.addUser(user);
+      return user;
+    } catch (ConflictException e) {
+      return identityService
+          .fetchUserConsistently(user.getUsername())
+          .map(existing -> attempt(() -> updateUserAffiliation(existing, person)).orElseThrow())
+          .orElseThrow();
+    }
   }
 }

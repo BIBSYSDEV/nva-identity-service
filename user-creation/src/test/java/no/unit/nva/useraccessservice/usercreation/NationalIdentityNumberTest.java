@@ -1,32 +1,56 @@
 package no.unit.nva.useraccessservice.usercreation;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-public class NationalIdentityNumberTest {
+class NationalIdentityNumberTest {
+
+  private static final String NUMBER = "01819000049";
 
   @Test
-  void shouldMaskEntireNinIfShorterThanElevenCharacters() {
-    var nin = NationalIdentityNumber.fromString("0123456789");
-
-    assertThat(
-        "Should mask the entire national identity number in toString() if it is shorter than "
-            + " 11 characters (probably test data).",
-        nin.toString(),
-        containsString("nin='XXXX'"));
+  void shouldNeverPrintTheNumber() {
+    assertThat(NationalIdentityNumber.fromString(NUMBER).toString())
+        .doesNotContain(NUMBER)
+        .doesNotContain("01")
+        .contains("NationalIdentityNumber");
   }
 
   @Test
-  void shouldMaskAllButFirstTwoAndLastTwoCharactersIfLongerThanOrEqualToElevenCharacters() {
-    var nin = NationalIdentityNumber.fromString("01234567891");
+  void shouldAcceptElevenDigits() {
+    assertThat(NationalIdentityNumber.fromDigits(NUMBER))
+        .map(NationalIdentityNumber::getNin)
+        .contains(NUMBER);
+  }
 
-    assertThat(
-        "Should mask all but the first two and last two characters in toString() if"
-            + " it is longer than or equal to 11 characters.",
-        nin.toString(),
-        containsString("nin='01XXXX91'"));
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = {"", " ", "0181900004", "018190000491", "0181900004a", "01819000049 "})
+  void shouldRejectAnythingButElevenDigits(String value) {
+    assertThat(NationalIdentityNumber.fromDigits(value)).isEmpty();
+  }
+
+  @Test
+  void shouldMaskEveryNumberInAText() {
+    var text =
+        "GET /persons/resolve?national_id=" + NUMBER + " and body {\"nin\":\"" + NUMBER + "\"}";
+
+    var masked = NationalIdentityNumber.maskAll(text);
+
+    assertThat(masked)
+        .doesNotContain(NUMBER)
+        .isEqualTo(
+            "GET /persons/resolve?national_id=*********** and body {\"nin\":\"***********\"}");
+  }
+
+  @Test
+  void shouldLeaveTextWithoutNumbersAlone() {
+    var text = "No person found for identifier 1234567890 (ten digits)";
+
+    assertThat(NationalIdentityNumber.maskAll(text)).isEqualTo(text);
   }
 }

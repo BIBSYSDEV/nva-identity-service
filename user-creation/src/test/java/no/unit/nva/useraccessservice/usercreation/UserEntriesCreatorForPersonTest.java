@@ -1,8 +1,10 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
+import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.ROLE_FOR_PEOPLE_WITH_ACTIVE_AFFILIATION;
+import static no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson.usernameFor;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_CREDENTIALS_SECRET_NAME;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_PASSWORD_SECRET_KEY;
 import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry.CRISTIN_USERNAME_SECRET_KEY;
@@ -141,6 +143,33 @@ class UserEntriesCreatorForPersonTest {
     var actualUser = users.get(SINGLE_USER);
     assertThat(users, contains(actualUser));
     assertThat(actualUser.getCristinId(), is(equalTo(person.getId())));
+  }
+
+  @Test
+  void shouldTreatAnExistingUserEntryAsFoundWhenTheIndexMissesIt() throws ConflictException {
+    var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var person = personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(personNin));
+    var customers = fetchCustomersWithActiveAffiliations(person.orElseThrow().getAffiliations());
+    var customer = customers.iterator().next();
+    var username = usernameFor(person.orElseThrow().getIdentifier(), customer.getCristinId());
+    identityService.addUser(
+        UserDto.newBuilder()
+            .withUsername(username)
+            .withInstitution(customer.getId())
+            .withInstitutionCristinId(customer.getCristinId())
+            .withCristinId(
+                randomUri()) // the index is keyed on this, so the lookup by person misses
+            .withGivenName(randomString())
+            .withFamilyName(randomString())
+            .build());
+
+    var users = userCreator.createUsers(new UserCreationContext(person.orElseThrow(), customers));
+
+    assertThat(users.size(), is(equalTo(1)));
+    assertThat(users.get(SINGLE_USER).getUsername(), is(equalTo(username)));
+    assertThat(
+        users.get(SINGLE_USER).getAffiliation(),
+        is(equalTo(person.orElseThrow().getConsistentUnitAffiliation(customer.getCristinId()))));
   }
 
   private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {

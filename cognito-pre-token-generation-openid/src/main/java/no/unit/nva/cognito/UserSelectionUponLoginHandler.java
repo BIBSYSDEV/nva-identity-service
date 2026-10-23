@@ -25,8 +25,6 @@ import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGener
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.IdTokenGeneration;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Response;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,11 +42,12 @@ import no.unit.nva.useraccessservice.model.IdentityLink;
 import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.TermsConditionsResponse;
 import no.unit.nva.useraccessservice.model.UserDto;
+import no.unit.nva.useraccessservice.usercreation.ActiveCustomers;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
-import no.unit.nva.useraccessservice.usercreation.person.Affiliation;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
+import no.unit.nva.useraccessservice.usercreation.person.PersonName;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingLinkException;
@@ -57,7 +56,6 @@ import nva.commons.apigateway.AccessRight;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
-import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,13 +90,6 @@ public class UserSelectionUponLoginHandler
       "Could not find user for customer: ";
   public static final String TRIGGER_SOURCE_MESSAGE = "Trigger source {} for user {}";
   private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
-  private static final String CUSTOMER_IS_INACTIVE_ERROR_MESSAGE =
-      "Customer is inactive {} when logging in as {} with the following affiliations: {}";
-  private static final String FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION =
-      "Failed to retrieve customer for active affiliation %s when logging in as %s with the"
-          + " following affiliations: %s";
-  private static final String COULD_NOT_FETCH_CUSTOMER_MESSAGE =
-      "Could not fetch customer {} remembered for person {}";
   private static final String NO_USER_ENTRY_MESSAGE = "No user entry for person {} at customer {}";
   private static final String LINK_WITHOUT_PERSON_MESSAGE =
       "Link for user {} points to person {} without a row, resolving through the registry";
@@ -109,11 +100,7 @@ public class UserSelectionUponLoginHandler
   public static final String TRIGGER_SOURCE_REFRESH_TOKENS = "TokenGeneration_RefreshTokens";
   public static final String TRIGGER_SOURCE_CLIENT_CREDENTIALS =
       "TokenGeneration_ClientCredentials";
-  private static final String WHITESPACE_REGEX = "\\s+";
-  private static final int ONE = 1;
   private static final String EMPTY_NAME = "";
-  private static final String ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE =
-      "Could not decode feide name value: {}";
   private final CustomerService customerService;
   private final CognitoIdentityProviderClient cognitoClient;
   private final IdentityService identityService;
@@ -379,22 +366,7 @@ public class UserSelectionUponLoginHandler
   }
 
   private Set<CustomerDto> fetchActiveCustomers(Set<URI> customerIds, Person person) {
-    return customerIds.stream()
-        .map(customerId -> fetchCustomerOrLog(customerId, person))
-        .flatMap(Optional::stream)
-        .filter(CustomerDto::isActive)
-        .collect(Collectors.toSet());
-  }
-
-  private Optional<CustomerDto> fetchCustomerOrLog(URI customerId, Person person) {
-    return attempt(() -> customerService.getCustomer(customerId))
-        .toOptional(
-            fail ->
-                LOGGER.warn(
-                    COULD_NOT_FETCH_CUSTOMER_MESSAGE,
-                    customerId,
-                    person.getId(),
-                    fail.getException()));
+    return ActiveCustomers.byIds(customerIds, customerService, person.getId());
   }
 
   private List<UserDto> fetchUsersForCustomers(Person person, Set<CustomerDto> customers) {
@@ -489,12 +461,9 @@ public class UserSelectionUponLoginHandler
   }
 
   private String extractFirstName(Map<String, String> attributes) {
-    return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
-        .filter(fullName -> !fullName.isBlank())
-        .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
-        .filter(parts -> parts.length > ONE)
-        .map(parts -> String.join(" ", Arrays.copyOf(parts, parts.length - ONE)))
-        .or(() -> decodeFeideName(attributes.get(CognitoClaims.FIRST_NAME_CLAIM)))
+    return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
+        .map(PersonName::givenName)
+        .or(() -> PersonName.decodeProviderValue(attributes.get(CognitoClaims.FIRST_NAME_CLAIM)))
         .map(String::trim)
         .filter(name -> !name.isBlank())
         .orElseThrow(
@@ -510,45 +479,11 @@ public class UserSelectionUponLoginHandler
         message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
   }
 
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
-  private Optional<String> decodeFeideName(String value) {
-    if (isBlank(value)) {
-      return Optional.empty();
-    }
-
-    try {
-      var cleanValue = value.trim();
-
-      // Remove brackets if present
-      if (cleanValue.startsWith("[") && cleanValue.endsWith("]")) {
-        cleanValue = cleanValue.substring(1, cleanValue.length() - 1);
-      }
-
-      // URL decode
-      var decoded = URLDecoder.decode(cleanValue, StandardCharsets.UTF_8);
-
-      // Remove quotes if present
-      if (decoded.startsWith("\"") && decoded.endsWith("\"")) {
-        decoded = decoded.substring(1, decoded.length() - 1);
-      }
-
-      // Remove commas
-      var result = decoded.replace(",", "").trim();
-      return result.isEmpty() ? Optional.empty() : Optional.of(result);
-
-    } catch (RuntimeException e) {
-      LOGGER.error(ERROR_COULD_NOT_DECODE_FEIDE_NAME_VALUE, value, e);
-      return Optional.empty();
-    }
-  }
-
   @JacocoGenerated
   private String extractLastName(Map<String, String> attributes) {
-    return Optional.ofNullable(attributes.get(CognitoClaims.NAME_CLAIM))
-        .filter(fullName -> !fullName.isBlank())
-        .map(fullName -> fullName.trim().split(WHITESPACE_REGEX))
-        .map(parts -> parts[parts.length - ONE])
-        .or(() -> decodeFeideName(attributes.get(CognitoClaims.LAST_NAME_CLAIM)))
+    return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
+        .map(PersonName::familyName)
+        .or(() -> PersonName.decodeProviderValue(attributes.get(CognitoClaims.LAST_NAME_CLAIM)))
         .map(String::trim)
         .filter(name -> !name.isBlank())
         .orElseThrow(
@@ -655,42 +590,7 @@ public class UserSelectionUponLoginHandler
   }
 
   private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
-    return person.getAffiliations().stream()
-        .map(Affiliation::getInstitutionId)
-        .map(institutionId -> getCustomerByCristinIdOrLogError(institutionId, person))
-        .flatMap(Optional::stream)
-        .filter(customer -> logInactiveInstitutions(customer, person))
-        .collect(Collectors.toSet());
-  }
-
-  private boolean logInactiveInstitutions(CustomerDto customerDto, Person person) {
-    if (!customerDto.isActive()) {
-      LOGGER.info(
-          CUSTOMER_IS_INACTIVE_ERROR_MESSAGE,
-          customerDto,
-          person.getId(),
-          person.getAffiliations());
-    }
-    return customerDto.isActive();
-  }
-
-  private Optional<CustomerDto> getCustomerByCristinIdOrLogError(
-      URI organizationId, Person person) {
-    return attempt(() -> customerService.getCustomerByCristinId(organizationId))
-        .map(Optional::of)
-        .orElse(fail -> logFailure(fail, organizationId, person));
-  }
-
-  private Optional<CustomerDto> logFailure(
-      Failure<Optional<CustomerDto>> fail, URI organizationId, Person person) {
-    var message =
-        String.format(
-            FAILED_TO_RETRIEVE_CUSTOMER_FOR_ACTIVE_AFFILIATION,
-            organizationId,
-            person.getId(),
-            person.getAffiliations());
-    LOGGER.info(message, fail.getException());
-    return Optional.empty();
+    return ActiveCustomers.forPerson(person, customerService);
   }
 
   private void updateCognitoUserAttributes(

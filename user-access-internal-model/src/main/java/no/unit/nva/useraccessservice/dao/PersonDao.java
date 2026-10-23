@@ -1,18 +1,15 @@
 package no.unit.nva.useraccessservice.dao;
 
-import static java.util.Objects.isNull;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_HASH_KEY;
 import static no.unit.nva.useraccessservice.constants.DatabaseIndexDetails.PRIMARY_KEY_RANGE_KEY;
 import static no.unit.nva.useraccessservice.dao.DynamoEntriesUtils.nonEmpty;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
-import no.unit.nva.useraccessservice.model.LinkedPerson;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
@@ -23,22 +20,24 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 /**
  * Row in the users table with what the pre-token Lambda needs to know about a person. Keyed on the
  * person identifier, so Cognito users for the same person share it. No secondary index keys and an
- * own {@code type} value, so the user indexes and scans never see it.
+ * own {@code type} value, so the user indexes and scans never see it. It holds the identifiers of
+ * the person and the customers rather than their ids, because an id names the environment it was
+ * made in.
  */
 @DynamoDbBean
 public class PersonDao implements DynamoEntryWithRangeKey {
 
   public static final TableSchema<PersonDao> TABLE_SCHEMA = TableSchema.fromBean(PersonDao.class);
   public static final String TYPE_VALUE = "PERSON";
-  public static final String CRISTIN_ID_FIELD = "cristinId";
+  public static final String PERSON_IDENTIFIER_FIELD = "personIdentifier";
   public static final String GIVEN_NAME_FIELD = "givenName";
   public static final String FAMILY_NAME_FIELD = "familyName";
   public static final String CUSTOMERS_FIELD = "customers";
   public static final String LAST_VERIFIED_FIELD = "lastVerified";
-  public static final String INVALID_PERSON_EMPTY_CRISTIN_ID =
-      "Invalid person entry: Empty cristinId is not allowed";
+  public static final String INVALID_PERSON_EMPTY_PERSON_IDENTIFIER =
+      "Invalid person entry: Empty personIdentifier is not allowed";
 
-  private URI cristinId;
+  private String personIdentifier;
   private String givenName;
   private String familyName;
   private Set<String> customers;
@@ -48,47 +47,31 @@ public class PersonDao implements DynamoEntryWithRangeKey {
     super();
   }
 
-  public static PersonDao fromLinkedPerson(LinkedPerson person) {
-    var dao = new PersonDao();
-    dao.setCristinId(person.cristinId());
-    dao.setGivenName(person.givenName());
-    dao.setFamilyName(person.familyName());
-    dao.setCustomers(person.customers().stream().map(URI::toString).collect(Collectors.toSet()));
-    dao.setLastVerified(person.lastVerified());
-    dao.validate();
-    return dao;
-  }
-
-  public static Key keyFor(URI cristinId) {
-    var keyValue = primaryKey(cristinId);
+  public static Key keyFor(String personIdentifier) {
+    var keyValue = primaryKey(personIdentifier);
     return Key.builder().partitionValue(keyValue).sortValue(keyValue).build();
   }
 
-  private static String primaryKey(URI cristinId) {
-    return String.join(FIELD_DELIMITER, TYPE_VALUE, String.valueOf(cristinId));
+  private static String primaryKey(String personIdentifier) {
+    return String.join(FIELD_DELIMITER, TYPE_VALUE, personIdentifier);
   }
 
-  public LinkedPerson toLinkedPerson() {
-    var customerIds =
-        nonEmpty(customers)
-            ? customers.stream().map(URI::create).collect(Collectors.toSet())
-            : Set.<URI>of();
-    return new LinkedPerson(cristinId, givenName, familyName, customerIds, lastVerified);
-  }
-
-  private void validate() {
-    if (isNull(cristinId)) {
-      throw new InvalidEntryInternalException(INVALID_PERSON_EMPTY_CRISTIN_ID);
+  /**
+   * Checked before the row is written and after it is read, so a broken row never admits anyone.
+   */
+  public void validate() {
+    if (StringUtils.isBlank(personIdentifier)) {
+      throw new InvalidEntryInternalException(INVALID_PERSON_EMPTY_PERSON_IDENTIFIER);
     }
   }
 
-  @DynamoDbAttribute(CRISTIN_ID_FIELD)
-  public URI getCristinId() {
-    return cristinId;
+  @DynamoDbAttribute(PERSON_IDENTIFIER_FIELD)
+  public String getPersonIdentifier() {
+    return personIdentifier;
   }
 
-  public void setCristinId(URI cristinId) {
-    this.cristinId = cristinId;
+  public void setPersonIdentifier(String personIdentifier) {
+    this.personIdentifier = personIdentifier;
   }
 
   @DynamoDbAttribute(GIVEN_NAME_FIELD)
@@ -133,26 +116,26 @@ public class PersonDao implements DynamoEntryWithRangeKey {
   @DynamoDbPartitionKey
   @DynamoDbAttribute(PRIMARY_KEY_HASH_KEY)
   public String getPrimaryKeyHashKey() {
-    return primaryKey(cristinId);
+    return primaryKey(personIdentifier);
   }
 
   @Override
   @JacocoGenerated
   public void setPrimaryKeyHashKey(String primaryHashKey) {
-    // DO NOTHING, the key is derived from the cristinId
+    // DO NOTHING, the key is derived from the person identifier
   }
 
   @Override
   @DynamoDbSortKey
   @DynamoDbAttribute(PRIMARY_KEY_RANGE_KEY)
   public String getPrimaryKeyRangeKey() {
-    return primaryKey(cristinId);
+    return primaryKey(personIdentifier);
   }
 
   @Override
   @JacocoGenerated
   public void setPrimaryKeyRangeKey(String primaryRangeKey) {
-    // DO NOTHING, the key is derived from the cristinId
+    // DO NOTHING, the key is derived from the person identifier
   }
 
   @Override
@@ -170,7 +153,7 @@ public class PersonDao implements DynamoEntryWithRangeKey {
   @Override
   @JacocoGenerated
   public int hashCode() {
-    return Objects.hash(cristinId, givenName, familyName, customers, lastVerified);
+    return Objects.hash(personIdentifier, givenName, familyName, customers, lastVerified);
   }
 
   @Override
@@ -182,7 +165,7 @@ public class PersonDao implements DynamoEntryWithRangeKey {
     if (!(o instanceof PersonDao other)) {
       return false;
     }
-    return Objects.equals(cristinId, other.cristinId)
+    return Objects.equals(personIdentifier, other.personIdentifier)
         && Objects.equals(givenName, other.givenName)
         && Objects.equals(familyName, other.familyName)
         && Objects.equals(customers, other.customers)

@@ -142,8 +142,8 @@ public class IdentityServiceImpl implements IdentityService {
   }
 
   @Override
-  public Optional<LinkedPerson> fetchLinkedPerson(URI cristinId) {
-    return linkService.fetchPerson(cristinId);
+  public Optional<LinkedPerson> fetchLinkedPerson(URI personId) {
+    return linkService.fetchPerson(personId);
   }
 
   private boolean thereAreMoreEntries(ScanResponse result) {

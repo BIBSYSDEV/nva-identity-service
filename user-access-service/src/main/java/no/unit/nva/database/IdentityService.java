@@ -70,7 +70,7 @@ public interface IdentityService {
   void saveLinkedPerson(LinkedPerson person);
 
   /** Reads what is known about a person with a strongly consistent read. */
-  Optional<LinkedPerson> fetchLinkedPerson(URI cristinId);
+  Optional<LinkedPerson> fetchLinkedPerson(URI personId);
 
   final class Constants {
 

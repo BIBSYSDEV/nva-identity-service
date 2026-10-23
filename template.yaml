@@ -2360,6 +2360,144 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: missing
 
+  # Runs at every federated login, before Cognito stores the user. Looks the person up in the
+  # person registry, creates or updates the user entries and writes the link and person rows, so
+  # the pre-token Lambda never needs the national identity number. Not yet attached to the user
+  # pool: the trigger and its provisioned concurrency follow with the EnableInboundFederation
+  # parameter.
+  InboundFederationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      LoggingConfig:
+        LogGroup: !Ref InboundFederationHandlerLogGroup
+      CodeUri: cognito-pre-token-generation-openid
+      Handler: no.unit.nva.cognito.inbound.InboundFederationHandler::handleRequest
+      Policies:
+        - !GetAtt UsersAndCustomersDatabasePolicy.PolicyArn
+        - !GetAtt CristinAndBackendSecretPermissionsPolicy.PolicyArn
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess # Policy for allowing tracing in Xray
+      Tracing: Active
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Enabled: true
+        Type: AllAtOnce
+      Environment:
+        Variables:
+          API_DOMAIN: !Ref ApiDomain
+          ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
+          CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
+          USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
+          CRISTIN_API_URL: !Ref CristinApiUrl
+      Timeout: 5 # Cognito gives up after 5 seconds
+
+  InboundFederationHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/nva-identity-service/InboundFederationHandler/${AWS::AccountId}"
+      RetentionInDays: !Ref LogRetentionInDays
+
+  InboundFederationHandlerTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref InboundFederationHandler.Alias
+      Principal: cognito-idp.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  InboundFederationFailedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation requests failed
+      AlarmDescription: Federated logins fail in the inbound federation Lambda. Check its CloudWatch logs.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref InboundFederationHandler
+      Period: 60
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
+
+  InboundFederationSlowAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation is slow
+      AlarmDescription: p99 duration of the inbound federation Lambda is over 4 seconds. Cognito gives up at 5, and then the login fails.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: Duration
+      Namespace: AWS/Lambda
+      ExtendedStatistic: p99
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref InboundFederationHandler
+      Period: 300
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 4000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  InboundFederationLinkRewrittenMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref InboundFederationHandlerLogGroup
+      FilterPattern: '"Link rewritten"'
+      MetricTransformations:
+        - MetricName: InboundFederationLinkRewritten
+          MetricNamespace: NvaIdentityService
+          MetricValue: "1"
+          DefaultValue: 0
+
+  InboundFederationLinkRewrittenAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation rewrote a link
+      AlarmDescription: A Cognito user resolved to a different person than its link pointed to. Check the inbound federation logs for the old and new person identifiers.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: InboundFederationLinkRewritten
+      Namespace: NvaIdentityService
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  InboundFederationAdmittedOnLinkMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref InboundFederationHandlerLogGroup
+      FilterPattern: '"Admitted on link"'
+      MetricTransformations:
+        - MetricName: InboundFederationAdmittedOnLink
+          MetricNamespace: NvaIdentityService
+          MetricValue: "1"
+          DefaultValue: 0
+
+  InboundFederationAdmittedOnLinkAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Inbound federation admitted users on their link
+      AlarmDescription: The person registry did not answer in time and users were let in on their stored link. Check the person registry.
+      AlarmActions:
+        - !Ref SlackSnsArn
+      MetricName: InboundFederationAdmittedOnLink
+      Namespace: NvaIdentityService
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
 ### Outputs ############################################################################################################
 
 Outputs:

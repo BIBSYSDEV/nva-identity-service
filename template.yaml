@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Transform: AWS::Serverless-2016-10-31
+# AWS::LanguageExtensions first, so CloudFormation resolves the parameter-driven environment variables
+# before SAM computes the Lambda version hash. Without it a parameter change updates $LATEST only and
+# the live alias keeps the old configuration.
+Transform:
+  - AWS::LanguageExtensions
+  - AWS::Serverless-2016-10-31
 Description: >
   Stack for Cognito and users, roles and customer institution services.
 

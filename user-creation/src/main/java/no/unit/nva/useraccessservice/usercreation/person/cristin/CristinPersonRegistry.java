@@ -27,7 +27,6 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
@@ -68,7 +67,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
   private static final String CRISTIN_PATH = "cristin";
   private static final String PERSON_PATH = "person";
   private static final String ORGANIZATION_PATH = "organization";
-  private static final String NATIONAL_IDENTITY_PATTERN = ".*\\?national_id=(\\d+)\\d\\d$";
   private static final String PERSONS_PATH = "persons";
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String APPLICATION_JSON = "application/json";
@@ -88,6 +86,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
    * calls take around 3.5 seconds in prod, so the limit stays above that.
    */
   private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(4);
+
+  private static final String NATIONAL_ID_PARAMETER = "national_id=[^&]*";
+  private static final String MASKED_PARAMETER = "national_id=***********";
+  private static final String NO_PERSON_FOUND_MESSAGE =
+      "No person found in Cristin for the given national identity number";
 
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
@@ -362,7 +365,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
       var person = executeRequest(request, CristinPerson.class);
       return Optional.ofNullable(person);
     } catch (IdentityServiceNotFoundException e) {
-      LOGGER.info("No person found in Cristin with {}", nin);
+      LOGGER.info(NO_PERSON_FOUND_MESSAGE);
       return Optional.empty();
     }
   }
@@ -429,7 +432,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     int statusCode = response.statusCode();
     if (statusCode / ONE_HUNDRED == REDIRECT_FAMILY) {
       var location = response.headers().firstValue("Location").orElse("unknown");
-      throw new IdentityServiceRedirectException(request.uri(), location, statusCode);
+      throw new IdentityServiceRedirectException(
+          URI.create(maskSensitiveData(request.uri())), maskNumbers(location), statusCode);
     }
     if (statusCode / ONE_HUNDRED != SUCCESS_FAMILY) {
       var message = generateErrorMessageForResponse(request, response);
@@ -459,7 +463,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
         request.method(),
         maskSensitiveData(request.uri()),
         response.statusCode(),
-        response.body());
+        maskNumbers(response.body()));
+  }
+
+  /** Cristin may echo a national identity number in an error body or a redirect target. */
+  private static String maskNumbers(String text) {
+    return NationalIdentityNumber.maskAll(text);
   }
 
   private String generateBasicAuthorization(CristinCredentials cristinCredentials) {
@@ -469,18 +478,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return "Basic " + Base64.getEncoder().encodeToString(toBeEncoded);
   }
 
-  private String maskSensitiveData(URI uri) {
-    var pattern = Pattern.compile(NATIONAL_IDENTITY_PATTERN);
-    var matcher = pattern.matcher(uri.toString());
-    String maskedUri;
-    if (matcher.matches()) {
-      var toMask = matcher.group(1);
-      maskedUri = uri.toString().replaceAll(toMask, "XXXXXXXXX");
-    } else {
-      maskedUri = uri.toString();
-    }
-
-    return maskedUri;
+  /**
+   * The lookup parameter is masked whatever it holds: the value is not always a well-formed number,
+   * since it may come from an administrator's request or a hand-set attribute.
+   */
+  private static String maskSensitiveData(URI uri) {
+    return maskNumbers(uri.toString().replaceAll(NATIONAL_ID_PARAMETER, MASKED_PARAMETER));
   }
 
   private static class GenericPair<T> {

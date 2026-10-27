@@ -990,7 +990,7 @@ class UserSelectionUponLoginHandlerTest {
     identityService.addUser(
         user.copy()
             .withUsername(randomString())
-            .withInstitution(randomUri())
+            .withInstitution(nonExistingCustomerId())
             .withInstitutionCristinId(randomUri())
             .build());
     termsAndConditionsService.updateTermsAndConditions(cristinId, TERMS_URI, user.getUsername());
@@ -1187,7 +1187,11 @@ class UserSelectionUponLoginHandlerTest {
     identityService.saveLink(new IdentityLink(username, cristinId, null, null, Instant.now()));
     identityService.saveLinkedPerson(
         new LinkedPerson(
-            cristinId, randomString(), randomString(), Set.of(randomUri()), Instant.now()));
+            cristinId,
+            randomString(),
+            randomString(),
+            Set.of(nonExistingCustomerId()),
+            Instant.now()));
     var event = linkPathRefresh(username);
 
     handler.handleRequest(event, context);
@@ -2349,5 +2353,30 @@ class UserSelectionUponLoginHandlerTest {
     event.setTriggerSource(TRIGGER_SOURCE_CLIENT_CREDENTIALS);
     event.setCallerContext(CallerContext.builder().withClientId(clientId).build());
     return event;
+  }
+
+  /** A customer id of the right shape that no customer has, as a deleted customer leaves behind. */
+  private static URI nonExistingCustomerId() {
+    return URI.create("https://www.example.org/namespace/" + java.util.UUID.randomUUID());
+  }
+
+  @Test
+  void shouldFailTheRefreshWhenARememberedCustomerCannotBeRead() throws NotFoundException {
+    var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
+    handler.handleRequest(login, context);
+    var failingCustomerService = spy(customerService);
+    doThrow(new RuntimeException("Table unavailable"))
+        .when(failingCustomerService)
+        .getCustomer(any(URI.class));
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            failingCustomerService,
+            identityService,
+            personRegistry,
+            termsAndConditionsService);
+    var refresh = refreshFor(login);
+
+    assertThrows(RuntimeException.class, () -> handler.handleRequest(refresh, context));
   }
 }

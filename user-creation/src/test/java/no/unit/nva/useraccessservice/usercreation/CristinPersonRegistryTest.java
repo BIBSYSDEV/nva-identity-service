@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
 import static no.unit.nva.useraccessservice.userceation.testing.cristin.RandomNin.randomNin;
@@ -40,6 +41,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRe
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
+import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceRedirectException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.logutils.LogRecorder;
@@ -55,6 +57,7 @@ class CristinPersonRegistryTest {
   private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
   private static final Duration SHORT_REQUEST_TIMEOUT = Duration.ofMillis(100);
   private static final Duration CRISTIN_RESPONSE_DELAY = Duration.ofSeconds(1);
+  private static final String MASKED_NUMBER = "***********";
   private PersonRegistry personRegistry;
   private FakeSecretsManagerClient secretsManagerClient;
   private AuthenticationScenarios scenarios;
@@ -223,9 +226,9 @@ class CristinPersonRegistryTest {
     var nin = NationalIdentityNumber.fromString(personNin);
 
     assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
-    var expectedMaskedNin = "XXXXXXXXX" + personNin.substring(personNin.length() - 2);
     Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains(expectedMaskedNin));
+        .anyMatch(message -> message.contains("national_id=" + MASKED_NUMBER))
+        .noneMatch(message -> message.contains(personNin));
   }
 
   @Test
@@ -237,8 +240,9 @@ class CristinPersonRegistryTest {
     mockPersonRegistry.setupServerErrorForNin(personNin);
 
     assertThrows(IdentityServiceException.class, () -> personRegistry.fetchPersonByNin(nin));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains("XXXXXXXXX01"));
+    Assertions.assertThat(logRecorder.asString())
+        .contains("national_id=" + MASKED_NUMBER)
+        .doesNotContain(personNin);
   }
 
   @Test
@@ -287,5 +291,55 @@ class CristinPersonRegistryTest {
             () -> personRegistry.createPerson(nin, "Jane", "Smith"));
 
     assertThat(exception.getMessage(), containsString("Conflict"));
+  }
+
+  @Test
+  void shouldNotRevealTheNumberWhenCristinRedirectsTheLookup() {
+    var nin = randomNin();
+    var redirectTarget = "https://elsewhere.example.org/persons/resolve?national_id=" + nin;
+    stubFor(
+        get(urlPathMatching("/persons/resolve"))
+            .willReturn(aResponse().withStatus(302).withHeader("Location", redirectTarget)));
+
+    var exception =
+        assertThrows(
+            IdentityServiceRedirectException.class,
+            () -> personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(nin)));
+
+    Assertions.assertThat(exception.getMessage()).doesNotContain(nin).contains("elsewhere");
+  }
+
+  @Test
+  void shouldNotRevealTheNumberWhenCristinEchoesItInAnErrorBody() {
+    var nin = randomNin();
+    stubFor(
+        get(urlPathMatching("/persons/resolve"))
+            .willReturn(aResponse().withStatus(400).withBody("Invalid national_id " + nin)));
+    var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
+
+    var exception =
+        assertThrows(
+            IdentityServiceException.class,
+            () -> personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(nin)));
+
+    Assertions.assertThat(exception.getMessage()).doesNotContain(nin);
+    Assertions.assertThat(logRecorder.asString()).doesNotContain(nin);
+  }
+
+  @Test
+  void shouldMaskTheLookupParameterEvenWhenItIsNotAWellFormedNumber() {
+    var notANumber = "4242424242";
+    mockPersonRegistry.setupServerErrorForNin(notANumber);
+    var logRecorder = LogRecorder.forRoot(CristinPersonRegistryTest.class);
+
+    var exception =
+        assertThrows(
+            IdentityServiceException.class,
+            () -> personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(notANumber)));
+
+    Assertions.assertThat(exception.getMessage())
+        .doesNotContain(notANumber)
+        .contains("national_id=" + MASKED_NUMBER);
+    Assertions.assertThat(logRecorder.asString()).doesNotContain(notANumber);
   }
 }

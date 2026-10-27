@@ -2401,9 +2401,10 @@ Resources:
 
   # Runs at every federated login, before Cognito stores the user. Looks the person up in the
   # person registry, creates or updates the user entries and writes the link and person rows, so
-  # the pre-token Lambda never needs the national identity number. Always deployed. Transition:
-  # attached to the user pool and given provisioned concurrency only while EnableInboundFederation
-  # is on; NP-51975 makes both unconditional.
+  # the pre-token Lambda never needs the national identity number. Always deployed with provisioned
+  # concurrency, so that a change of EnableInboundFederation never touches the alias: an alias
+  # update goes through CodeDeploy, which the deploy role is not set up for. Transition: attached
+  # to the user pool only while EnableInboundFederation is on; NP-51975 makes that unconditional.
   InboundFederationHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -2420,10 +2421,8 @@ Resources:
       DeploymentPreference:
         Enabled: true
         Type: AllAtOnce
-      ProvisionedConcurrencyConfig: !If
-        - InboundFederationEnabled
-        - ProvisionedConcurrentExecutions: 1
-        - !Ref AWS::NoValue
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           API_DOMAIN: !Ref ApiDomain
@@ -2449,7 +2448,6 @@ Resources:
 
   InboundFederationHandlerScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Condition: InboundFederationEnabled # Transition, see InboundFederationHandler
     Properties:
       MaxCapacity: 10
       MinCapacity: 1
@@ -2461,7 +2459,6 @@ Resources:
 
   InboundFederationHandlerScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Condition: InboundFederationEnabled # Transition, see InboundFederationHandler
     Properties:
       PolicyName: InboundFederationHandlerScalingPolicy
       PolicyType: TargetTrackingScaling

@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Transform: AWS::Serverless-2016-10-31
+# AWS::LanguageExtensions first, so CloudFormation resolves the parameter-driven environment variables
+# before SAM computes the Lambda version hash. Without it a parameter change updates $LATEST only and
+# the live alias keeps the old configuration.
+Transform:
+  - AWS::LanguageExtensions
+  - AWS::Serverless-2016-10-31
 Description: >
   Stack for Cognito and users, roles and customer institution services.
 
@@ -103,6 +108,16 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Adds the COGNITO identity provider to ApplicationClient, for environments whose tests log in with username and password.
+  # Transition parameter for the rollout of NP-51772. Removed in NP-51975 once it is on everywhere,
+  # together with the InboundFederationEnabled condition and everything that refers to it.
+  EnableInboundFederation:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      Resolves the person in the inbound federation Lambda at every federated login and stops
+      storing the national identity number on the Cognito user. Requires the link rows from
+      NP-51969 to be written in the environment first. Transition parameter, see NP-51975.
 
 Mappings:
   Constants:
@@ -113,6 +128,8 @@ Mappings:
 Conditions:
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
   NativeLoginOnApplicationClient: !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
+  # Transition, removed in NP-51975.
+  InboundFederationEnabled: !Equals [!Ref EnableInboundFederation, "true"]
 
 Globals:
   Function:
@@ -1707,6 +1724,7 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
+    DependsOn: InboundFederationHandlerTriggerPermission # so the trigger is invokable when the pool is created with it
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
@@ -1716,6 +1734,12 @@ Resources:
         PreTokenGenerationConfig:
           LambdaArn: !Ref PreTokenGenerationHandler.Alias
           LambdaVersion: "V3_0"
+        # Transition: the condition goes in NP-51975, the trigger stays.
+        InboundFederation: !If
+          - InboundFederationEnabled
+          - LambdaArn: !Ref InboundFederationHandler.Alias
+            LambdaVersion: "V1_0"
+          - !Ref AWS::NoValue
       Schema:
         - Name: nin
           AttributeDataType: String
@@ -1821,15 +1845,25 @@ Resources:
   ConnectionToDataporten:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
-      AttributeMapping:
-        custom:nin: https://n.feide.no/claims/nin
-        custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
-        custom:feidememberrole: eduPersonAffiliation
-        custom:feideIdNin: norEduPersonNIN
-        custom:orgFeideDomain: schacHomeOrganization
-        custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
-        custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
-        name: name
+      # With inbound federation on, the national identity number is used by the inbound Lambda and
+      # never stored on the user, so the two attributes that carried it are left out of the mapping.
+      # Transition: NP-51975 keeps only the first mapping and drops the condition.
+      AttributeMapping: !If
+        - InboundFederationEnabled
+        - custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+          custom:feidememberrole: eduPersonAffiliation
+          custom:orgFeideDomain: schacHomeOrganization
+          custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
+          custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
+          name: name
+        - custom:nin: https://n.feide.no/claims/nin
+          custom:feideId: https://n.feide.no/claims/eduPersonPrincipalName
+          custom:feidememberrole: eduPersonAffiliation
+          custom:feideIdNin: norEduPersonNIN
+          custom:orgFeideDomain: schacHomeOrganization
+          custom:firstName: givenName # https://docs.feide.no/reference/schema/attributes/givenname.html#saml-attribute-givenname
+          custom:lastName: sn # https://docs.feide.no/reference/schema/attributes/sn.html
+          name: name
       ProviderDetails:
         client_id: "{{resolve:secretsmanager:DataportenClient:SecretString:clientId}}"
         client_secret: "{{resolve:secretsmanager:DataportenClient:SecretString:secret}}"
@@ -2220,6 +2254,11 @@ Resources:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
           TERMS_TABLE_NAME: !Ref TermsAndConditionsTable
+          # Transition: where the inbound Lambda resolves the person, the stored national identity
+          # number is blanked at every token generation (users from before the switch are cleaned
+          # too) and a login without the number is resolved from the link rows. Goes away with the
+          # one-time cleanup in NP-51973 and NP-51975.
+          INBOUND_FEDERATION_ENABLED: !If [InboundFederationEnabled, "true", "false"]
       Timeout: 20
 
   ClientPreTokenGenerationHandler:
@@ -2362,9 +2401,10 @@ Resources:
 
   # Runs at every federated login, before Cognito stores the user. Looks the person up in the
   # person registry, creates or updates the user entries and writes the link and person rows, so
-  # the pre-token Lambda never needs the national identity number. Not yet attached to the user
-  # pool: the trigger and its provisioned concurrency follow with the EnableInboundFederation
-  # parameter.
+  # the pre-token Lambda never needs the national identity number. Always deployed with provisioned
+  # concurrency, so that a change of EnableInboundFederation never touches the alias: an alias
+  # update goes through CodeDeploy, which the deploy role is not set up for. Transition: attached
+  # to the user pool only while EnableInboundFederation is on; NP-51975 makes that unconditional.
   InboundFederationHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -2381,6 +2421,8 @@ Resources:
       DeploymentPreference:
         Enabled: true
         Type: AllAtOnce
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
           API_DOMAIN: !Ref ApiDomain
@@ -2403,6 +2445,28 @@ Resources:
       FunctionName: !Ref InboundFederationHandler.Alias
       Principal: cognito-idp.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
+
+  InboundFederationHandlerScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 1
+      ResourceId: !Sub function:${InboundFederationHandler}:live
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: InboundFederationHandlerAliaslive
+
+  InboundFederationHandlerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: InboundFederationHandlerScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref InboundFederationHandlerScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   InboundFederationFailedAlarm:
     Type: AWS::CloudWatch::Alarm

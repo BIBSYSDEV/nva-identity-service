@@ -1,5 +1,7 @@
 package no.unit.nva.cognito;
 
+import java.util.Optional;
+import no.unit.nva.useraccessservice.model.IdentityLink;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import nva.commons.core.JacocoGenerated;
 
@@ -9,22 +11,26 @@ public class AuthenticationDetails {
   private final String feideDomain;
   private final String userPoolId;
   private final String username;
+  private final boolean federated;
 
   public AuthenticationDetails(
       NationalIdentityNumber nin,
       String feideIdentifier,
       String feideDomain,
       String userPoolId,
-      String username) {
+      String username,
+      boolean federated) {
     this.nin = nin;
     this.feideIdentifier = feideIdentifier;
     this.feideDomain = feideDomain;
     this.userPoolId = userPoolId;
     this.username = username;
+    this.federated = federated;
   }
 
-  public NationalIdentityNumber getNin() {
-    return nin;
+  /** The national identity number, present only when the identity provider delivered one. */
+  public Optional<NationalIdentityNumber> getNin() {
+    return Optional.ofNullable(nin);
   }
 
   public String getFeideIdentifier() {
@@ -43,12 +49,23 @@ public class AuthenticationDetails {
     return username;
   }
 
+  /** True for users that signed in through an identity provider, false for password users. */
+  public boolean isFederated() {
+    return federated;
+  }
+
+  /** The same login, with the Feide details the link remembered instead of the user attributes. */
+  public AuthenticationDetails withFeideDetailsFrom(IdentityLink link) {
+    return new AuthenticationDetails(
+        nin, link.feideIdentifier(), link.orgFeideDomain(), userPoolId, username, federated);
+  }
+
   @JacocoGenerated
   @Override
   public String toString() {
     return "AuthenticationDetails{"
-        + "nin="
-        + nin
+        + "hasNin="
+        + (nin != null)
         + ", feideIdentifier='"
         + feideIdentifier
         + '\''
@@ -61,6 +78,8 @@ public class AuthenticationDetails {
         + ", username='"
         + username
         + '\''
+        + ", federated="
+        + federated
         + '}';
   }
 }

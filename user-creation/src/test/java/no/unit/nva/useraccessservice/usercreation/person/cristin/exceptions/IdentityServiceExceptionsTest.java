@@ -264,4 +264,26 @@ class IdentityServiceExceptionsTest {
     var exception = new IdentityServiceMissingNinException();
     assertThat(exception.getErrorCode(), is(equalTo("1003")));
   }
+
+  @Test
+  void identityServiceMissingLinkExceptionShouldReturn400StatusCodeAndOwnErrorCode() {
+    var exception = new IdentityServiceMissingLinkException();
+
+    assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+    assertThat(exception.getErrorCode(), is(equalTo("1004")));
+    assertThat(
+        exception.getMessage(),
+        containsString("IdentityService-1004: No stored link from the Cognito user to a person"));
+  }
+
+  @Test
+  void identityServiceMissingLinkExceptionShouldAcceptCustomMessage() {
+    var exception = new IdentityServiceMissingLinkException("Custom link missing message");
+
+    assertThat(exception.getStatusCode(), is(equalTo(HTTP_BAD_REQUEST)));
+    assertThat(exception.getErrorCode(), is(equalTo("1004")));
+    assertThat(
+        exception.getMessage(),
+        containsString("IdentityService-1004: Custom link missing message"));
+  }
 }

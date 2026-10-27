@@ -13,6 +13,8 @@ import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.interfaces.Typed;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
 import no.unit.nva.useraccessservice.model.ClientDto;
+import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -28,6 +30,7 @@ public class IdentityServiceImpl implements IdentityService {
   private final UserService userService;
   private final ExternalClientService externalClientService;
   private final RoleService roleService;
+  private final LinkService linkService;
   private final DynamoDbClient dynamoDbClient;
 
   @JacocoGenerated
@@ -40,12 +43,18 @@ public class IdentityServiceImpl implements IdentityService {
     this.roleService = new RoleService(dynamoDbClient);
     this.externalClientService = new ExternalClientService(dynamoDbClient);
     this.userService = new UserService(dynamoDbClient, roleService);
+    this.linkService = new LinkService(dynamoDbClient);
     this.dynamoDbClient = dynamoDbClient;
   }
 
   @Override
   public UserDto getUser(UserDto queryObject) throws NotFoundException {
     return userService.getUser(queryObject);
+  }
+
+  @Override
+  public Optional<UserDto> fetchUserConsistently(String username) {
+    return userService.fetchUserConsistently(username);
   }
 
   @Override
@@ -115,6 +124,26 @@ public class IdentityServiceImpl implements IdentityService {
   @Override
   public ClientDto getClient(ClientDto queryObject) throws NotFoundException {
     return externalClientService.getClient(queryObject);
+  }
+
+  @Override
+  public void saveLink(IdentityLink link) {
+    linkService.saveLink(link);
+  }
+
+  @Override
+  public Optional<IdentityLink> fetchLink(String username) {
+    return linkService.fetchLink(username);
+  }
+
+  @Override
+  public void saveLinkedPerson(LinkedPerson person) {
+    linkService.savePerson(person);
+  }
+
+  @Override
+  public Optional<LinkedPerson> fetchLinkedPerson(URI personId) {
+    return linkService.fetchPerson(personId);
   }
 
   private boolean thereAreMoreEntries(ScanResponse result) {

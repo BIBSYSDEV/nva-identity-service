@@ -273,19 +273,20 @@ public class UserSelectionUponLoginHandler
   /**
    * A federated login must deliver a national identity number and goes to the person registry, so a
    * reused Feide account or a merged person is caught at every login. A token refresh uses the rows
-   * written at that login; a refresh without usable rows goes to the registry like a login.
+   * written at that login; a refresh without usable rows goes to the registry like a login. A
+   * password user has no number and no link; an administrator has set its cristinId claim.
    */
   private ResolvedPerson resolvePerson(
       AuthenticationDetails authenticationDetails,
       Map<String, String> attributes,
       String triggerSource) {
     if (!authenticationDetails.isFederated()) {
-      return resolvePasswordUser(authenticationDetails, attributes);
+      return resolveFromCristinIdClaim(authenticationDetails, attributes);
     }
     if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource)) {
-      var resolvedFromRows = resolveFederatedUserFromRows(authenticationDetails);
-      if (resolvedFromRows.isPresent()) {
-        return resolvedFromRows.get();
+      var resolvedFromLink = resolveFromLink(authenticationDetails);
+      if (resolvedFromLink.isPresent()) {
+        return resolvedFromLink.get();
       }
     }
     if (authenticationDetails.getNin().isEmpty()) {
@@ -313,8 +314,7 @@ public class UserSelectionUponLoginHandler
    * Empty when the user has no link. A link without its person row is a data problem: a refresh
    * that carries the number repairs it through the registry, one without it gets its own error.
    */
-  private Optional<ResolvedPerson> resolveFederatedUserFromRows(
-      AuthenticationDetails authenticationDetails) {
+  private Optional<ResolvedPerson> resolveFromLink(AuthenticationDetails authenticationDetails) {
     var link = identityService.fetchLink(authenticationDetails.getUsername());
     if (link.isEmpty()) {
       return Optional.empty();
@@ -322,7 +322,7 @@ public class UserSelectionUponLoginHandler
     var linkedPerson = identityService.fetchLinkedPerson(link.get().personId());
     if (linkedPerson.isPresent()) {
       return Optional.of(
-          resolveFederatedUserFromLink(authenticationDetails, link.get(), linkedPerson.get()));
+          resolveFromLinkedPerson(authenticationDetails, link.get(), linkedPerson.get()));
     }
     if (authenticationDetails.getNin().isEmpty()) {
       throw new IdentityServiceMissingLinkException();
@@ -332,7 +332,7 @@ public class UserSelectionUponLoginHandler
     return Optional.empty();
   }
 
-  private ResolvedPerson resolveFederatedUserFromLink(
+  private ResolvedPerson resolveFromLinkedPerson(
       AuthenticationDetails authenticationDetails, IdentityLink link, LinkedPerson linkedPerson) {
     var person = toPerson(linkedPerson);
     var rememberedCustomers = fetchActiveCustomers(linkedPerson.customers(), person);
@@ -342,7 +342,7 @@ public class UserSelectionUponLoginHandler
         person, customers, users, authenticationDetails.withFeideDetailsFrom(link));
   }
 
-  private ResolvedPerson resolvePasswordUser(
+  private ResolvedPerson resolveFromCristinIdClaim(
       AuthenticationDetails authenticationDetails, Map<String, String> attributes) {
     var cristinId =
         nonBlank(attributes.get(PERSON_CRISTIN_ID_CLAIM))

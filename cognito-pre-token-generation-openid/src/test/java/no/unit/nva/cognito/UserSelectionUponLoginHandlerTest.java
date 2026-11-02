@@ -152,6 +152,11 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdate
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+/**
+ * The tests of the Cristin path (logins resolved through the person registry, creating persons and
+ * users, writing the link and person rows from here) cover transition code that is deprecated in
+ * the handler and goes with it in NP-51975. The link path and the password path stay.
+ */
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
 

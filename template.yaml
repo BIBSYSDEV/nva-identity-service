@@ -2408,7 +2408,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: Inbound federation requests failed
-      AlarmDescription: Federated logins fail in the inbound federation Lambda. Check its CloudWatch logs.
+      AlarmDescription: More than ten federated logins failed in the inbound federation Lambda within a minute. Check its CloudWatch logs.
       AlarmActions:
         - !Ref SlackSnsArn
       MetricName: Errors

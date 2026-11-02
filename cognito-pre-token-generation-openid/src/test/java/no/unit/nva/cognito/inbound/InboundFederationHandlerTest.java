@@ -76,7 +76,6 @@ import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceLoginNotCompletedException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingNinException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -297,29 +296,6 @@ class InboundFederationHandlerTest {
         .map(URI::toString)
         .get()
         .satisfies(cristinId -> assertThat(cristinId).endsWith(person.cristinIdentifier()));
-  }
-
-  @Test
-  void shouldFetchThePersonAgainWhenTheRegistryAnswersThatItAlreadyExists() {
-    var cristinId = randomPersonId();
-    var person =
-        new Person(cristinId, randomString(), FIXTURE_GIVEN_NAME, FIXTURE_FAMILY_NAME, List.of());
-    var registry = mock(PersonRegistry.class);
-    when(registry.fetchPersonByNin(any()))
-        .thenReturn(Optional.empty())
-        .thenReturn(Optional.of(person));
-    when(registry.createPerson(any(), any(), any()))
-        .thenThrow(new IdentityServiceAlreadyExistsException("Person already exists"));
-    var event = feideLogin(randomNin());
-
-    handlerWith(registry, clock).handleRequest(event, context);
-
-    assertThat(identityService.fetchLink(usernameOf(event)))
-        .map(IdentityLink::personId)
-        .contains(cristinId);
-    assertThat(logRecorder.asString())
-        .contains(
-            "Name from Dataporten for user " + usernameOf(event) + " matches the registry: true");
   }
 
   @Test

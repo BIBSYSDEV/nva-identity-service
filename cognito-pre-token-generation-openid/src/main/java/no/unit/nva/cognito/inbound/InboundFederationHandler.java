@@ -26,7 +26,6 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceLoginNotCompletedException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingNinException;
@@ -43,8 +42,10 @@ import org.slf4j.LoggerFactory;
  * user, and is the only code that sees the national identity number the identity provider sends. It
  * resolves the person in the person registry, creates the user entries, and writes the link and
  * person rows that the pre-token Lambda resolves the Cognito user from. The number is neither
- * stored nor logged: the provider mapping in the template leaves it out of the Cognito user, and
- * the response is always an empty mapping, which keeps the mapped attributes as they are.
+ * stored nor logged. The response is always an empty mapping, which makes Cognito apply the
+ * provider mapping in the template unchanged; where this trigger is attached to the pool, that
+ * mapping has no rule for the number, so Cognito never stores it. Leaving the number out of the
+ * response would not be enough: an empty response keeps every mapped attribute.
  *
  * <p>No number from the provider gives error 1003, which the client answers by offering another
  * login method. Everything else gives 1005, except that a person the registry confirmed within the
@@ -74,8 +75,6 @@ public class InboundFederationHandler
   private static final String NAME_MATCH_MESSAGE =
       "Name from {} for user {} matches the registry: {}";
   private static final String NOT_ADMITTED_MESSAGE = "User {} not admitted on link: {}";
-  private static final String PERSON_EXISTED_MESSAGE =
-      "Person existed in the registry when creating it, fetching it instead";
   private static final String REGISTRY = "person registry";
   private static final String LINK = "link";
   private static final String NO_LINK = "no link";
@@ -172,16 +171,11 @@ public class InboundFederationHandler
     return new Admitted(person.getId(), REGISTRY);
   }
 
-  /** A person that another login created in the meantime answers 409 and is fetched instead. */
+  /** The registry returns the existing person when another login created it in the meantime. */
   private static Optional<Person> createPerson(
       PersonRegistry registry, FederatedLogin login, NationalIdentityNumber nin) {
     var name = Optional.ofNullable(login.name()).orElseThrow(() -> noName(login));
-    try {
-      return registry.createPerson(nin, name.givenName(), name.familyName());
-    } catch (IdentityServiceAlreadyExistsException e) {
-      LOGGER.info(PERSON_EXISTED_MESSAGE);
-      return registry.fetchPersonByNin(nin);
-    }
+    return registry.createPerson(nin, name.givenName(), name.familyName());
   }
 
   /**

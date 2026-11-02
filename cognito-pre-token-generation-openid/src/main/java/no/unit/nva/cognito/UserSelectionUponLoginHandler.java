@@ -310,6 +310,12 @@ public class UserSelectionUponLoginHandler
     return resolveFromPersonRegistry(authenticationDetails, attributes);
   }
 
+  /**
+   * @deprecated Transition: the Cristin path of this Lambda. Where the inbound federation trigger
+   *     is on, it is reached only by a federated user without link rows, and the trigger writes
+   *     them at the next login. Removed with everything it calls in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private ResolvedPerson resolveFromPersonRegistry(
       AuthenticationDetails authenticationDetails, Map<String, String> attributes) {
     var startFetchingPerson = Instant.now();
@@ -443,7 +449,10 @@ public class UserSelectionUponLoginHandler
   /**
    * Remembers what the person registry answered, so later token generations can resolve the Cognito
    * user without the registry. Written on every login that reached the registry.
+   *
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
    */
+  @Deprecated(forRemoval = true)
   @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private void writeLinkAndPersonRowsOrLog(
       Person person,
@@ -459,6 +468,10 @@ public class UserSelectionUponLoginHandler
     }
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private void writeLinkAndPersonRows(
       Person person,
       Set<CustomerDto> customers,
@@ -481,6 +494,10 @@ public class UserSelectionUponLoginHandler
             registryAnswered));
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private Optional<Person> createPerson(
       Map<String, String> attributes, NationalIdentityNumber nin) {
     var lastName = extractLastName(attributes);
@@ -488,6 +505,10 @@ public class UserSelectionUponLoginHandler
     return personRegistry.createPerson(nin, firstName, lastName);
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private String extractFirstName(Map<String, String> attributes) {
     return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
         .map(PersonName::givenName)
@@ -507,6 +528,10 @@ public class UserSelectionUponLoginHandler
         message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private String extractLastName(Map<String, String> attributes) {
     return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
         .map(PersonName::familyName)
@@ -555,6 +580,10 @@ public class UserSelectionUponLoginHandler
         .orElse(null);
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private List<UserDto> createUsers(
       Person person, Set<CustomerDto> customers, AuthenticationDetails authenticationDetails) {
     var userCreationContext =
@@ -616,6 +645,10 @@ public class UserSelectionUponLoginHandler
         || feideDomain.equalsIgnoreCase(customer.getFeideOrganizationDomain());
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
     return ActiveCustomers.forPerson(person, customerService);
   }

@@ -146,7 +146,7 @@ class UserEntriesCreatorForPersonTest {
   }
 
   @Test
-  void shouldTreatAnExistingUserEntryAsFoundWhenTheIndexMissesIt() throws ConflictException {
+  void shouldFindAndRepairAnExistingUserEntryWhenTheIndexMissesIt() throws ConflictException {
     var personNin = scenarios.personWithExactlyOneActiveEmployment().nin();
     var person = personRegistry.fetchPersonByNin(NationalIdentityNumber.fromString(personNin));
     var customers = fetchCustomersWithActiveAffiliations(person.orElseThrow().getAffiliations());
@@ -170,6 +170,9 @@ class UserEntriesCreatorForPersonTest {
     assertThat(
         users.get(SINGLE_USER).getAffiliation(),
         is(equalTo(person.orElseThrow().getConsistentUnitAffiliation(customer.getCristinId()))));
+    var stored = identityService.fetchUserConsistently(username).orElseThrow();
+    assertThat(stored.getCristinId(), is(equalTo(person.orElseThrow().getId())));
+    assertThat(stored.getInstitutionCristinId(), is(equalTo(customer.getCristinId())));
   }
 
   private Set<CustomerDto> fetchCustomersWithActiveAffiliations(List<Affiliation> affiliations) {

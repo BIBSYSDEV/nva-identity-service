@@ -11,6 +11,10 @@ import nva.commons.core.JacocoGenerated;
 public final class NationalIdentityNumber {
 
   private static final Pattern ELEVEN_DIGITS = Pattern.compile("\\d{11}");
+
+  /** Eleven digits, also written with a space or a hyphen after the birthdate, as a person may. */
+  private static final Pattern NUMBER_IN_TEXT = Pattern.compile("\\d{6}[ -]?\\d{5}");
+
   private static final String MASK = "***********";
   private final String nin;
 
@@ -30,9 +34,12 @@ public final class NationalIdentityNumber {
         .map(NationalIdentityNumber::new);
   }
 
-  /** The text with every run of eleven digits masked, for logs and messages. */
+  /**
+   * The text with every number masked, for logs and messages. A number written with a separator
+   * after the birthdate is masked too, since a hand-typed value may be echoed by the registry.
+   */
   public static String maskAll(final String text) {
-    return ELEVEN_DIGITS.matcher(text).replaceAll(MASK);
+    return NUMBER_IN_TEXT.matcher(text).replaceAll(MASK);
   }
 
   public String getNin() {

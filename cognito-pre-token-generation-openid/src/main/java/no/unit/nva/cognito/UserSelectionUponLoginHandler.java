@@ -145,10 +145,14 @@ public class UserSelectionUponLoginHandler
     this.termsService = termsService;
   }
 
+  /**
+   * A value that is not eleven digits counts as missing: it cannot be looked up, and it must reach
+   * neither the registry nor the log.
+   */
   private static Optional<NationalIdentityNumber> extractNin(Map<String, String> userAttributes) {
     return nonBlank(userAttributes.get(NIN_FOR_FEIDE_USERS))
         .or(() -> nonBlank(userAttributes.get(NIN_FOR_NON_FEIDE_USERS)))
-        .map(NationalIdentityNumber::fromString);
+        .flatMap(NationalIdentityNumber::fromDigits);
   }
 
   private static Optional<String> nonBlank(String value) {
@@ -479,7 +483,6 @@ public class UserSelectionUponLoginHandler
         message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
   }
 
-  @JacocoGenerated
   private String extractLastName(Map<String, String> attributes) {
     return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
         .map(PersonName::familyName)

@@ -441,6 +441,19 @@ class UserSelectionUponLoginHandlerTest {
   }
 
   @Test
+  void shouldFailWithMissingNinWithoutCallingTheRegistryWhenTheNinIsNotElevenDigits() {
+    var event = newLoginEvent(scenarios.personWithExactlyOneActiveEmployment().nin(), NON_FEIDE);
+    var attributes = new HashMap<>(event.getRequest().getUserAttributes());
+    attributes.put(NIN_FOR_NON_FEIDE_USERS, "123456789012");
+    event.getRequest().setUserAttributes(attributes);
+
+    assertThrows(
+        IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
+
+    verifyNoInteractions(personRegistry);
+  }
+
+  @Test
   void shouldNotCreatePersonIfFetchFails() {
     var personLoggingIn = scenarios.failingPersonRegistryRequestBadGateway();
     var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);

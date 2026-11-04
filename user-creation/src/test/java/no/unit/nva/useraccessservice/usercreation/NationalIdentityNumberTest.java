@@ -29,7 +29,17 @@ class NationalIdentityNumberTest {
 
   @ParameterizedTest
   @NullSource
-  @ValueSource(strings = {"", " ", "0181900004", "018190000491", "0181900004a", "01819000049 "})
+  @ValueSource(
+      strings = {
+        "",
+        " ",
+        "0181900004",
+        "018190000491",
+        "0181900004a",
+        "01819000049 ",
+        "018190 00049",
+        "018190-00049"
+      })
   void shouldRejectAnythingButElevenDigits(String value) {
     assertThat(NationalIdentityNumber.fromDigits(value)).isEmpty();
   }
@@ -45,6 +55,16 @@ class NationalIdentityNumberTest {
         .doesNotContain(NUMBER)
         .isEqualTo(
             "GET /persons/resolve?national_id=*********** and body {\"nin\":\"***********\"}");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"018190 00049", "018190-00049"})
+  void shouldMaskANumberWrittenWithASeparatorAfterTheBirthDate(String number) {
+    var text = "national_id=" + number + " rejected";
+
+    assertThat(NationalIdentityNumber.maskAll(text))
+        .doesNotContain(number)
+        .isEqualTo("national_id=*********** rejected");
   }
 
   @Test

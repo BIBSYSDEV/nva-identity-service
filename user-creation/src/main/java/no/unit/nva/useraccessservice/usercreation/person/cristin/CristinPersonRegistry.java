@@ -159,7 +159,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return () -> readCristinCredentials(secretsReader);
   }
 
-  /** Without its credentials the registry cannot be asked, as when it is unreachable. */
+  /** Without its credentials the registry cannot be queried, as when it is unreachable. */
   @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private static CristinCredentials readCristinCredentials(SecretsReader secretsReader) {
     try {

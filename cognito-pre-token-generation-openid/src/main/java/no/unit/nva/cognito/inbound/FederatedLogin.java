@@ -88,30 +88,40 @@ record FederatedLogin(
     return usernameOf(event.getRequest().getProviderName(), String.valueOf(event.getUserName()));
   }
 
-  /**
-   * Feide sends the given name and the surname as separate multi-valued attributes, which arrive as
-   * a list or as the JSON array text Cognito also stores. ID-porten sends only the full name, which
-   * is split as the pre-token Lambda splits the mapped name: the last word is the surname.
-   */
+  /** Prefers Feide's separate name attributes and falls back to ID-porten's full name. */
   private static Optional<PersonName> extractName(
       Map<String, Object> idToken, Map<String, Object> userInfo) {
-    return PersonName.fromProviderNames(
-            providerValue(userInfo, GIVEN_NAME_ATTRIBUTE),
-            providerValue(userInfo, SURNAME_ATTRIBUTE))
-        .or(
-            () ->
-                nonBlank(userInfo, FULL_NAME_ATTRIBUTE)
-                    .or(() -> nonBlank(idToken, FULL_NAME_ATTRIBUTE))
-                    .flatMap(PersonName::fromFullName));
+    return feideName(userInfo).or(() -> idPortenName(idToken, userInfo));
   }
 
-  /** The value as text: a string as it is, a list by its first element, anything else nothing. */
+  /** Feide sends the given name and the surname as separate multivalued attributes. */
+  private static Optional<PersonName> feideName(Map<String, Object> userInfo) {
+    return PersonName.fromProviderNames(
+        providerValue(userInfo, GIVEN_NAME_ATTRIBUTE), providerValue(userInfo, SURNAME_ATTRIBUTE));
+  }
+
+  /**
+   * ID-porten sends only the full name, which is split as the pre-token Lambda splits the mapped
+   * name: the last word is the surname.
+   */
+  private static Optional<PersonName> idPortenName(
+      Map<String, Object> idToken, Map<String, Object> userInfo) {
+    return nonBlank(userInfo, FULL_NAME_ATTRIBUTE)
+        .or(() -> nonBlank(idToken, FULL_NAME_ATTRIBUTE))
+        .flatMap(PersonName::fromFullName);
+  }
+
+  /**
+   * A multivalued attribute arrives either as a list or as the JSON array text Cognito also
+   * stores. A list is reduced to its first element; a string is passed on as it is, for {@link
+   * PersonName} to decode.
+   */
   private static String providerValue(Map<String, Object> values, String key) {
-    var value = values.get(key);
-    if (value instanceof List<?> list) {
-      return list.isEmpty() ? null : String.valueOf(list.get(0));
-    }
-    return value instanceof String text ? text : null;
+    return switch (values.get(key)) {
+      case String text -> text;
+      case List<?> list when !list.isEmpty() -> String.valueOf(list.getFirst());
+      case null, default -> null;
+    };
   }
 
   private static Optional<String> nonBlank(Map<String, Object> values, String key) {

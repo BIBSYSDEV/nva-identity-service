@@ -33,8 +33,23 @@ class InboundFederationEventTest {
     assertThat(event.getRequest().getAttributes().getTokenResponse()).containsKey("access_token");
     assertThat(event.getRequest().getAttributes().getIdToken()).containsKey("sub");
     assertThat(event.getRequest().getAttributes().getUserInfo()).containsKey("sub");
-    assertThat(event.getRequest().getAttributes().getSamlResponse()).isEmpty();
-    assertThat(event.getResponse().getUserAttributesToMap()).isEmpty();
+  }
+
+  /** The fixture has these two empty, as an OIDC login does, so they are read from values here. */
+  @Test
+  void shouldReadTheSamlResponseAndTheResponseMappingWhenTheyHaveValues()
+      throws JsonProcessingException {
+    var tree = (ObjectNode) RUNTIME_LIKE_MAPPER.readTree(eventJson());
+    ((ObjectNode) tree.at("/request/attributes"))
+        .putObject("samlResponse")
+        .put("NameID", "someone");
+    ((ObjectNode) tree.at("/response")).putObject("userAttributesToMap").put("email", "a@b.no");
+
+    var event = RUNTIME_LIKE_MAPPER.treeToValue(tree, InboundFederationEvent.class);
+
+    assertThat(event.getRequest().getAttributes().getSamlResponse())
+        .containsEntry("NameID", "someone");
+    assertThat(event.getResponse().getUserAttributesToMap()).containsEntry("email", "a@b.no");
   }
 
   @Test

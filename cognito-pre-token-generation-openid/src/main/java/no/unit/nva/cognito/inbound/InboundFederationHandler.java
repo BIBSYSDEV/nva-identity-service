@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>No number from the provider gives error 1003, which the client answers by offering another
  * login method. Everything else gives 1005, except that a person the registry confirmed within the
- * last {@link #LINK_MAX_AGE} is admitted on the stored link when the registry cannot be asked,
+ * last {@link #LINK_MAX_AGE} is admitted on the stored link when the registry cannot be queried,
  * provided the name from the provider matches the stored one.
  */
 public class InboundFederationHandler
@@ -138,10 +138,10 @@ public class InboundFederationHandler
   }
 
   /**
-   * Only a registry that cannot be asked leads to the stored link: one that is unreachable, answers
-   * with a server error, with something that is not a person, or with a redirect. Any other answer,
-   * and any failure after the registry has answered, fails this login; it must not admit the user
-   * as the person the link points to.
+   * Only a registry that cannot be queried leads to the stored link: one that is unreachable,
+   * answers with a server error, with something that is not a person, or with a redirect. Any other
+   * answer, and any failure after the registry has answered, fails this login; it must not admit
+   * the user as the person the link points to.
    */
   private Admitted admit(FederatedLogin login) {
     var nin = Optional.ofNullable(login.nin()).orElseThrow(() -> missingNin(login));
@@ -179,7 +179,7 @@ public class InboundFederationHandler
   }
 
   /**
-   * When the registry cannot be asked, a Cognito user it confirmed recently is admitted on the
+   * When the registry cannot be queried, a Cognito user it confirmed recently is admitted on the
    * stored link, so that an outage does not lock known users out. The age is that of the link,
    * which records when this Cognito user was last confirmed; the person row is shared by all the
    * person's users. The name check keeps a provider account that changed hands during the outage

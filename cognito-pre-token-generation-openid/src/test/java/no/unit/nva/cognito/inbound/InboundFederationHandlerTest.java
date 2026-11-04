@@ -20,7 +20,6 @@ import static no.unit.nva.cognito.inbound.FederatedLogin.GIVEN_NAME_ATTRIBUTE;
 import static no.unit.nva.cognito.inbound.FederatedLogin.NIN_CLAIM;
 import static no.unit.nva.cognito.inbound.FederatedLogin.PRINCIPAL_NAME_CLAIM;
 import static no.unit.nva.cognito.inbound.FederatedLogin.SURNAME_ATTRIBUTE;
-import static no.unit.nva.cognito.inbound.InboundFederationHandler.LINK_MAX_AGE;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.testutils.RandomDataGenerator.randomUri;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_NAME;
@@ -42,6 +41,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
@@ -99,7 +99,7 @@ class InboundFederationHandlerTest {
       JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   private static final Path EVENT_RESOURCE = Path.of("cognito", "inbound_federation_event.json");
-  private static final String NOT_A_NUMBER = "123456789";
+  private static final String NINE_DIGITS = "123456789";
   private static final String USERNAME_PREFIX = "Dataporten_";
   private static final String EMAIL = "example@example.no";
   private static final String HOME_ORGANIZATION = "example.no";
@@ -114,6 +114,12 @@ class InboundFederationHandlerTest {
   private static final Duration ONE_HOUR = Duration.ofHours(1);
   private static final int SOME_VALUES = 5;
 
+  /** The handler's link max age, pinned so that a change there is a deliberate change here too. */
+  private static final Duration THIRTY_DAYS = Duration.ofDays(30);
+
+  private static final Duration SHORT_REQUEST_TIMEOUT = Duration.ofMillis(100);
+  private static final Duration SLOW_ANSWER = Duration.ofSeconds(1);
+
   private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
   private final Clock clock = Clock.systemUTC();
   private Context context;
@@ -126,6 +132,7 @@ class InboundFederationHandlerTest {
   private AuthenticationScenarios scenarios;
   private PersonRegistry personRegistry;
   private HttpHeaders defaultRequestHeaders;
+  private URI wiremockUri;
   private LogRecorder logRecorder;
   private InboundFederationEvent lastEvent;
 
@@ -145,7 +152,7 @@ class InboundFederationHandlerTest {
         CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
     secretsManagerClient.putSecret(
         CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
-    var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
+    wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
     defaultRequestHeaders =
         new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
     mockPersonRegistry =
@@ -220,13 +227,11 @@ class InboundFederationHandlerTest {
                 + usernameOf(event)
                 + " resolved to "
                 + cristinId
-                + " through the person registry")
-        .contains(
-            "Name from Dataporten for user " + usernameOf(event) + " matches the registry: false");
+                + " through the person registry");
   }
 
   @Test
-  void shouldAskTheRegistryAgainAndWriteTheRowsAgainWhenTheUserHasALink() {
+  void shouldQueryTheRegistryAgainAndWriteTheRowsAgainWhenTheUserHasALink() {
     var person = scenarios.personWithExactlyOneActiveEmployment();
     var cristinId = scenarios.getCristinIdForPerson(person.nin());
     var event = feideLogin(person.nin());
@@ -369,15 +374,14 @@ class InboundFederationHandlerTest {
   }
 
   @Test
-  void shouldAdmitOnTheLinkWhenTheRegistryIsUnavailableAndTheLinkIsFreshWithTheSameName(
-      WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void shouldAdmitOnTheLinkWhenTheRegistryIsUnavailableAndTheLinkIsFreshWithTheSameName() {
+    registryIsDown();
     var event = feideLogin(randomNin());
     var cristinId = randomPersonId();
-    var verified = clock.instant().minus(LINK_MAX_AGE).plus(ONE_DAY);
+    var verified = clock.instant().minus(THIRTY_DAYS).plus(ONE_DAY);
     linkPerson(event, cristinId, FIXTURE_GIVEN_NAME, FIXTURE_FAMILY_NAME, verified);
 
-    var response =
-        handlerWithUnreachableRegistry(wireMockRuntimeInfo).handleRequest(event, context);
+    var response = handler.handleRequest(event, context);
 
     assertThat(response.getResponse().getUserAttributesToMap()).isEmpty();
     assertThat(identityService.fetchLink(usernameOf(event)))
@@ -388,12 +392,12 @@ class InboundFederationHandlerTest {
   }
 
   @Test
-  void shouldNotAdmitOnTheLinkWhenTheNameDiffers(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void shouldNotAdmitOnTheLinkWhenTheNameDiffers() {
+    registryIsDown();
     var event = feideLogin(randomNin());
     linkPerson(event, randomPersonId(), OTHER_GIVEN_NAME, OTHER_FAMILY_NAME, clock.instant());
-    var unreachable = handlerWithUnreachableRegistry(wireMockRuntimeInfo);
 
-    assertThatThrownBy(() -> unreachable.handleRequest(event, context))
+    assertThatThrownBy(() -> handler.handleRequest(event, context))
         .isInstanceOf(IdentityServiceLoginNotCompletedException.class)
         .hasMessageContaining(LOGIN_NOT_COMPLETED_CODE);
 
@@ -405,13 +409,13 @@ class InboundFederationHandlerTest {
   }
 
   @Test
-  void shouldNotAdmitOnTheLinkWhenItIsOlderThanThirtyDays(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void shouldNotAdmitOnTheLinkWhenItIsOlderThanTheLinkMaxAge() {
+    registryIsDown();
     var event = feideLogin(randomNin());
-    var verified = clock.instant().minus(LINK_MAX_AGE).minus(ONE_DAY);
+    var verified = clock.instant().minus(THIRTY_DAYS).minus(ONE_DAY);
     linkPerson(event, randomPersonId(), FIXTURE_GIVEN_NAME, FIXTURE_FAMILY_NAME, verified);
-    var unreachable = handlerWithUnreachableRegistry(wireMockRuntimeInfo);
 
-    assertThatThrownBy(() -> unreachable.handleRequest(event, context))
+    assertThatThrownBy(() -> handler.handleRequest(event, context))
         .isInstanceOf(IdentityServiceLoginNotCompletedException.class);
 
     assertThat(logRecorder.asString())
@@ -419,12 +423,11 @@ class InboundFederationHandlerTest {
   }
 
   @Test
-  void shouldFailWhenTheRegistryIsUnavailableAndThereIsNoLink(
-      WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void shouldFailWhenTheRegistryIsUnavailableAndThereIsNoLink() {
+    registryIsDown();
     var event = feideLogin(randomNin());
-    var unreachable = handlerWithUnreachableRegistry(wireMockRuntimeInfo);
 
-    assertThatThrownBy(() -> unreachable.handleRequest(event, context))
+    assertThatThrownBy(() -> handler.handleRequest(event, context))
         .isInstanceOf(IdentityServiceLoginNotCompletedException.class)
         .hasMessageContaining(LOGIN_NOT_COMPLETED_CODE);
 
@@ -474,7 +477,7 @@ class InboundFederationHandlerTest {
 
   @Test
   void shouldTreatANumberThatIsNotElevenDigitsAsMissing() {
-    var event = feideLogin(NOT_A_NUMBER);
+    var event = feideLogin(NINE_DIGITS);
 
     assertThatThrownBy(() -> handler.handleRequest(event, context))
         .isInstanceOf(IdentityServiceMissingNinException.class);
@@ -553,10 +556,10 @@ class InboundFederationHandlerTest {
   }
 
   @Test
-  void shouldNotAdmitOnTheLinkWhenTheLinkIsOldEvenIfThePersonRowIsFresh(
-      WireMockRuntimeInfo wireMockRuntimeInfo) {
+  void shouldNotAdmitOnTheLinkWhenTheLinkIsOldEvenIfThePersonRowIsFresh() {
+    registryIsDown();
     var event = feideLogin(randomNin());
-    var staleLink = clock.instant().minus(LINK_MAX_AGE).minus(ONE_DAY);
+    var staleLink = clock.instant().minus(THIRTY_DAYS).minus(ONE_DAY);
     linkPerson(
         event,
         randomPersonId(),
@@ -564,9 +567,8 @@ class InboundFederationHandlerTest {
         FIXTURE_FAMILY_NAME,
         staleLink,
         clock.instant());
-    var unreachable = handlerWithUnreachableRegistry(wireMockRuntimeInfo);
 
-    assertThatThrownBy(() -> unreachable.handleRequest(event, context))
+    assertThatThrownBy(() -> handler.handleRequest(event, context))
         .isInstanceOf(IdentityServiceLoginNotCompletedException.class);
 
     assertThat(logRecorder.asString())
@@ -600,6 +602,18 @@ class InboundFederationHandlerTest {
   }
 
   @Test
+  void shouldLogThatTheNameDoesNotMatchWhenTheRegistryKnowsThePersonByAnotherName() {
+    var registry = registryAnswering(OTHER_GIVEN_NAME, OTHER_FAMILY_NAME);
+    var event = feideLogin(randomNin());
+
+    handlerWith(registry, clock).handleRequest(event, context);
+
+    assertThat(logRecorder.asString())
+        .contains(
+            "Name from Dataporten for user " + usernameOf(event) + " matches the registry: false");
+  }
+
+  @Test
   void shouldPreferTheNumberFromUserInfoOverTheIdTokenClaim() {
     var person = scenarios.personWithExactlyOneActiveEmployment();
     var event = feideLogin(person.nin());
@@ -622,6 +636,23 @@ class InboundFederationHandlerTest {
     handler.handleRequest(event, context);
 
     assertThat(logRecorder.asString()).contains("Admitted on link for user " + usernameOf(event));
+  }
+
+  @Test
+  void shouldAdmitOnTheLinkWhenTheRegistryAnswersTooSlowly() {
+    stubFor(
+        get(anyUrl())
+            .willReturn(aResponse().withStatus(200).withFixedDelay((int) SLOW_ANSWER.toMillis())));
+    var event = feideLogin(randomNin());
+    var cristinId = randomPersonId();
+    linkPerson(event, cristinId, FIXTURE_GIVEN_NAME, FIXTURE_FAMILY_NAME, clock.instant());
+    var impatient = handlerWith(registryWithRequestTimeout(SHORT_REQUEST_TIMEOUT), clock);
+
+    impatient.handleRequest(event, context);
+
+    assertThat(logRecorder.asString())
+        .containsPattern("Cristin call to .* timed out after \\d+ ms")
+        .contains("Admitted on link for user " + usernameOf(event) + " as " + cristinId);
   }
 
   @Test
@@ -649,18 +680,21 @@ class InboundFederationHandlerTest {
     return new InboundFederationHandler(customerService, identityService, registry, handlerClock);
   }
 
-  private InboundFederationHandler handlerWithUnreachableRegistry(
-      WireMockRuntimeInfo wireMockRuntimeInfo) {
-    var uriWhereCristinIsUnavailable =
-        URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
-    var registry =
-        CristinPersonRegistry.customPersonRegistry(
-            WiremockHttpClient.create(),
-            uriWhereCristinIsUnavailable,
-            ServiceConstants.API_DOMAIN,
-            defaultRequestHeaders,
-            new SecretsReader(secretsManagerClient));
-    return handlerWith(registry, clock);
+  /** Every call to the registry fails at the connection, as when the registry is down. */
+  private static void registryIsDown() {
+    stubFor(
+        WireMock.any(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+  }
+
+  /** The registry as the handler has it, but giving up on an answer sooner. */
+  private PersonRegistry registryWithRequestTimeout(Duration requestTimeout) {
+    return CristinPersonRegistry.customPersonRegistry(
+        WiremockHttpClient.create(),
+        wiremockUri,
+        ServiceConstants.API_DOMAIN,
+        defaultRequestHeaders,
+        new SecretsReader(secretsManagerClient),
+        requestTimeout);
   }
 
   private void linkPerson(
@@ -752,25 +786,35 @@ class InboundFederationHandlerTest {
   }
 
   /**
-   * Every non-blank string and every number the provider sent, except the subject, which is part of
-   * the username and is meant to be logged.
+   * Every non-blank string and every number the provider sent, also inside nested maps and lists,
+   * except the subject, which is part of the username and is meant to be logged.
    */
   private static String[] attributeValues(InboundFederationEvent event) {
     var attributes = attributesOf(event);
     var values = new ArrayList<String>();
     Stream.of(attributes.getTokenResponse(), attributes.getIdToken(), attributes.getUserInfo())
-        .forEach(map -> collectScalars(map, values));
+        .forEach(map -> collectValues(map, values));
     assertThat(values).hasSizeGreaterThan(SOME_VALUES);
     return values.toArray(String[]::new);
   }
 
-  private static void collectScalars(Map<String, Object> attributes, List<String> values) {
+  private static void collectValues(Map<String, Object> attributes, List<String> values) {
     attributes.forEach(
         (key, value) -> {
-          if (!SUB.equals(key) && isNumberOrNonBlankText(value)) {
-            values.add(String.valueOf(value));
+          if (!SUB.equals(key)) {
+            collectValue(value, values);
           }
         });
+  }
+
+  private static void collectValue(Object value, List<String> values) {
+    if (value instanceof Map<?, ?> map) {
+      map.values().forEach(nested -> collectValue(nested, values));
+    } else if (value instanceof List<?> list) {
+      list.forEach(nested -> collectValue(nested, values));
+    } else if (isNumberOrNonBlankText(value)) {
+      values.add(String.valueOf(value));
+    }
   }
 
   private static boolean isNumberOrNonBlankText(Object value) {

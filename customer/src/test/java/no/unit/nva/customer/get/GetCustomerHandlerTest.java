@@ -163,7 +163,7 @@ class GetCustomerHandlerTest {
 
     var response = sendRequest(request, Problem.class);
 
-    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_UNSUPPORTED_TYPE));
+    assertThat(response.getStatusCode(), is(HttpURLConnection.HTTP_NOT_ACCEPTABLE));
   }
 
   public static class RequestHeaders {

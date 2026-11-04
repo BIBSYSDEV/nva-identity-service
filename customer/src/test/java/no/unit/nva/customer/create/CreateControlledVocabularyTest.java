@@ -105,7 +105,7 @@ class CreateControlledVocabularyTest extends CreateUpdateControlledVocabularySet
     var result = sendRequest(existingIdentifier(), UNSUPPORTED_MEDIA_TYPE);
 
     assertThat(
-        result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_UNSUPPORTED_TYPE)));
+        result.getResponse().getStatusCode(), is(equalTo(HttpURLConnection.HTTP_NOT_ACCEPTABLE)));
     String body = result.getResponse().getBody();
     for (MediaType mediaType : ControlledVocabularyHandler.SUPPORTED_MEDIA_TYPES) {
       assertThat(body, containsString(mediaType.toString()));

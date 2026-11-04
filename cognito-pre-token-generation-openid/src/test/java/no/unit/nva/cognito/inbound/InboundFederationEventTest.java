@@ -1,21 +1,16 @@
 package no.unit.nva.cognito.inbound;
 
+import static no.unit.nva.cognito.inbound.InboundFederationEvents.EVENT_RESOURCE;
+import static no.unit.nva.cognito.inbound.InboundFederationEvents.RUNTIME_LIKE_MAPPER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.nio.file.Path;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.Test;
 
 /** The event mirrors the documented JSON, so every documented field must survive the runtime. */
 class InboundFederationEventTest {
-
-  private static final JsonMapper RUNTIME_LIKE_MAPPER =
-      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
-  private static final Path EVENT_RESOURCE = Path.of("cognito", "inbound_federation_event.json");
 
   @Test
   void shouldReadEveryDocumentedFieldOfTheEvent() throws JsonProcessingException {

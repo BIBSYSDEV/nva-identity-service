@@ -112,9 +112,9 @@ record FederatedLogin(
   }
 
   /**
-   * A multivalued attribute arrives either as a list or as the JSON array text Cognito also
-   * stores. A list is reduced to its first element; a string is passed on as it is, for {@link
-   * PersonName} to decode.
+   * A multivalued attribute arrives either as a list or as the JSON array text Cognito also stores.
+   * A list is reduced to its first element; a string is passed on as it is, for {@link PersonName}
+   * to decode.
    */
   private static String providerValue(Map<String, Object> values, String key) {
     return switch (values.get(key)) {

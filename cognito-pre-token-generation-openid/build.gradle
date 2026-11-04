@@ -46,6 +46,7 @@ dependencies {
 }
 
 test {
+    inputs.file('../template.yaml') // read by InboundFederationMetricFiltersTest
     environment "TERMS_TABLE_NAME", "TermsTable"
     environment "COGNITO_HOST", "example.com"
     environment "AWS_REGION", "eu-west-1"

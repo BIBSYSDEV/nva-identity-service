@@ -55,16 +55,23 @@ import org.slf4j.LoggerFactory;
 public class InboundFederationHandler
     implements RequestHandler<InboundFederationEvent, InboundFederationEvent> {
 
-  /** Matched by a metric filter in the template, so the start of the message must stay. */
-  public static final String LINK_REWRITTEN_MESSAGE = "Link rewritten for user {} from {} to {}";
+  /**
+   * A metric filter in template.yaml matches this term in the log line. Do not change it here
+   * without changing the filter too: the metric filter test in this module fails until they agree.
+   */
+  public static final String LINK_REWRITTEN_FILTER_TERM = "Link rewritten";
 
-  /** Matched by a metric filter in the template, so the start of the message must stay. */
-  public static final String ADMITTED_ON_LINK_MESSAGE =
-      "Admitted on link for user {} as {}, verified {}, because the person registry failed";
+  /** As {@link #LINK_REWRITTEN_FILTER_TERM}: matched by a metric filter in template.yaml. */
+  public static final String ADMITTED_ON_LINK_FILTER_TERM = "Admitted on link";
 
   public static final Duration LINK_MAX_AGE = Duration.ofDays(30);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InboundFederationHandler.class);
+  private static final String LINK_REWRITTEN_MESSAGE =
+      LINK_REWRITTEN_FILTER_TERM + " for user {} from {} to {}";
+  private static final String ADMITTED_ON_LINK_MESSAGE =
+      ADMITTED_ON_LINK_FILTER_TERM
+          + " for user {} as {}, verified {}, because the person registry failed";
   private static final String DONE_MESSAGE =
       "Inbound federation for user {} resolved to {} through the {} in {} ms";
   private static final String FAILED_MESSAGE = "Inbound federation for user {} failed";

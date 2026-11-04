@@ -2448,7 +2448,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref InboundFederationHandlerLogGroup
-      # The start of InboundFederationHandler.LINK_REWRITTEN_MESSAGE, whose javadoc says it must stay.
+      # Must equal InboundFederationHandler.LINK_REWRITTEN_FILTER_TERM; a test in that module checks it.
       FilterPattern: '"Link rewritten"'
       MetricTransformations:
         - MetricName: InboundFederationLinkRewritten
@@ -2476,7 +2476,7 @@ Resources:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref InboundFederationHandlerLogGroup
-      # The start of InboundFederationHandler.ADMITTED_ON_LINK_MESSAGE, whose javadoc says it must stay.
+      # Must equal InboundFederationHandler.ADMITTED_ON_LINK_FILTER_TERM; a test in that module checks it.
       FilterPattern: '"Admitted on link"'
       MetricTransformations:
         - MetricName: InboundFederationAdmittedOnLink

@@ -107,9 +107,10 @@ Parameters:
     Type: CommaDelimitedList
     Default: ""
     Description: >
-      Comma separated list of extra frontend base URLs (scheme, host and optional port, no trailing slash)
-      allowed on ApplicationClient in addition to ApplicationDomain, e.g. localhost or preview deployments.
-      Each URL is added to CallbackURLs, and the URL with "/logout" appended is added to LogoutURLs.
+      Applies to ApplicationClient only. Comma separated list of extra frontend base URLs
+      (scheme, host and optional port, no trailing slash) allowed in addition to ApplicationDomain,
+      e.g. localhost or preview deployments. Each URL is added to CallbackURLs, and the URL with
+      "/logout" appended is added to LogoutURLs.
 
 Mappings:
   Constants:

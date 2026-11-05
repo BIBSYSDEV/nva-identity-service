@@ -110,10 +110,6 @@ Parameters:
       Comma separated list of extra frontend base URLs (scheme, host and optional port, no trailing slash)
       allowed on ApplicationClient in addition to ApplicationDomain, e.g. localhost or preview deployments.
       Each URL is added to CallbackURLs, and the URL with "/logout" appended is added to LogoutURLs.
-  PreviewApplicationDomain:
-    Type: String
-    Default: ""
-    Description: Domain of the frontend preview deployment. When set, it is added to ApplicationClient's callback and logout URLs.
 
 Mappings:
   Constants:

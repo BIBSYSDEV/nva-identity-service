@@ -105,7 +105,7 @@ Parameters:
     Description: Adds the COGNITO identity provider to ApplicationClient, for environments whose tests log in with username and password.
   EnvironmentSpecificFrontendUrls:
     Type: CommaDelimitedList
-    Default: ""
+    Default: "http://localhost:3000"
     Description: >
       Applies to ApplicationClient only. Comma separated list of extra frontend base URLs
       (scheme, host and optional port, no trailing slash) allowed in addition to ApplicationDomain,

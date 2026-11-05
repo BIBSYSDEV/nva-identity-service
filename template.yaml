@@ -103,6 +103,10 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Adds the COGNITO identity provider to ApplicationClient, for environments whose tests log in with username and password.
+  PreviewApplicationDomain:
+    Type: String
+    Default: ""
+    Description: Domain of the frontend preview deployment. When set, it is added to ApplicationClient's callback and logout URLs.
 
 Mappings:
   Constants:
@@ -113,6 +117,7 @@ Mappings:
 Conditions:
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
   NativeLoginOnApplicationClient: !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
+  WithPreviewApplicationDomain: !Not [!Equals [!Ref PreviewApplicationDomain, ""]]
 
 Globals:
   Function:
@@ -1930,9 +1935,17 @@ Resources:
       CallbackURLs:
         - "http://localhost:3000"
         - !Sub "https://${ApplicationDomain}"
+        - !If
+          - WithPreviewApplicationDomain
+          - !Sub "https://${PreviewApplicationDomain}"
+          - !Ref AWS::NoValue
       LogoutURLs:
         - "http://localhost:3000/logout"
         - !Sub "https://${ApplicationDomain}/logout"
+        - !If
+          - WithPreviewApplicationDomain
+          - !Sub "https://${PreviewApplicationDomain}/logout"
+          - !Ref AWS::NoValue
       ClientName: NvaApplicationClient
       DefaultRedirectURI: "http://localhost:3000"
       EnableTokenRevocation: true

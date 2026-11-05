@@ -103,6 +103,13 @@ Parameters:
     Default: "false"
     AllowedValues: ["true", "false"]
     Description: Adds the COGNITO identity provider to ApplicationClient, for environments whose tests log in with username and password.
+  EnvironmentSpecificFrontendUrls:
+    Type: CommaDelimitedList
+    Default: ""
+    Description: >
+      Comma separated list of extra frontend base URLs (scheme, host and optional port, no trailing slash)
+      allowed on ApplicationClient in addition to ApplicationDomain, e.g. localhost or preview deployments.
+      Each URL is added to CallbackURLs, and the URL with "/logout" appended is added to LogoutURLs.
   PreviewApplicationDomain:
     Type: String
     Default: ""
@@ -117,7 +124,7 @@ Mappings:
 Conditions:
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
   NativeLoginOnApplicationClient: !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
-  WithPreviewApplicationDomain: !Not [!Equals [!Ref PreviewApplicationDomain, ""]]
+  WithEnvironmentSpecificFrontendUrls: !Not [!Equals [!Join ["", !Ref EnvironmentSpecificFrontendUrls], ""]]
 
 Globals:
   Function:
@@ -1932,22 +1939,26 @@ Resources:
         - phone
         - profile # it seems to be necessary for the custom attributes to appear
         - https://api.nva.unit.no/scopes/frontend
-      CallbackURLs:
-        - "http://localhost:3000"
-        - !Sub "https://${ApplicationDomain}"
-        - !If
-          - WithPreviewApplicationDomain
-          - !Sub "https://${PreviewApplicationDomain}"
-          - !Ref AWS::NoValue
-      LogoutURLs:
-        - "http://localhost:3000/logout"
-        - !Sub "https://${ApplicationDomain}/logout"
-        - !If
-          - WithPreviewApplicationDomain
-          - !Sub "https://${PreviewApplicationDomain}/logout"
-          - !Ref AWS::NoValue
+      # CloudFormation cannot map over a list, so the lists are built by joining to a string and splitting again.
+      # "/logout," as the join delimiter (plus a trailing "/logout") appends /logout to every URL.
+      CallbackURLs: !If
+        - WithEnvironmentSpecificFrontendUrls
+        - !Split
+          - ","
+          - !Sub
+            - "https://${ApplicationDomain},${ExtraUrls}"
+            - ExtraUrls: !Join [",", !Ref EnvironmentSpecificFrontendUrls]
+        - - !Sub "https://${ApplicationDomain}"
+      LogoutURLs: !If
+        - WithEnvironmentSpecificFrontendUrls
+        - !Split
+          - ","
+          - !Sub
+            - "https://${ApplicationDomain}/logout,${ExtraUrls}/logout"
+            - ExtraUrls: !Join ["/logout,", !Ref EnvironmentSpecificFrontendUrls]
+        - - !Sub "https://${ApplicationDomain}/logout"
       ClientName: NvaApplicationClient
-      DefaultRedirectURI: "http://localhost:3000"
+      DefaultRedirectURI: !Sub "https://${ApplicationDomain}"
       EnableTokenRevocation: true
       ExplicitAuthFlows:
         - ALLOW_ADMIN_USER_PASSWORD_AUTH

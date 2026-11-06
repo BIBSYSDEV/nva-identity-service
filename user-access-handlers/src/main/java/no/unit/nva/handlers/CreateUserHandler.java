@@ -37,6 +37,7 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.SingletonCollector;
@@ -255,7 +256,7 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
   }
 
   private void authorize(CreateUserRequest input, RequestInfo requestInfo)
-      throws ForbiddenException {
+      throws ForbiddenException, UnauthorizedException {
     if (userIsInternalBackendOrHasManageOwnAffiliationAccess(requestInfo)) {
       return;
     }
@@ -263,7 +264,8 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     var roles = input.roles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
 
     if (roles.contains(RoleName.APPLICATION_ADMIN)
-        || !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)) {
+        || !requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)
+        || !requestInfo.getCurrentCustomer().equals(input.customerId())) {
       throw new ForbiddenException();
     }
   }

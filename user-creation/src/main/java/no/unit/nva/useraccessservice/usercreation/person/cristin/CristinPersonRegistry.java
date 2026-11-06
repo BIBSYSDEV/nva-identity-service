@@ -91,6 +91,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
   private static final String MASKED_PARAMETER = "national_id=***********";
   private static final String NO_PERSON_FOUND_MESSAGE =
       "No person found in Cristin for the given national identity number";
+  private static final String PERSON_EXISTED_MESSAGE =
+      "Person existed in Cristin when creating it, fetching it instead";
+  private static final String COULD_NOT_READ_CREDENTIALS_MESSAGE =
+      "Could not read the Cristin credentials";
 
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
@@ -152,8 +156,18 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
   private static Supplier<CristinCredentials> secretsReaderCristinCredentialsSupplier(
       SecretsReader secretsReader) {
-    return () ->
-        secretsReader.fetchClassSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class);
+    return () -> readCristinCredentials(secretsReader);
+  }
+
+  /** Without its credentials the registry cannot be queried, as when it is unreachable. */
+  @SuppressWarnings("PMD.AvoidCatchingGenericException")
+  private static CristinCredentials readCristinCredentials(SecretsReader secretsReader) {
+    try {
+      return secretsReader.fetchClassSecret(
+          CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class);
+    } catch (RuntimeException e) {
+      throw new IdentityServiceUnavailableException(COULD_NOT_READ_CREDENTIALS_MESSAGE, e);
+    }
   }
 
   public static PersonRegistry customPersonRegistry(
@@ -242,8 +256,19 @@ public final class CristinPersonRegistry implements PersonRegistry {
     var cristinCredentials = this.cristinCredentialsSupplier.get();
 
     var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());
-    return createPerson(person, cristinCredentials)
+    return createOrFetchPerson(person, nin, cristinCredentials)
         .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+  }
+
+  /** A person that another login created in the meantime answers 409 and is fetched instead. */
+  private Optional<CristinPerson> createOrFetchPerson(
+      CristinPerson person, NationalIdentityNumber nin, CristinCredentials cristinCredentials) {
+    try {
+      return createPerson(person, cristinCredentials);
+    } catch (IdentityServiceAlreadyExistsException e) {
+      LOGGER.info(PERSON_EXISTED_MESSAGE);
+      return fetchPersonByNinFromCristin(nin, cristinCredentials);
+    }
   }
 
   private Optional<CristinPerson> createPerson(

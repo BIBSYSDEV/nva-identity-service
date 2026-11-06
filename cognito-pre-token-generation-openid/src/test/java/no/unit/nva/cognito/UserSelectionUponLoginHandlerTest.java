@@ -152,6 +152,11 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdate
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+/**
+ * The tests of the Cristin path (logins resolved through the person registry, creating persons and
+ * users, writing the link and person rows from here) cover transition code that is deprecated in
+ * the handler and goes with it in NP-51975. The link path and the password path stay.
+ */
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
 
@@ -168,6 +173,8 @@ class UserSelectionUponLoginHandlerTest {
   private static final String FEDERATED_USERNAME_PREFIX = "Dataporten_";
   private static final String FEDERATED_IDENTITIES =
       "[{\"providerName\":\"Dataporten\",\"providerType\":\"OIDC\",\"primary\":\"true\"}]";
+  private static final Set<String> NIN_ATTRIBUTES =
+      Set.of(NIN_FOR_NON_FEIDE_USERS, NIN_FOR_FEIDE_USERS);
 
   private final Context context = new FakeContext();
   private final FakeSecretsManagerClient secretsManagerClient = new FakeSecretsManagerClient();
@@ -2391,5 +2398,135 @@ class UserSelectionUponLoginHandlerTest {
     var refresh = refreshFor(login);
 
     assertThrows(RuntimeException.class, () -> handler.handleRequest(refresh, context));
+  }
+
+  @Test
+  void shouldWriteEmptyNinAttributesWhenInboundFederationIsEnabled() {
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            identityService,
+            personRegistry,
+            termsAndConditionsService,
+            true);
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+
+    handler.handleRequest(newLoginEvent(nin, FEIDE), context);
+
+    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
+        .filteredOn(attribute -> NIN_ATTRIBUTES.contains(attribute.name()))
+        .extracting(AttributeType::value)
+        .containsExactly("", "");
+  }
+
+  @Test
+  void shouldLeaveNinAttributesAloneByDefault() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+
+    handler.handleRequest(newLoginEvent(nin, FEIDE), context);
+
+    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
+        .extracting(AttributeType::name)
+        .doesNotContainAnyElementsOf(NIN_ATTRIBUTES);
+  }
+
+  @Test
+  void shouldResolveLoginWithoutNinFromLinkWhenInboundFederationIsEnabled() {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var login = feideLogin(nin);
+    handler.handleRequest(login, context);
+    var customerFromRegistry = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
+    clearInvocations(personRegistry);
+    handler =
+        new UserSelectionUponLoginHandler(
+            cognitoClient,
+            customerService,
+            identityService,
+            personRegistry,
+            termsAndConditionsService,
+            true);
+
+    handler.handleRequest(withoutNin(login), context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
+        is(equalTo(customerFromRegistry)));
+  }
+
+  @Test
+  void shouldResolveLoginFromRowsBeforeStoredNinWhenInboundFederationIsEnabled() {
+    var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
+    handler.handleRequest(login, context);
+    var otherNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var otherCristinId = scenarios.getCristinIdForPerson(otherNin);
+    var otherUser =
+        scenarios.createUsersForAllActiveAffiliations(otherNin, identityService).stream()
+            .collect(SingletonCollector.collect());
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            otherCristinId,
+            randomString(),
+            randomString(),
+            Set.of(otherUser.getInstitution()),
+            Instant.now()));
+    identityService.saveLink(
+        new IdentityLink(login.getUserName(), otherCristinId, null, null, Instant.now()));
+    clearInvocations(personRegistry);
+    handler = handlerWithInboundFederationEnabled();
+
+    handler.handleRequest(login, context);
+
+    verifyNoInteractions(personRegistry);
+    assertThat(
+        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
+        is(equalTo(otherCristinId.toString())));
+  }
+
+  @Test
+  void shouldFailWithMissingNinOnLoginWithoutNinAndRowsWhenInboundFederationIsEnabled() {
+    handler = handlerWithInboundFederationEnabled();
+    var login = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
+
+    var exception =
+        assertThrows(
+            IdentityServiceMissingNinException.class, () -> handler.handleRequest(login, context));
+
+    assertThat(exception.getErrorCode(), is(equalTo("1003")));
+    verifyNoInteractions(personRegistry);
+  }
+
+  @Test
+  void shouldWriteEmptyNinAttributesOnRefreshAndForPasswordUsersWhenInboundFederationIsEnabled() {
+    handler = handlerWithInboundFederationEnabled();
+    var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
+    handler.handleRequest(login, context);
+
+    handler.handleRequest(refreshFor(login), context);
+    assertThatNinAttributesAreCleared();
+
+    var passwordUsersNin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    scenarios.createUsersForAllActiveAffiliations(passwordUsersNin, identityService);
+    handler.handleRequest(
+        passwordLogin(scenarios.getCristinIdForPerson(passwordUsersNin), null), context);
+    assertThatNinAttributesAreCleared();
+  }
+
+  private UserSelectionUponLoginHandler handlerWithInboundFederationEnabled() {
+    return new UserSelectionUponLoginHandler(
+        cognitoClient,
+        customerService,
+        identityService,
+        personRegistry,
+        termsAndConditionsService,
+        true);
+  }
+
+  private void assertThatNinAttributesAreCleared() {
+    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
+        .filteredOn(attribute -> NIN_ATTRIBUTES.contains(attribute.name()))
+        .extracting(AttributeType::value)
+        .containsExactly("", "");
   }
 }

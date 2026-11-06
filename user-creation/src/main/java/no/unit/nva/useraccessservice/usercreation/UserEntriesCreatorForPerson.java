@@ -72,7 +72,7 @@ public class UserEntriesCreatorForPerson {
   private UserDto getExistingUserOrCreateNew(UserDto user, UserCreationContext context) {
     return attempt(() -> fetchUserBasedOnCristinIdentifiers(user, context.getPerson()))
         .or(() -> fetchLegacyUserWithFeideIdentifier(user, context))
-        .or(() -> addUser(user))
+        .or(() -> addUser(user, context.getPerson()))
         .orElseThrow();
   }
 
@@ -112,8 +112,35 @@ public class UserEntriesCreatorForPerson {
     return identityService.updateUser(updatedUser);
   }
 
-  private UserDto addUser(UserDto user) throws ConflictException {
-    identityService.addUser(user);
-    return user;
+  /**
+   * An entry that exists but that the index did not return, because the index is eventually
+   * consistent or because the row carries other identifiers than the person has now, answers with a
+   * conflict. It is read by its key, and its identifiers are written again with the affiliation, so
+   * that the next login finds it through the index.
+   */
+  private UserDto addUser(UserDto user, Person person) {
+    try {
+      identityService.addUser(user);
+      return user;
+    } catch (ConflictException e) {
+      return identityService
+          .fetchUserConsistently(user.getUsername())
+          .map(existing -> attempt(() -> repairIdentifiers(existing, user, person)).orElseThrow())
+          .orElseThrow();
+    }
+  }
+
+  /**
+   * The row has the entry's key, which is derived from the identifiers, so they are the entry's.
+   */
+  private UserDto repairIdentifiers(UserDto existing, UserDto entry, Person person)
+      throws NotFoundException {
+    var repaired =
+        existing
+            .copy()
+            .withCristinId(entry.getCristinId())
+            .withInstitutionCristinId(entry.getInstitutionCristinId())
+            .build();
+    return updateUserAffiliation(repaired, person);
   }
 }

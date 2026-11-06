@@ -5,7 +5,9 @@ import static nva.commons.apigateway.AccessRight.MANAGE_OWN_AFFILIATION;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -20,6 +22,7 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.ForbiddenException;
 import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.apigateway.exceptions.UnauthorizedException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
@@ -72,36 +75,41 @@ public class UpdateUserHandler extends HandlerAccessingUser<UserDto, Void> {
   }
 
   private void authorizeRequest(UserDto input, RequestInfo requestInfo)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, UnauthorizedException {
     if (!isAuthorized(input, requestInfo)) {
       throw new ForbiddenException();
     }
   }
 
-  private boolean isAuthorized(UserDto input, RequestInfo requestInfo) throws NotFoundException {
+  private boolean isAuthorized(UserDto input, RequestInfo requestInfo)
+      throws NotFoundException, UnauthorizedException {
     return requestInfo.clientIsInternalBackend()
         || requestInfo.userIsAuthorized(MANAGE_CUSTOMERS)
         || isAuthorizedUser(input, requestInfo);
   }
 
-  @SuppressWarnings("PMD.SimplifyBooleanReturns")
   private boolean isAuthorizedUser(UserDto input, RequestInfo requestInfo)
-      throws NotFoundException {
-    var isAlteringAppAdmin = isAlteringAppAdmin(input);
-
-    if (isAlteringAppAdmin) {
-      return false;
-    }
-
-    return requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION);
+      throws NotFoundException, UnauthorizedException {
+    var existingUser = databaseService.getUser(input);
+    return requestInfo.userIsAuthorized(MANAGE_OWN_AFFILIATION)
+        && requestInfo.getCurrentCustomer().equals(existingUser.getInstitution())
+        && identifyingFields(existingUser).equals(identifyingFields(input))
+        && !isAlteringAppAdmin(input, existingUser);
   }
 
-  private boolean isAlteringAppAdmin(UserDto input) throws NotFoundException {
+  private static List<Object> identifyingFields(UserDto user) {
+    return Arrays.asList(
+        user.getInstitution(),
+        user.getCristinId(),
+        user.getInstitutionCristinId(),
+        user.getAffiliation(),
+        user.getFeideIdentifier());
+  }
+
+  private boolean isAlteringAppAdmin(UserDto input, UserDto existingUser) {
     var newRoles = input.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
     var existingRoles =
-        databaseService.getUser(input).getRoles().stream()
-            .map(RoleDto::getRoleName)
-            .collect(Collectors.toSet());
+        existingUser.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
     return newRoles.contains(RoleName.APPLICATION_ADMIN)
         != existingRoles.contains(RoleName.APPLICATION_ADMIN);
   }

@@ -242,7 +242,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
   private GatewayResponse<Problem> sendUpdateRequestWithoutPathParameters(UserDto userUpdate)
       throws IOException {
-    var customerId = randomUri();
+    var customerId = SAMPLE_INSTITUTION;
     var updateUserHandler = new UpdateUserHandler(databaseService, new Environment());
     var input =
         new HandlerRequestBuilder<UserDto>(dtoObjectMapper)
@@ -337,7 +337,7 @@ public class UpdateUserHandlerTest extends HandlerTest {
   private <I, O> GatewayResponse<O> sendUpdateRequestForInstitutionAdmin(
       String userId, I userUpdate, Class<O> responseType) throws IOException {
     var updateUserHandler = new UpdateUserHandler(databaseService, new Environment());
-    var customerId = randomUri();
+    var customerId = SAMPLE_INSTITUTION;
     var input =
         new HandlerRequestBuilder<I>(dtoObjectMapper)
             .withBody(userUpdate)
@@ -412,5 +412,30 @@ public class UpdateUserHandlerTest extends HandlerTest {
 
   private UserDto createUserUpdateWithRoles(UserDto userDto, List<RoleDto> roles) {
     return userDto.copy().withRoles(roles).withViewingScope(randomViewingScope()).build();
+  }
+
+  @Test
+  void shouldDenyAccessWhenInstitutionAdminUpdatesUserAtAnotherInstitution()
+      throws ApiGatewayException, IOException {
+    var existingUser =
+        storeUserInDatabase(sampleUser().copy().withInstitution(randomUri()).build());
+    var userUpdate = createUserUpdate(existingUser);
+
+    var gatewayResponse =
+        sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, Problem.class);
+
+    assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
+  }
+
+  @Test
+  void shouldDenyAccessWhenInstitutionAdminChangesCristinIdOfUser()
+      throws ApiGatewayException, IOException {
+    var existingUser = storeUserInDatabase(sampleUser());
+    var userUpdate = existingUser.copy().withCristinId(randomUri()).build();
+
+    var gatewayResponse =
+        sendUpdateRequestForInstitutionAdmin(userUpdate.getUsername(), userUpdate, Problem.class);
+
+    assertThat(gatewayResponse.getStatusCode(), is(equalTo(HttpStatus.SC_FORBIDDEN)));
   }
 }

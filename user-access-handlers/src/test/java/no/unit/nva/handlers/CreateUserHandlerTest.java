@@ -296,7 +296,7 @@ class CreateUserHandlerTest extends HandlerTest {
             customer.getCristinId(),
             ViewingScope.defaultViewingScope(randomCristinOrganization()));
 
-    var request = createRequest(requestBody, customer, MANAGE_OWN_AFFILIATION);
+    var request = createRequest(requestBody, customer, MANAGE_CUSTOMERS);
     var response = sendRequest(request, UserDto.class);
 
     var actualUser =
@@ -381,6 +381,22 @@ class CreateUserHandlerTest extends HandlerTest {
     var role = RoleDto.newBuilder().withRoleName(RoleName.APPLICATION_ADMIN).build();
     addRoleToIdentityServiceBecauseNonExistingRolesAreIgnored(role);
     return Set.of(role);
+  }
+
+  @Test
+  void shouldDenyAccessWhenInstitutionAdminCreatesUserAtAnotherCustomer() throws IOException {
+    var person = scenarios.personWithExactlyOneActiveEmployment();
+    var customer = fetchSomeCustomerForThePerson(person);
+    var requestBody =
+        sampleRequestForExistingPersonCustomerAndRoles(
+            person,
+            customer.getId(),
+            ViewingScope.defaultViewingScope(randomCristinOrganization()));
+
+    var request = createRequest(requestBody, randomCustomer(), MANAGE_OWN_AFFILIATION);
+    var response = sendRequest(request, Problem.class);
+
+    assertThat(response.getStatusCode(), is(equalTo(HttpURLConnection.HTTP_FORBIDDEN)));
   }
 
   @Test

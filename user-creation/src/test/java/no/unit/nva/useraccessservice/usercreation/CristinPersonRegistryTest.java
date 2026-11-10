@@ -39,7 +39,6 @@ import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceAlreadyExistsException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceRedirectException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
@@ -266,31 +265,43 @@ class CristinPersonRegistryTest {
   }
 
   @Test
-  void shouldThrowAlreadyExistsExceptionWhenCreatingPersonThatAlreadyExists() {
-    var nin = NationalIdentityNumber.fromString("12345678901");
-
+  void shouldFetchTheExistingPersonWhenCristinAnswersThatThePersonAlreadyExists() {
+    var existing = scenarios.personWithExactlyOneActiveEmployment();
     mockPersonRegistry.setupCreatePersonAlreadyExistsError();
 
-    var exception =
-        assertThrows(
-            IdentityServiceAlreadyExistsException.class,
-            () -> personRegistry.createPerson(nin, "John", "Doe"));
+    var person =
+        personRegistry.createPerson(
+            NationalIdentityNumber.fromString(existing.nin()), "John", "Doe");
 
-    assertThat(exception.getMessage(), containsString("already exists"));
+    Assertions.assertThat(person)
+        .map(created -> created.getId())
+        .contains(scenarios.getCristinIdForPerson(existing.nin()));
   }
 
   @Test
-  void shouldThrowAlreadyExistsExceptionWhenCreatingPersonReturns409Conflict() {
+  void shouldReturnEmptyWhenCristinAnswers409ButHasNoPersonToFetch() {
     var nin = NationalIdentityNumber.fromString("12345678902");
-
     mockPersonRegistry.setupCreatePersonConflictError();
 
-    var exception =
-        assertThrows(
-            IdentityServiceAlreadyExistsException.class,
-            () -> personRegistry.createPerson(nin, "Jane", "Smith"));
+    Assertions.assertThat(personRegistry.createPerson(nin, "Jane", "Smith")).isEmpty();
+  }
 
-    assertThat(exception.getMessage(), containsString("Conflict"));
+  @Test
+  void shouldReportCristinAsUnavailableWhenTheCredentialsCannotBeRead(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var registryWithoutCredentials =
+        CristinPersonRegistry.customPersonRegistry(
+            WiremockHttpClient.create(),
+            URI.create(wireMockRuntimeInfo.getHttpsBaseUrl()),
+            ServiceConstants.API_DOMAIN,
+            new HttpHeaders()
+                .withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE),
+            new SecretsReader(new FakeSecretsManagerClient()));
+    var nin = NationalIdentityNumber.fromString(randomNin());
+
+    assertThrows(
+        IdentityServiceUnavailableException.class,
+        () -> registryWithoutCredentials.fetchPersonByNin(nin));
   }
 
   @Test

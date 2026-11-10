@@ -3,11 +3,15 @@ package no.unit.nva.useraccessservice.usercreation;
 import static nva.commons.core.attempt.Try.attempt;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.database.IdentityService;
+import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -28,6 +32,31 @@ public class UserEntriesCreatorForPerson {
 
   public List<UserDto> createUsers(UserCreationContext context) {
     return createOrFetchUserEntriesForPerson(context);
+  }
+
+  /**
+   * Remembers what the person registry answered about a Cognito user: the person row, shared by all
+   * the person's users, and then the link row for this user. Both login Lambdas write the rows
+   * through here, so they are built in one place.
+   */
+  public void writeLinkAndPersonRows(
+      String username,
+      String feideIdentifier,
+      String orgFeideDomain,
+      Person person,
+      Set<CustomerDto> customers,
+      Instant registryAnswered) {
+    var customerIds = customers.stream().map(CustomerDto::getId).collect(Collectors.toSet());
+    identityService.saveLinkedPerson(
+        new LinkedPerson(
+            person.getId(),
+            person.getFirstname(),
+            person.getSurname(),
+            customerIds,
+            registryAnswered));
+    identityService.saveLink(
+        new IdentityLink(
+            username, person.getId(), feideIdentifier, orgFeideDomain, registryAnswered));
   }
 
   private List<UserDto> createOrFetchUserEntriesForPerson(UserCreationContext context) {

@@ -13,12 +13,10 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import no.unit.nva.customer.model.CustomerDto;
 import no.unit.nva.customer.service.CustomerService;
 import no.unit.nva.database.IdentityService;
 import no.unit.nva.useraccessservice.model.IdentityLink;
-import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.usercreation.ActiveCustomers;
 import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
 import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
@@ -152,9 +150,9 @@ public class InboundFederationHandler
    */
   private Admitted admit(FederatedLogin login) {
     var nin = Optional.ofNullable(login.nin()).orElseThrow(() -> missingNin(login));
-    final Optional<Person> found;
+    final Optional<Person> existingPerson;
     try {
-      found = personRegistry.fetchPersonByNin(nin);
+      existingPerson = personRegistry.fetchPersonByNin(nin);
     } catch (IdentityServiceUnavailableException
         | IdentityServiceUpstreamInternalServerErrorException
         | IdentityServiceUpstreamBodyParsingException
@@ -162,7 +160,7 @@ public class InboundFederationHandler
       return admitOnLink(login, e);
     }
     var person =
-        found
+        existingPerson
             .or(() -> createPerson(personRegistry, login, nin))
             .orElseThrow(IdentityServiceLoginNotCompletedException::new);
     var registryAnswered = clock.instant();
@@ -244,28 +242,23 @@ public class InboundFederationHandler
    */
   private void writeLinkAndPersonRows(
       FederatedLogin login, Person person, Set<CustomerDto> customers, Instant registryAnswered) {
-    var previous = identityService.fetchLink(login.username());
-    var customerIds = customers.stream().map(CustomerDto::getId).collect(Collectors.toSet());
-    identityService.saveLinkedPerson(
-        new LinkedPerson(
-            person.getId(),
-            person.getFirstname(),
-            person.getSurname(),
-            customerIds,
-            registryAnswered));
-    identityService.saveLink(
-        new IdentityLink(
-            login.username(),
-            person.getId(),
-            login.feideIdentifier(),
-            login.orgFeideDomain(),
-            registryAnswered));
-    previous
-        .filter(link -> !link.personId().equals(person.getId()))
-        .ifPresent(
-            link ->
-                LOGGER.warn(
-                    LINK_REWRITTEN_MESSAGE, login.username(), link.personId(), person.getId()));
+    warnIfLinkMovesToAnotherPerson(login.username(), person.getId());
+    userCreator.writeLinkAndPersonRows(
+        login.username(),
+        login.feideIdentifier(),
+        login.orgFeideDomain(),
+        person,
+        customers,
+        registryAnswered);
+  }
+
+  /** Reads the link before it is written over, so a changed person can be told. */
+  private void warnIfLinkMovesToAnotherPerson(String username, URI personId) {
+    identityService
+        .fetchLink(username)
+        .map(IdentityLink::personId)
+        .filter(previous -> !previous.equals(personId))
+        .ifPresent(previous -> LOGGER.warn(LINK_REWRITTEN_MESSAGE, username, previous, personId));
   }
 
   private record Admitted(URI personId, String path) {}

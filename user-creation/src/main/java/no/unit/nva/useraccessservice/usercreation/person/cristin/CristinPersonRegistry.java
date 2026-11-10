@@ -160,14 +160,15 @@ public final class CristinPersonRegistry implements PersonRegistry {
   }
 
   /** Without its credentials the registry cannot be queried, as when it is unreachable. */
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private static CristinCredentials readCristinCredentials(SecretsReader secretsReader) {
-    try {
-      return secretsReader.fetchClassSecret(
-          CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class);
-    } catch (RuntimeException e) {
-      throw new IdentityServiceUnavailableException(COULD_NOT_READ_CREDENTIALS_MESSAGE, e);
-    }
+    return attempt(
+            () ->
+                secretsReader.fetchClassSecret(
+                    CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class))
+        .orElseThrow(
+            failure ->
+                new IdentityServiceUnavailableException(
+                    COULD_NOT_READ_CREDENTIALS_MESSAGE, failure.getException()));
   }
 
   public static PersonRegistry customPersonRegistry(

@@ -440,21 +440,13 @@ public class UserSelectionUponLoginHandler
       Set<CustomerDto> customers,
       AuthenticationDetails authenticationDetails,
       Instant registryAnswered) {
-    var customerIds = customers.stream().map(CustomerDto::getId).collect(Collectors.toSet());
-    identityService.saveLinkedPerson(
-        new LinkedPerson(
-            person.getId(),
-            person.getFirstname(),
-            person.getSurname(),
-            customerIds,
-            registryAnswered));
-    identityService.saveLink(
-        new IdentityLink(
-            authenticationDetails.getUsername(),
-            person.getId(),
-            authenticationDetails.getFeideIdentifier(),
-            authenticationDetails.getFeideDomain(),
-            registryAnswered));
+    userCreator.writeLinkAndPersonRows(
+        authenticationDetails.getUsername(),
+        authenticationDetails.getFeideIdentifier(),
+        authenticationDetails.getFeideDomain(),
+        person,
+        customers,
+        registryAnswered);
   }
 
   private Optional<Person> createPerson(

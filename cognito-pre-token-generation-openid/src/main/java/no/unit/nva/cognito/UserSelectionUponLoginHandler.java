@@ -89,6 +89,10 @@ public class UserSelectionUponLoginHandler
   public static final String COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR =
       "Could not find user for customer: ";
   public static final String TRIGGER_SOURCE_MESSAGE = "Trigger source {} for user {}";
+
+  /** Transition for NP-51772, set from the template where the inbound trigger is on. */
+  public static final String INBOUND_FEDERATION_ENABLED_ENV = "INBOUND_FEDERATION_ENABLED";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(UserSelectionUponLoginHandler.class);
   private static final String NO_USER_ENTRY_MESSAGE = "No user entry for person {} at customer {}";
   private static final String LINK_WITHOUT_PERSON_MESSAGE =
@@ -108,16 +112,20 @@ public class UserSelectionUponLoginHandler
   private final PersonRegistry personRegistry;
   private final TermsAndConditionsService termsService;
   private final M2MTokenEnricher tokenEnricher;
+  private final boolean inboundFederationEnabled;
 
   @JacocoGenerated
   public UserSelectionUponLoginHandler() {
-    this.identityService = defaultIdentityService(DEFAULT_DYNAMO_CLIENT);
-    this.cognitoClient = defaultCognitoClient();
-    this.customerService = defaultCustomerService(DEFAULT_DYNAMO_CLIENT);
-    this.userCreator = new UserEntriesCreatorForPerson(identityService);
-    this.tokenEnricher = new M2MTokenEnricher(identityService);
-    this.termsService = new TermsAndConditionsService();
-    this.personRegistry = CristinPersonRegistry.defaultPersonRegistry();
+    this(
+        defaultCognitoClient(),
+        defaultCustomerService(DEFAULT_DYNAMO_CLIENT),
+        defaultIdentityService(DEFAULT_DYNAMO_CLIENT),
+        CristinPersonRegistry.defaultPersonRegistry(),
+        new TermsAndConditionsService(),
+        ENVIRONMENT
+            .readEnvOpt(INBOUND_FEDERATION_ENABLED_ENV)
+            .map(Boolean::parseBoolean)
+            .orElse(false));
   }
 
   @JacocoGenerated
@@ -135,6 +143,16 @@ public class UserSelectionUponLoginHandler
       IdentityService identityService,
       PersonRegistry personRegistry,
       TermsAndConditionsService termsService) {
+    this(cognitoClient, customerService, identityService, personRegistry, termsService, false);
+  }
+
+  public UserSelectionUponLoginHandler(
+      CognitoIdentityProviderClient cognitoClient,
+      CustomerService customerService,
+      IdentityService identityService,
+      PersonRegistry personRegistry,
+      TermsAndConditionsService termsService,
+      boolean inboundFederationEnabled) {
 
     this.cognitoClient = cognitoClient;
     this.customerService = customerService;
@@ -143,6 +161,7 @@ public class UserSelectionUponLoginHandler
     this.userCreator = new UserEntriesCreatorForPerson(identityService);
     this.tokenEnricher = new M2MTokenEnricher(identityService);
     this.termsService = termsService;
+    this.inboundFederationEnabled = inboundFederationEnabled;
   }
 
   /**
@@ -240,6 +259,7 @@ public class UserSelectionUponLoginHandler
             .withAuthenticationDetails(authenticationDetails)
             .withCurrentUser(currentUser)
             .withAccessRightsPersistedFormat(accessRightsPersistedFormat)
+            .withNinAttributesCleared(inboundFederationEnabled)
             .build();
 
     updateCognitoUserAttributes(
@@ -265,7 +285,10 @@ public class UserSelectionUponLoginHandler
    * A federated login must deliver a national identity number and goes to the person registry, so a
    * reused Feide account or a merged person is caught at every login. A token refresh uses the rows
    * written at that login; a refresh without usable rows goes to the registry like a login. A
-   * password user has no number and no link; an administrator has set its cristinId claim.
+   * password user has no number and no link; an administrator has set its cristinId claim. Where
+   * the inbound trigger is on, it has already checked the number and written the rows, so every
+   * login is resolved from the rows as a refresh is; a number still stored on a user from before
+   * the switch must not override what the trigger decided.
    */
   private ResolvedPerson resolvePerson(
       AuthenticationDetails authenticationDetails,
@@ -274,18 +297,25 @@ public class UserSelectionUponLoginHandler
     if (!authenticationDetails.isFederated()) {
       return resolveFromCristinIdClaim(authenticationDetails, attributes);
     }
-    if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource)) {
+    var ninMissing = authenticationDetails.getNin().isEmpty();
+    if (TRIGGER_SOURCE_REFRESH_TOKENS.equals(triggerSource) || inboundFederationEnabled) {
       var resolvedFromLink = resolveFromLink(authenticationDetails);
       if (resolvedFromLink.isPresent()) {
         return resolvedFromLink.get();
       }
     }
-    if (authenticationDetails.getNin().isEmpty()) {
+    if (ninMissing) {
       throw new IdentityServiceMissingNinException();
     }
     return resolveFromPersonRegistry(authenticationDetails, attributes);
   }
 
+  /**
+   * @deprecated Transition: the Cristin path of this Lambda. Where the inbound federation trigger
+   *     is on, it is reached only by a federated user without link rows, and the trigger writes
+   *     them at the next login. Removed with everything it calls in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private ResolvedPerson resolveFromPersonRegistry(
       AuthenticationDetails authenticationDetails, Map<String, String> attributes) {
     var startFetchingPerson = Instant.now();
@@ -419,7 +449,10 @@ public class UserSelectionUponLoginHandler
   /**
    * Remembers what the person registry answered, so later token generations can resolve the Cognito
    * user without the registry. Written on every login that reached the registry.
+   *
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
    */
+  @Deprecated(forRemoval = true)
   @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private void writeLinkAndPersonRowsOrLog(
       Person person,
@@ -435,6 +468,10 @@ public class UserSelectionUponLoginHandler
     }
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private void writeLinkAndPersonRows(
       Person person,
       Set<CustomerDto> customers,
@@ -449,6 +486,10 @@ public class UserSelectionUponLoginHandler
         registryAnswered);
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private Optional<Person> createPerson(
       Map<String, String> attributes, NationalIdentityNumber nin) {
     var lastName = extractLastName(attributes);
@@ -456,6 +497,10 @@ public class UserSelectionUponLoginHandler
     return personRegistry.createPerson(nin, firstName, lastName);
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private String extractFirstName(Map<String, String> attributes) {
     return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
         .map(PersonName::givenName)
@@ -475,6 +520,10 @@ public class UserSelectionUponLoginHandler
         message.formatted(attributes.getOrDefault(CognitoClaims.NAME_CLAIM, null)));
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private String extractLastName(Map<String, String> attributes) {
     return PersonName.fromFullName(attributes.get(CognitoClaims.NAME_CLAIM))
         .map(PersonName::familyName)
@@ -523,6 +572,10 @@ public class UserSelectionUponLoginHandler
         .orElse(null);
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private List<UserDto> createUsers(
       Person person, Set<CustomerDto> customers, AuthenticationDetails authenticationDetails) {
     var userCreationContext =
@@ -584,6 +637,10 @@ public class UserSelectionUponLoginHandler
         || feideDomain.equalsIgnoreCase(customer.getFeideOrganizationDomain());
   }
 
+  /**
+   * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
+   */
+  @Deprecated(forRemoval = true)
   private Set<CustomerDto> fetchCustomersWithActiveAffiliations(final Person person) {
     return ActiveCustomers.forPerson(person, customerService);
   }

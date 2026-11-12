@@ -124,7 +124,8 @@ Parameters:
     Description: >-
       Comma separated list of every frontend base URL that may log in through ApplicationClient
       (scheme, host and optional port; no trailing slash, no trailing comma, http only for localhost).
-      Must contain http://localhost:3000. Not used by any resource yet.
+      Each URL is a callback URL, and the URL with "/logout" appended is a logout URL.
+      Must contain http://localhost:3000, which is the DefaultRedirectURI.
 
 Mappings:
   Constants:
@@ -1968,12 +1969,13 @@ Resources:
         - phone
         - profile # it seems to be necessary for the custom attributes to appear
         - https://api.nva.unit.no/scopes/frontend
-      CallbackURLs:
-        - "http://localhost:3000"
-        - !Sub "https://${ApplicationDomain}"
-      LogoutURLs:
-        - "http://localhost:3000/logout"
-        - !Sub "https://${ApplicationDomain}/logout"
+      CallbackURLs: !Ref FrontendUrls
+      # CloudFormation cannot map over a list. Joining with "/logout," and appending "/logout" adds the path to every URL.
+      LogoutURLs: !Split
+        - ","
+        - !Sub
+          - "${FrontendUrlsJoinedWithLogoutPath}/logout"
+          - FrontendUrlsJoinedWithLogoutPath: !Join ["/logout,", !Ref FrontendUrls]
       ClientName: NvaApplicationClient
       DefaultRedirectURI: "http://localhost:3000"
       EnableTokenRevocation: true
@@ -2586,6 +2588,3 @@ Outputs:
   ExternalCognitoURN:
     Description: External users Amazon Cognito URN.
     Value: !Sub "urn:amazon:cognito:sp:${ExternalUserPool}"
-  FrontendUrls:
-    Description: Temporary. Keeps the FrontendUrls parameter referenced until ApplicationClient uses it.
-    Value: !Join [",", !Ref FrontendUrls]

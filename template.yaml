@@ -2586,6 +2586,6 @@ Outputs:
   ExternalCognitoURN:
     Description: External users Amazon Cognito URN.
     Value: !Sub "urn:amazon:cognito:sp:${ExternalUserPool}"
-  FrontendUrls:
+  ResolvedFrontendUrls:
     Description: Temporary. Keeps the FrontendUrls parameter referenced until ApplicationClient uses it.
     Value: !Join [",", !Ref FrontendUrls]

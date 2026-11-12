@@ -118,6 +118,13 @@ Parameters:
       Resolves the person in the inbound federation Lambda at every federated login and stops
       storing the national identity number on the Cognito user. Requires the link rows from
       NP-51969 to be written in the environment first. Transition parameter, see NP-51975.
+  FrontendUrls:
+    Type: CommaDelimitedList
+    Default: "http://localhost:3000"
+    Description: >-
+      Comma separated list of every frontend base URL that may log in through ApplicationClient
+      (scheme, host and optional port; no trailing slash, no trailing comma, http only for localhost).
+      Must contain http://localhost:3000. Not used by any resource yet.
 
 Mappings:
   Constants:
@@ -2579,3 +2586,6 @@ Outputs:
   ExternalCognitoURN:
     Description: External users Amazon Cognito URN.
     Value: !Sub "urn:amazon:cognito:sp:${ExternalUserPool}"
+  FrontendUrls:
+    Description: Temporary. Keeps the FrontendUrls parameter referenced until ApplicationClient uses it.
+    Value: !Join [",", !Ref FrontendUrls]

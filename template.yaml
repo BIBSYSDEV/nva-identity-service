@@ -1917,6 +1917,10 @@ Resources:
           ScopeName: reporting-read
         - ScopeDescription: Approval write/update
           ScopeName: approval-upsert
+        - ScopeDescription: Person read
+          ScopeName: person-read
+        - ScopeDescription: Person and employment write/update
+          ScopeName: person-upsert
       UserPoolId: !Ref ExternalUserPool
 
   BackendApplicationClient:

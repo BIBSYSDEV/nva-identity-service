@@ -231,6 +231,8 @@ paths:
             - "https://api.nva.unit.no/scopes/third-party/reporting-read"
             - "https://api.nva.unit.no/scopes/third-party/publication-upsert"
             - "https://api.nva.unit.no/scopes/third-party/approval-upsert"
+            - "https://api.nva.unit.no/scopes/third-party/person-read"
+            - "https://api.nva.unit.no/scopes/third-party/person-upsert"
       responses:
         "200":
           description: Returns the externalClient

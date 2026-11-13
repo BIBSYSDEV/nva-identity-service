@@ -47,8 +47,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>No number from the provider gives error 1003, which the client answers by offering another
  * login method. Everything else gives 1005, except that a person the registry confirmed within the
- * last {@link #LINK_MAX_AGE} is admitted on the stored link when the registry cannot be queried,
- * provided the name from the provider matches the stored one.
+ * last {@link IdentityLink#MAX_AGE} is admitted on the stored link when the registry cannot be
+ * queried, provided the name from the provider matches the stored one.
  */
 public class InboundFederationHandler
     implements RequestHandler<InboundFederationEvent, InboundFederationEvent> {
@@ -61,8 +61,6 @@ public class InboundFederationHandler
 
   /** As {@link #LINK_REWRITTEN_FILTER_TERM}: matched by a metric filter in template.yaml. */
   public static final String ADMITTED_ON_LINK_FILTER_TERM = "Admitted on link";
-
-  public static final Duration LINK_MAX_AGE = Duration.ofDays(30);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InboundFederationHandler.class);
   private static final String LINK_REWRITTEN_MESSAGE =
@@ -83,7 +81,8 @@ public class InboundFederationHandler
   private static final String REGISTRY = "person registry";
   private static final String LINK = "link";
   private static final String NO_LINK = "no link";
-  private static final String LINK_TOO_OLD = "link older than " + LINK_MAX_AGE.toDays() + " days";
+  private static final String LINK_TOO_OLD =
+      "link older than " + IdentityLink.MAX_AGE.toDays() + " days";
   private static final String NAME_MISMATCH = "name does not match the linked person";
 
   private final CustomerService customerService;
@@ -192,21 +191,23 @@ public class InboundFederationHandler
    * reaches the registry writes them again.
    */
   private Admitted admitOnLink(FederatedLogin login, IdentityServiceException registryFailure) {
-    var link = identityService.fetchLink(login.username());
-    var linkedPerson = link.flatMap(found -> identityService.fetchLinkedPerson(found.personId()));
-    if (link.isEmpty() || linkedPerson.isEmpty()) {
-      throw notAdmitted(login, NO_LINK, registryFailure);
-    }
-    var verified = link.get().modified();
-    if (verified.isBefore(clock.instant().minus(LINK_MAX_AGE))) {
+    var identity =
+        identityService
+            .fetchLinkedIdentity(login.username())
+            .orElseThrow(() -> notAdmitted(login, NO_LINK, registryFailure));
+    if (identity.link().isOlderThanMaxAge(clock)) {
       throw notAdmitted(login, LINK_TOO_OLD, registryFailure);
     }
-    var person = linkedPerson.get();
+    var person = identity.person();
     if (!login.hasName(person.givenName(), person.familyName())) {
       throw notAdmitted(login, NAME_MISMATCH, registryFailure);
     }
     LOGGER.warn(
-        ADMITTED_ON_LINK_MESSAGE, login.username(), person.personId(), verified, registryFailure);
+        ADMITTED_ON_LINK_MESSAGE,
+        login.username(),
+        person.personId(),
+        identity.link().modified(),
+        registryFailure);
     return new Admitted(person.personId(), LINK);
   }
 

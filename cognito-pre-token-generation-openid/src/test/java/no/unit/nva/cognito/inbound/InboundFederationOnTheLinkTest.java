@@ -124,6 +124,34 @@ class InboundFederationOnTheLinkTest extends InboundFederationHandlerTestBase {
   }
 
   @Test
+  void shouldNotAdmitOnALinkWithoutATimeOfWriting() {
+    registryIsDown();
+    var event = events.feideLogin(randomNin());
+    linkPerson(
+        event, randomPersonId(), FIXTURE_GIVEN_NAME, FIXTURE_FAMILY_NAME, null, clock.instant());
+
+    assertThatThrownBy(() -> handler.handleRequest(event, context))
+        .isInstanceOf(IdentityServiceLoginNotCompletedException.class);
+
+    assertThat(logRecorder.asString())
+        .contains("User " + usernameOf(event) + " not admitted on link: link older than 30 days");
+  }
+
+  @Test
+  void shouldNotAdmitOnALinkWhosePersonRowIsMissing() {
+    registryIsDown();
+    var event = events.feideLogin(randomNin());
+    identityService.saveLink(
+        new IdentityLink(usernameOf(event), randomPersonId(), null, null, clock.instant()));
+
+    assertThatThrownBy(() -> handler.handleRequest(event, context))
+        .isInstanceOf(IdentityServiceLoginNotCompletedException.class);
+
+    assertThat(logRecorder.asString())
+        .contains("User " + usernameOf(event) + " not admitted on link: no link");
+  }
+
+  @Test
   void shouldFailWhenTheRegistryIsUnavailableAndThereIsNoLink() {
     registryIsDown();
     var event = events.feideLogin(randomNin());

@@ -10,6 +10,7 @@ import no.unit.nva.useraccessservice.exceptions.InvalidInputException;
 import no.unit.nva.useraccessservice.internals.UserScanResult;
 import no.unit.nva.useraccessservice.model.ClientDto;
 import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedIdentity;
 import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.RoleDto;
 import no.unit.nva.useraccessservice.model.UserDto;
@@ -71,6 +72,17 @@ public interface IdentityService {
 
   /** Reads what is known about a person with a strongly consistent read. */
   Optional<LinkedPerson> fetchLinkedPerson(URI personId);
+
+  /**
+   * Reads the link for a Cognito username together with the person it points to. Empty when either
+   * is missing.
+   */
+  default Optional<LinkedIdentity> fetchLinkedIdentity(String username) {
+    return fetchLink(username)
+        .flatMap(
+            link ->
+                fetchLinkedPerson(link.personId()).map(person -> new LinkedIdentity(link, person)));
+  }
 
   final class Constants {
 

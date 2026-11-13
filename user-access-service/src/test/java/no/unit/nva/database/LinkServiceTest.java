@@ -30,6 +30,7 @@ import no.unit.nva.useraccessservice.dao.LinkDao;
 import no.unit.nva.useraccessservice.dao.PersonDao;
 import no.unit.nva.useraccessservice.exceptions.InvalidEntryInternalException;
 import no.unit.nva.useraccessservice.model.IdentityLink;
+import no.unit.nva.useraccessservice.model.LinkedIdentity;
 import no.unit.nva.useraccessservice.model.LinkedPerson;
 import no.unit.nva.useraccessservice.model.UserDto;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -53,6 +54,32 @@ class LinkServiceTest extends LocalIdentityService {
   @Test
   void shouldReturnEmptyWhenNoLinkExistsForUsername() {
     assertThat(identityService.fetchLink(randomString()), is(Optional.empty()));
+  }
+
+  @Test
+  void shouldFetchLinkTogetherWithItsPerson() {
+    var link = randomLink(randomString());
+    var person =
+        new LinkedPerson(link.personId(), randomString(), randomString(), Set.of(), Instant.now());
+    identityService.saveLink(link);
+    identityService.saveLinkedPerson(person);
+
+    assertThat(
+        identityService.fetchLinkedIdentity(link.username()),
+        is(Optional.of(new LinkedIdentity(link, person))));
+  }
+
+  @Test
+  void shouldFetchNoLinkedIdentityWhenThePersonRowIsMissing() {
+    var link = randomLink(randomString());
+    identityService.saveLink(link);
+
+    assertThat(identityService.fetchLinkedIdentity(link.username()), is(Optional.empty()));
+  }
+
+  @Test
+  void shouldFetchNoLinkedIdentityWhenTheLinkIsMissing() {
+    assertThat(identityService.fetchLinkedIdentity(randomString()), is(Optional.empty()));
   }
 
   @Test

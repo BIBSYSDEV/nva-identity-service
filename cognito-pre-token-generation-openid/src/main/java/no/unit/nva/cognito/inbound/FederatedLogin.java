@@ -2,11 +2,8 @@ package no.unit.nva.cognito.inbound;
 
 import static java.util.Objects.nonNull;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import no.unit.nva.useraccessservice.usercreation.person.PersonName;
 
@@ -46,19 +43,19 @@ record FederatedLogin(
 
   static FederatedLogin from(InboundFederationEvent event) {
     var request = event.getRequest();
-    var idToken = request.getAttributes().getIdToken();
-    var userInfo = request.getAttributes().getUserInfo();
+    var idToken = ProviderClaims.from(request.getAttributes().getIdToken());
+    var userInfo = ProviderClaims.from(request.getAttributes().getUserInfo());
     return new FederatedLogin(
         request.getProviderName(),
         usernameOf(request.getProviderName(), event.getUserName()),
         nationalIdentityNumber(userInfo, FEIDE_NIN_ATTRIBUTE)
             .or(() -> nationalIdentityNumber(idToken, NIN_CLAIM))
             .orElse(null),
-        nonBlank(idToken, PRINCIPAL_NAME_CLAIM).orElse(null),
-        nonBlank(userInfo, HOME_ORGANIZATION_ATTRIBUTE).orElse(null),
+        idToken.text(PRINCIPAL_NAME_CLAIM).orElse(null),
+        userInfo.text(HOME_ORGANIZATION_ATTRIBUTE).orElse(null),
         extractName(idToken, userInfo).orElse(null),
-        new TreeSet<>(idToken.keySet()),
-        new TreeSet<>(userInfo.keySet()));
+        idToken.keys(),
+        userInfo.keys());
   }
 
   /** Whether the name the provider sent matches, ignoring case and surrounding space. */
@@ -73,8 +70,8 @@ record FederatedLogin(
   }
 
   private static Optional<NationalIdentityNumber> nationalIdentityNumber(
-      Map<String, Object> values, String key) {
-    return nonBlank(values, key).flatMap(NationalIdentityNumber::fromDigits);
+      ProviderClaims claims, String key) {
+    return claims.text(key).flatMap(NationalIdentityNumber::fromDigits);
   }
 
   /** The event carries the provider's subject as username; Cognito prefixes the provider name. */
@@ -89,15 +86,15 @@ record FederatedLogin(
   }
 
   /** Prefers Feide's separate name attributes and falls back to ID-porten's full name. */
-  private static Optional<PersonName> extractName(
-      Map<String, Object> idToken, Map<String, Object> userInfo) {
+  private static Optional<PersonName> extractName(ProviderClaims idToken, ProviderClaims userInfo) {
     return feideName(userInfo).or(() -> idPortenName(idToken, userInfo));
   }
 
   /** Feide sends the given name and the surname as separate multivalued attributes. */
-  private static Optional<PersonName> feideName(Map<String, Object> userInfo) {
+  private static Optional<PersonName> feideName(ProviderClaims userInfo) {
     return PersonName.fromProviderNames(
-        providerValue(userInfo, GIVEN_NAME_ATTRIBUTE), providerValue(userInfo, SURNAME_ATTRIBUTE));
+        userInfo.firstValue(GIVEN_NAME_ATTRIBUTE).orElse(null),
+        userInfo.firstValue(SURNAME_ATTRIBUTE).orElse(null));
   }
 
   /**
@@ -105,28 +102,10 @@ record FederatedLogin(
    * name: the last word is the surname.
    */
   private static Optional<PersonName> idPortenName(
-      Map<String, Object> idToken, Map<String, Object> userInfo) {
-    return nonBlank(userInfo, FULL_NAME_ATTRIBUTE)
-        .or(() -> nonBlank(idToken, FULL_NAME_ATTRIBUTE))
+      ProviderClaims idToken, ProviderClaims userInfo) {
+    return userInfo
+        .text(FULL_NAME_ATTRIBUTE)
+        .or(() -> idToken.text(FULL_NAME_ATTRIBUTE))
         .flatMap(PersonName::fromFullName);
-  }
-
-  /**
-   * A multivalued attribute arrives either as a list or as the JSON array text Cognito also stores.
-   * A list is reduced to its first element; a string is passed on as it is, for {@link PersonName}
-   * to decode.
-   */
-  private static String providerValue(Map<String, Object> values, String key) {
-    return switch (values.get(key)) {
-      case String text -> text;
-      case List<?> list when !list.isEmpty() -> String.valueOf(list.getFirst());
-      case null, default -> null;
-    };
-  }
-
-  private static Optional<String> nonBlank(Map<String, Object> values, String key) {
-    return values.get(key) instanceof String value && !value.isBlank()
-        ? Optional.of(value.trim())
-        : Optional.empty();
   }
 }

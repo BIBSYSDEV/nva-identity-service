@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static no.unit.nva.cognito.inbound.FederatedLogin.FEIDE_NIN_ATTRIBUTE;
+import static no.unit.nva.cognito.inbound.FederatedLogin.FULL_NAME_ATTRIBUTE;
 import static no.unit.nva.cognito.inbound.FederatedLogin.GIVEN_NAME_ATTRIBUTE;
 import static no.unit.nva.cognito.inbound.FederatedLogin.NIN_CLAIM;
 import static no.unit.nva.cognito.inbound.FederatedLogin.SURNAME_ATTRIBUTE;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import no.unit.nva.useraccessservice.model.IdentityLink;
@@ -134,6 +136,19 @@ class InboundFederationProviderAttributesTest extends InboundFederationHandlerTe
     var event = events.feideLogin(randomNin());
     attributesOf(event).getUserInfo().put(GIVEN_NAME_ATTRIBUTE, List.of(FIXTURE_GIVEN_NAME));
     attributesOf(event).getUserInfo().put(SURNAME_ATTRIBUTE, List.of(FIXTURE_FAMILY_NAME));
+
+    handlerWith(registry, clock).handleRequest(event, context);
+
+    assertThat(logRecorder.asString()).contains("matches the registry: true");
+  }
+
+  @Test
+  void shouldFallBackToTheFullNameWhenFeideSendsAListThatStartsWithNull() {
+    var registry = registryAnswering(FIXTURE_GIVEN_NAME, FIXTURE_FAMILY_NAME);
+    var event = events.feideLogin(randomNin());
+    var fullName = FIXTURE_GIVEN_NAME + " " + FIXTURE_FAMILY_NAME;
+    attributesOf(event).getUserInfo().put(GIVEN_NAME_ATTRIBUTE, Collections.singletonList(null));
+    attributesOf(event).getUserInfo().put(FULL_NAME_ATTRIBUTE, fullName);
 
     handlerWith(registry, clock).handleRequest(event, context);
 

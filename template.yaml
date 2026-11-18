@@ -1919,8 +1919,8 @@ Resources:
           ScopeName: reporting-read
         - ScopeDescription: Approval write/update
           ScopeName: approval-upsert
-        - ScopeDescription: Person read
-          ScopeName: person-read
+        - ScopeDescription: Look up person by national identity number
+          ScopeName: person-lookup-by-nin
         - ScopeDescription: Person and employment write/update
           ScopeName: person-upsert
       UserPoolId: !Ref ExternalUserPool

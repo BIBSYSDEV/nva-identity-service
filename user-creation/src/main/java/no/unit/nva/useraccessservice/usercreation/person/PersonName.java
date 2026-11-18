@@ -1,12 +1,14 @@
 package no.unit.nva.useraccessservice.usercreation.person;
 
-import static java.util.Objects.nonNull;
 import static nva.commons.core.StringUtils.isBlank;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A person's name as the identity provider or the person registry gives it.
@@ -70,12 +72,27 @@ public record PersonName(String givenName, String familyName) {
     return enclosed ? value.substring(start.length(), value.length() - end.length()) : value;
   }
 
-  /** Whether this is the same name, ignoring case and surrounding space. */
+  /**
+   * Whether this is the same person's name, allowing for the differences seen between the identity
+   * provider and the person registry: a middle name that only one of them has, and the same words
+   * split differently between given name and family name. The family names must end in the same
+   * word, and every word of the shorter name must be found in the longer one. Case and spacing are
+   * ignored.
+   */
   public boolean matches(String otherGivenName, String otherFamilyName) {
-    return sameName(givenName, otherGivenName) && sameName(familyName, otherFamilyName);
+    if (isBlank(givenName)
+        || isBlank(familyName)
+        || isBlank(otherGivenName)
+        || isBlank(otherFamilyName)) {
+      return false;
+    }
+    var words = Set.copyOf(wordsOf(givenName + " " + familyName));
+    var otherWords = Set.copyOf(wordsOf(otherGivenName + " " + otherFamilyName));
+    return wordsOf(familyName).getLast().equals(wordsOf(otherFamilyName).getLast())
+        && (words.containsAll(otherWords) || otherWords.containsAll(words));
   }
 
-  private static boolean sameName(String one, String other) {
-    return nonNull(one) && nonNull(other) && one.trim().equalsIgnoreCase(other.trim());
+  private static List<String> wordsOf(String name) {
+    return List.of(name.trim().toLowerCase(Locale.ROOT).split("\\s+"));
   }
 }

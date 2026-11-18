@@ -2337,6 +2337,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ClientPreTokenGenerationHandler.Alias
       Principal: cognito-idp.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
 
   ClientPreTokenGenerationFailedAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -2395,6 +2396,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PreTokenGenerationHandler.Alias
       Principal: cognito-idp.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
 
   PreTokenGenerationFailedAlarm:
     Type: AWS::CloudWatch::Alarm

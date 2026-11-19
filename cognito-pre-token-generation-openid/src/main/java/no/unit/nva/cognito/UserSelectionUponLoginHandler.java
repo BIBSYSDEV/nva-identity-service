@@ -193,7 +193,6 @@ public class UserSelectionUponLoginHandler
   }
 
   @Override
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   public CognitoUserPoolPreTokenGenerationEventV2 handleRequest(
       CognitoUserPoolPreTokenGenerationEventV2 input, Context context) {
     try {
@@ -453,7 +452,6 @@ public class UserSelectionUponLoginHandler
    * @deprecated Transition, see {@link #resolveFromPersonRegistry}. Removed in NP-51975.
    */
   @Deprecated(forRemoval = true)
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private void writeLinkAndPersonRowsOrLog(
       Person person,
       Set<CustomerDto> customers,

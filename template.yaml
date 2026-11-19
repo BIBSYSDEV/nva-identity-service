@@ -1731,7 +1731,6 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
-    DependsOn: InboundFederationHandlerTriggerPermission # so the trigger is invokable when the pool is created with it
     Properties:
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
@@ -2143,7 +2142,6 @@ Resources:
 
   ExternalUserPool:
     Type: AWS::Cognito::UserPool
-    DependsOn: ClientPreTokenGenerationHandlerTriggerPermission
     Properties:
       UserPoolTier: "ESSENTIALS"
       AutoVerifiedAttributes:
@@ -2261,7 +2259,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ClientPreTokenGenerationHandler.Alias
       Principal: cognito-idp.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt ExternalUserPool.Arn
 
   ClientPreTokenGenerationFailedAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -2320,7 +2318,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref PreTokenGenerationHandler.Alias
       Principal: cognito-idp.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt UserPool.Arn
 
   PreTokenGenerationFailedAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -2387,7 +2385,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref InboundFederationHandler.Alias
       Principal: cognito-idp.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt UserPool.Arn
 
   InboundFederationHandlerScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget

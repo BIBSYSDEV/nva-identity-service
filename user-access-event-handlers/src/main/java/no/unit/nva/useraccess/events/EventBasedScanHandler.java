@@ -86,7 +86,6 @@ public class EventBasedScanHandler extends EventHandler<ScanDatabaseRequestV2, V
     return updatedUsers;
   }
 
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private UserDto updateUser(UserDto user) {
     try {
       identityService.updateUser(user);

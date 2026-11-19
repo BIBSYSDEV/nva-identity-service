@@ -388,10 +388,8 @@ class UserSelectionUponLoginHandlerTest {
     var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
     assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
     Assertions.assertThat(logRecorder.messages())
-        .anyMatch(
-            message ->
-                message.contains(
-                    IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
+        .anyMatch(message ->
+            message.contains(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
   }
 
   @ParameterizedTest(name = "Login event type: {0}")
@@ -639,11 +637,10 @@ class UserSelectionUponLoginHandlerTest {
   private static List<String> constructExpectedAccessRightsForGroup(
       UserDto existingUserInitiallyWithoutRoles, Set<AccessRight> assignedAccessRights) {
     return assignedAccessRights.stream()
-        .map(
-            accessRight ->
-                accessRight.toPersistedString()
-                    + AT
-                    + existingUserInitiallyWithoutRoles.getInstitution().toString())
+        .map(accessRight ->
+            accessRight.toPersistedString()
+                + AT
+                + existingUserInitiallyWithoutRoles.getInstitution().toString())
         .collect(Collectors.toList());
   }
 
@@ -1322,10 +1319,9 @@ class UserSelectionUponLoginHandlerTest {
     handler.handleRequest(event, context);
 
     Assertions.assertThat(logRecorder.messages())
-        .anyMatch(
-            message ->
-                message.contains("Trigger source " + TRIGGER_SOURCE_HOSTED_AUTH)
-                    && message.contains(event.getUserName()));
+        .anyMatch(message ->
+            message.contains("Trigger source " + TRIGGER_SOURCE_HOSTED_AUTH)
+                && message.contains(event.getUserName()));
   }
 
   @Test
@@ -1492,10 +1488,9 @@ class UserSelectionUponLoginHandlerTest {
 
     assertThat(exception.getMessage(), containsString("Alice"));
     Assertions.assertThat(logRecorder.messages())
-        .anyMatch(
-            message ->
-                message.contains("Could not extract name from user attributes with keys")
-                    && message.contains(FEIDE_ID))
+        .anyMatch(message ->
+            message.contains("Could not extract name from user attributes with keys")
+                && message.contains(FEIDE_ID))
         .noneMatch(message -> message.contains("feideid@domain.no"))
         .noneMatch(message -> message.contains(mockPerson.nin()));
   }
@@ -2050,11 +2045,10 @@ class UserSelectionUponLoginHandlerTest {
     var event = newLoginEvent(person.nin(), loginEventType);
     handler.handleRequest(event, context);
 
-    users.forEach(
-        user -> {
-          var userAfterLogin = attempt(() -> identityService.getUser(user)).orElseThrow();
-          assertThat(userAfterLogin.getAccessRights(), hasItem(accessRight));
-        });
+    users.forEach(user -> {
+      var userAfterLogin = attempt(() -> identityService.getUser(user)).orElseThrow();
+      assertThat(userAfterLogin.getAccessRights(), hasItem(accessRight));
+    });
   }
 
   @ParameterizedTest(

@@ -256,10 +256,9 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     final var expectedMessage = randomString();
     DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
     when(failingTable.getItem(any(CustomerDao.class)))
-        .thenAnswer(
-            ignored -> {
-              throw new RuntimeException(expectedMessage);
-            });
+        .thenAnswer(ignored -> {
+          throw new RuntimeException(expectedMessage);
+        });
     var failingService = new DynamoDBCustomerService(failingTable);
     var exception =
         assertThrows(RuntimeException.class, () -> failingService.getCustomer(UUID.randomUUID()));
@@ -271,10 +270,9 @@ class DynamoDBCustomerServiceTest extends LocalCustomerServiceDatabase {
     DynamoDbTable<CustomerDao> failingTable = mock(DynamoDbTable.class);
     final var expectedMessage = randomString();
     when(failingTable.scan())
-        .thenAnswer(
-            ignored -> {
-              throw new RuntimeException(expectedMessage);
-            });
+        .thenAnswer(ignored -> {
+          throw new RuntimeException(expectedMessage);
+        });
     var failingService = new DynamoDBCustomerService(failingTable);
     var exception = assertThrows(RuntimeException.class, failingService::getCustomers);
     assertEquals(expectedMessage, exception.getMessage());

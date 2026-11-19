@@ -113,7 +113,6 @@ public class InboundFederationHandler
   }
 
   @Override
-  @SuppressWarnings("PMD.AvoidCatchingGenericException") // every failure gets a known error code
   public InboundFederationEvent handleRequest(InboundFederationEvent event, Context context) {
     var start = clock.instant();
     try {
@@ -125,7 +124,7 @@ public class InboundFederationHandler
           admitted.personId(),
           admitted.path(),
           Duration.between(start, clock.instant()).toMillis());
-    } catch (RuntimeException e) {
+    } catch (RuntimeException e) { // every failure gets a known error code
       throw asKnownFailure(FederatedLogin.usernameOf(event), e);
     }
     event.getResponse().setUserAttributesToMap(new HashMap<>());

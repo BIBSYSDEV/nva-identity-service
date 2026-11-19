@@ -405,6 +405,7 @@ public class UserDao implements DynamoEntryWithRangeKey, WithCopy<Builder> {
 
   @DynamoDbAttribute(ROLES_LIST)
   @DynamoDbIgnoreNulls
+  @SuppressWarnings("PMD.ReturnEmptyCollectionRatherThanNull")
   public Set<RoleDb> getRoles() {
     return nonEmpty(roles) ? roles : null;
   }

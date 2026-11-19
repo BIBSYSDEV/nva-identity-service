@@ -13,5 +13,7 @@ on:
 jobs:
   build:
     uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@v2
+    with:
+      java_version: "25"
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}

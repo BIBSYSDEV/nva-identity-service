@@ -601,8 +601,8 @@ Resources:
 
   MigrateCuratorsIdentityServiceHandler:
     Type: AWS::Serverless::Function
-    Description: "Migrated users that has Curator role to instead have support, doi, nvi, and file-curator"
     Properties:
+      Description: "Migrated users that has Curator role to instead have support, doi, nvi, and file-curator"
       LoggingConfig:
         LogGroup: !Ref MigrateCuratorsIdentityServiceHandlerLogGroup
       CodeUri: user-access-handlers

@@ -435,14 +435,12 @@ public class UserSelectionUponLoginHandler
   }
 
   private Optional<UserDto> fetchUserByCristinIdentifiers(Person person, CustomerDto customer) {
-    return attempt(
-            () ->
-                identityService.getUserByPersonCristinIdAndCustomerCristinId(
-                    person.getId(), customer.getCristinId()))
-        .toOptional(
-            fail ->
-                LOGGER.warn(
-                    NO_USER_ENTRY_MESSAGE, person.getId(), customer.getId(), fail.getException()));
+    return attempt(() ->
+            identityService.getUserByPersonCristinIdAndCustomerCristinId(
+                person.getId(), customer.getCristinId()))
+        .toOptional(fail ->
+            LOGGER.warn(
+                NO_USER_ENTRY_MESSAGE, person.getId(), customer.getId(), fail.getException()));
   }
 
   /**
@@ -505,10 +503,9 @@ public class UserSelectionUponLoginHandler
         .or(() -> PersonName.decodeProviderValue(attributes.get(CognitoClaims.FIRST_NAME_CLAIM)))
         .map(String::trim)
         .filter(name -> !name.isBlank())
-        .orElseThrow(
-            () ->
-                getIllegalStateException(
-                    "Could not extract first name from full name: %s", attributes));
+        .orElseThrow(() ->
+            getIllegalStateException(
+                "Could not extract first name from full name: %s", attributes));
   }
 
   private static IllegalStateException getIllegalStateException(
@@ -528,10 +525,8 @@ public class UserSelectionUponLoginHandler
         .or(() -> PersonName.decodeProviderValue(attributes.get(CognitoClaims.LAST_NAME_CLAIM)))
         .map(String::trim)
         .filter(name -> !name.isBlank())
-        .orElseThrow(
-            () ->
-                getIllegalStateException(
-                    "Could not extract last name from full name: %s", attributes));
+        .orElseThrow(() ->
+            getIllegalStateException("Could not extract last name from full name: %s", attributes));
   }
 
   private CustomerDto getCurrentCustomer(
@@ -548,15 +543,14 @@ public class UserSelectionUponLoginHandler
       // selected customer
       currentCustomer =
           customersForPerson.stream()
-              .filter(
-                  customer ->
-                      customer
-                          .getId()
-                          .equals(
-                              Optional.ofNullable(
-                                      userAttributes.getOrDefault(CURRENT_CUSTOMER_CLAIM, null))
-                                  .map(URI::create)
-                                  .orElse(null)))
+              .filter(customer ->
+                  customer
+                      .getId()
+                      .equals(
+                          Optional.ofNullable(
+                                  userAttributes.getOrDefault(CURRENT_CUSTOMER_CLAIM, null))
+                              .map(URI::create)
+                              .orElse(null)))
               .collect(SingletonCollector.tryCollect())
               .orElse(fail -> null);
     }

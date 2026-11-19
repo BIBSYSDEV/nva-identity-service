@@ -116,10 +116,9 @@ class ListAllChannelClaimsHandlerTest extends LocalCustomerServiceDatabase {
 
     channelClaimsListResponse
         .channelClaims()
-        .forEach(
-            channelClaimResponse ->
-                assertEquals(
-                    customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
+        .forEach(channelClaimResponse ->
+            assertEquals(
+                customer.getCristinId(), channelClaimResponse.claimedBy().organizationId()));
   }
 
   @Test

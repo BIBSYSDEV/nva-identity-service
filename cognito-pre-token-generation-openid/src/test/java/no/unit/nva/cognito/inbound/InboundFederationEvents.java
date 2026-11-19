@@ -112,12 +112,11 @@ class InboundFederationEvents {
   }
 
   private static void collectValues(Map<String, Object> attributes, List<String> values) {
-    attributes.forEach(
-        (key, value) -> {
-          if (!SUB.equals(key)) {
-            collectValue(value, values);
-          }
-        });
+    attributes.forEach((key, value) -> {
+      if (!SUB.equals(key)) {
+        collectValue(value, values);
+      }
+    });
   }
 
   private static void collectValue(Object value, List<String> values) {

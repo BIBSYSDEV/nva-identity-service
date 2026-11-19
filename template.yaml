@@ -134,8 +134,7 @@ Mappings:
 
 Conditions:
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
-  NativeLoginOnApplicationClient:
-    !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
+  NativeLoginOnApplicationClient: !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
   # Transition, removed in NP-51975.
   InboundFederationEnabled: !Equals [!Ref EnableInboundFederation, "true"]
 
@@ -1726,8 +1725,7 @@ Resources:
       Type: String
       Value: !Sub
         - "${UserPoolName}${AWS::AccountId}"
-        - UserPoolName:
-            !FindInMap ["Constants", "Cognito", "UserPoolNamePrefix"]
+        - UserPoolName: !FindInMap ["Constants", "Cognito", "UserPoolNamePrefix"]
 
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -1977,8 +1975,7 @@ Resources:
         - ","
         - !Sub
           - "${FrontendUrlsJoinedWithLogoutPath}/logout"
-          - FrontendUrlsJoinedWithLogoutPath:
-              !Join ["/logout,", !Ref FrontendUrls]
+          - FrontendUrlsJoinedWithLogoutPath: !Join ["/logout,", !Ref FrontendUrls]
       ClientName: NvaApplicationClient
       DefaultRedirectURI: !Select [0, !Ref FrontendUrls]
       EnableTokenRevocation: true
@@ -2137,8 +2134,7 @@ Resources:
       Type: String
       Value: !Sub
         - "${UserPoolName}${AWS::AccountId}"
-        - UserPoolName:
-            !FindInMap ["Constants", "Cognito", "ExternalUserPoolNamePrefix"]
+        - UserPoolName: !FindInMap ["Constants", "Cognito", "ExternalUserPoolNamePrefix"]
 
   ExternalUserPool:
     Type: AWS::Cognito::UserPool
@@ -2196,8 +2192,7 @@ Resources:
           # number is blanked at every token generation (users from before the switch are cleaned
           # too) and a login without the number is resolved from the link rows. Goes away with the
           # one-time cleanup in NP-51973 and NP-51975.
-          INBOUND_FEDERATION_ENABLED:
-            !If [InboundFederationEnabled, "true", "false"]
+          INBOUND_FEDERATION_ENABLED: !If [InboundFederationEnabled, "true", "false"]
       Timeout: 20
 
   ClientPreTokenGenerationHandler:

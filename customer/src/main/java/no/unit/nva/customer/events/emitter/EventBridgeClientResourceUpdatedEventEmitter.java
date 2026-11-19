@@ -59,12 +59,11 @@ public class EventBridgeClientResourceUpdatedEventEmitter implements ResourceUpd
     if (failedEntryCount > 0) {
       response.entries().stream()
           .filter(entry -> nonNull(entry.errorCode()))
-          .forEach(
-              entry ->
-                  logger.error(
-                      "Failed to put event. Error code: {}, Error message: {}",
-                      entry.errorCode(),
-                      entry.errorMessage()));
+          .forEach(entry ->
+              logger.error(
+                  "Failed to put event. Error code: {}, Error message: {}",
+                  entry.errorCode(),
+                  entry.errorMessage()));
       throw new EventEmitterException(
           String.format("Failed to put %d events to EventBridge", failedEntryCount));
     }

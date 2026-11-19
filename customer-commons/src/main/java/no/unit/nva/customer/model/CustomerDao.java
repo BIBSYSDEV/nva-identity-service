@@ -541,7 +541,7 @@ public class CustomerDao implements Typed, JsonSerializable {
     }
 
     public Builder withCreatedDate(String createdDate) {
-      customerDb.setCreatedDate(attempt(() -> Instant.parse(createdDate)).orElse((e) -> null));
+      customerDb.setCreatedDate(attempt(() -> Instant.parse(createdDate)).orElse(e -> null));
       return this;
     }
 
@@ -551,7 +551,7 @@ public class CustomerDao implements Typed, JsonSerializable {
     }
 
     public Builder withModifiedDate(String modifiedDate) {
-      customerDb.setModifiedDate(attempt(() -> Instant.parse(modifiedDate)).orElse((a) -> null));
+      customerDb.setModifiedDate(attempt(() -> Instant.parse(modifiedDate)).orElse(a -> null));
       return this;
     }
 

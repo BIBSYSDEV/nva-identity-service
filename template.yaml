@@ -1683,38 +1683,6 @@ Resources:
       Type: String
       Value: !Sub "urn:amazon:cognito:sp:${UserPool}"
 
-  #============================ Deploy API ============================================================================#
-  # This solves the problem described here:
-  # https://stackoverflow.com/questions/41423439/cloudformation-doesnt-deploy-to-api-gateway-stages-on-update
-  #====================================================================================================================#
-
-  ApiGatewayCreateDeploymentLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Path: /
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      Policies:
-        - PolicyName: ApiGatewayAdmin
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - apigateway:POST
-                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${UsersAndRolesApi}/deployments"
-              - Effect: Allow
-                Action:
-                  - apigateway:POST
-                Resource: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${NvaCustomerApi}/deployments"
-
   ### New Cognito ########################################################################################################
 
   UserPoolName:

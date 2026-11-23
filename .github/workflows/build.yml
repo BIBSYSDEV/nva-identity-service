@@ -13,7 +13,5 @@ on:
 jobs:
   build:
     uses: BIBSYSDEV/nva-github-workflows/.github/workflows/java.yml@v2
-    with:
-      openapi_files: "docs/*.yaml"
     secrets:
       codacy_token: ${{ secrets.CODACY_PROJECT_TOKEN }}

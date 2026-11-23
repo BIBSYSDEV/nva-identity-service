@@ -66,11 +66,10 @@ public class CustomerBatchScanHandlerTest extends LocalCustomerServiceDatabase {
     var logRecorder = LogRecorder.forClass(CustomerBatchScanHandler.class);
     handler.handleRequest(input, context);
 
-    existingCustomers.forEach(
-        customerDao -> {
-          Assertions.assertThat(logRecorder.messages())
-              .anyMatch(message -> message.contains(customerDao.getIdentifier().toString()));
-        });
+    existingCustomers.forEach(customerDao -> {
+      Assertions.assertThat(logRecorder.messages())
+          .anyMatch(message -> message.contains(customerDao.getIdentifier().toString()));
+    });
   }
 
   private CustomerDto newCustomerDto() {

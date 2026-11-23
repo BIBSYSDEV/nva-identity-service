@@ -233,11 +233,10 @@ public class UserService extends DatabaseSubService {
       URI cristinPersonId, URI cristinOrgId) {
     var key =
         Optional.ofNullable(cristinOrgId)
-            .map(
-                orgId ->
-                    Key.builder()
-                        .partitionValue(cristinPersonId.toString())
-                        .sortValue(orgId.toString()))
+            .map(orgId ->
+                Key.builder()
+                    .partitionValue(cristinPersonId.toString())
+                    .sortValue(orgId.toString()))
             .orElseGet(() -> Key.builder().partitionValue(cristinPersonId.toString()))
             .build();
     return QueryEnhancedRequest.builder()

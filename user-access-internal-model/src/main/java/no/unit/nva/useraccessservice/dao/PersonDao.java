@@ -94,6 +94,7 @@ public class PersonDao implements DynamoEntryWithRangeKey {
 
   /** DynamoDB rejects empty sets, so an empty set is stored as an absent attribute. */
   @DynamoDbAttribute(CUSTOMERS_FIELD)
+  @SuppressWarnings("PMD.ReturnEmptyCollectionRatherThanNull")
   public Set<String> getCustomers() {
     return nonEmpty(customers) ? customers : null;
   }

@@ -54,28 +54,25 @@ class InboundFederationThroughTheRegistryTest extends InboundFederationHandlerTe
     assertThat(response.getResponse().getUserAttributesToMap()).isEmpty();
     assertThat(scanAllUsers())
         .singleElement()
-        .satisfies(
-            user -> {
-              assertThat(user.getCristinId()).isEqualTo(cristinId);
-              assertThat(user.getFeideIdentifier()).isEqualTo(EMAIL);
-            });
+        .satisfies(user -> {
+          assertThat(user.getCristinId()).isEqualTo(cristinId);
+          assertThat(user.getFeideIdentifier()).isEqualTo(EMAIL);
+        });
     assertThat(identityService.fetchLink(usernameOf(event)))
         .get()
-        .satisfies(
-            link -> {
-              assertThat(link.personId()).isEqualTo(cristinId);
-              assertThat(link.feideIdentifier()).isEqualTo(EMAIL);
-              assertThat(link.orgFeideDomain()).isEqualTo(HOME_ORGANIZATION);
-              assertThat(link.modified()).isBetween(before, clock.instant());
-            });
+        .satisfies(link -> {
+          assertThat(link.personId()).isEqualTo(cristinId);
+          assertThat(link.feideIdentifier()).isEqualTo(EMAIL);
+          assertThat(link.orgFeideDomain()).isEqualTo(HOME_ORGANIZATION);
+          assertThat(link.modified()).isBetween(before, clock.instant());
+        });
     assertThat(identityService.fetchLinkedPerson(cristinId))
         .get()
-        .satisfies(
-            linkedPerson -> {
-              assertThat(linkedPerson.customers())
-                  .isEqualTo(customerIds(scenarios.fetchCustomersForPerson(person.nin())));
-              assertThat(linkedPerson.lastVerified()).isBetween(before, clock.instant());
-            });
+        .satisfies(linkedPerson -> {
+          assertThat(linkedPerson.customers())
+              .isEqualTo(customerIds(scenarios.fetchCustomersForPerson(person.nin())));
+          assertThat(linkedPerson.lastVerified()).isBetween(before, clock.instant());
+        });
     assertThat(logRecorder.asString())
         .contains(
             "Inbound federation for user "
@@ -135,12 +132,11 @@ class InboundFederationThroughTheRegistryTest extends InboundFederationHandlerTe
 
     assertThat(identityService.fetchLink(usernameOf(event)))
         .get()
-        .satisfies(
-            link -> {
-              assertThat(link.personId()).isEqualTo(scenarios.getCristinIdForPerson(person.nin()));
-              assertThat(link.feideIdentifier()).isNull();
-              assertThat(link.orgFeideDomain()).isNull();
-            });
+        .satisfies(link -> {
+          assertThat(link.personId()).isEqualTo(scenarios.getCristinIdForPerson(person.nin()));
+          assertThat(link.feideIdentifier()).isNull();
+          assertThat(link.orgFeideDomain()).isNull();
+        });
     assertThat(scanAllUsers()).singleElement().extracting(UserDto::getFeideIdentifier).isNull();
   }
 

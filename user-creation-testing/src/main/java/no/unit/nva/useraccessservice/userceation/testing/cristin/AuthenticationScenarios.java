@@ -271,9 +271,8 @@ public class AuthenticationScenarios {
 
     return personFromRegistry.getAffiliations().stream()
         .filter(CristinAffiliation::isActive)
-        .map(
-            affiliation ->
-                createLegacyUserForAffiliation(feideIdentifier, affiliation, identityService))
+        .map(affiliation ->
+            createLegacyUserForAffiliation(feideIdentifier, affiliation, identityService))
         .collect(Collectors.toList());
   }
 

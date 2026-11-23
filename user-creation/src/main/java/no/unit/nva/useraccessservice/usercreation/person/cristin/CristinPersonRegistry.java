@@ -161,14 +161,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
   /** Without its credentials the registry cannot be queried, as when it is unreachable. */
   private static CristinCredentials readCristinCredentials(SecretsReader secretsReader) {
-    return attempt(
-            () ->
-                secretsReader.fetchClassSecret(
-                    CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class))
-        .orElseThrow(
-            failure ->
-                new IdentityServiceUnavailableException(
-                    COULD_NOT_READ_CREDENTIALS_MESSAGE, failure.getException()));
+    return attempt(() ->
+            secretsReader.fetchClassSecret(
+                CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class))
+        .orElseThrow(failure ->
+            new IdentityServiceUnavailableException(
+                COULD_NOT_READ_CREDENTIALS_MESSAGE, failure.getException()));
   }
 
   public static PersonRegistry customPersonRegistry(
@@ -373,13 +371,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
       CristinAffiliation cristinAffiliation, CristinCredentials cristinCredentials) {
     var institutionUri = URI.create(cristinAffiliation.getInstitution().getUrl());
     return fetchInstitutionFromCristin(institutionUri, cristinCredentials)
-        .map(
-            cristinInstitution -> {
-              var institutionId = cristinInstitution.getCorrespondingUnit().getId();
-              return new GenericPair<>(
-                  generateCristinIdForOrganization(institutionId),
-                  generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
-            });
+        .map(cristinInstitution -> {
+          var institutionId = cristinInstitution.getCorrespondingUnit().getId();
+          return new GenericPair<>(
+              generateCristinIdForOrganization(institutionId),
+              generateCristinIdForOrganization(cristinAffiliation.getUnit().getId()));
+        });
   }
 
   private Optional<CristinPerson> fetchPersonByNinFromCristin(

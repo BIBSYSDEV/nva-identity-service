@@ -23,9 +23,8 @@ public class VocabularySetConverter implements AttributeConverter<Set<Vocabulary
     var attributeValues =
         Optional.ofNullable(input).stream()
             .flatMap(Collection::stream)
-            .map(
-                collectionElement ->
-                    VocabularyDao.SCHEMA.itemToMap(collectionElement, IGNORE_NULLS))
+            .map(collectionElement ->
+                VocabularyDao.SCHEMA.itemToMap(collectionElement, IGNORE_NULLS))
             .map(attributeMap -> AttributeValue.builder().m(attributeMap).build())
             .collect(Collectors.toList());
     return nonEmpty(attributeValues) ? nonEmptyList(attributeValues) : null;

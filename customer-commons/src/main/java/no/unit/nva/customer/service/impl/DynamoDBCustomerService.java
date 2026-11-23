@@ -170,9 +170,8 @@ public class DynamoDBCustomerService implements CustomerService {
   public Optional<ChannelClaimWithClaimer> getChannelClaim(UUID identifier) {
     return getCustomers().stream()
         .flatMap(DynamoDBCustomerService::toChannelClaimWithClaimer)
-        .filter(
-            channelClaimWithClaimer ->
-                identifier.equals(channelClaimWithClaimer.channelClaimIdentifier()))
+        .filter(channelClaimWithClaimer ->
+            identifier.equals(channelClaimWithClaimer.channelClaimIdentifier()))
         .findFirst();
   }
 
@@ -208,7 +207,6 @@ public class DynamoDBCustomerService implements CustomerService {
     return enhancedClient.table(CUSTOMERS_TABLE_NAME, CustomerDao.TABLE_SCHEMA);
   }
 
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private void warmupDynamoDbConnection(DynamoDbTable<CustomerDao> table) {
     try {
       table.describeTable();

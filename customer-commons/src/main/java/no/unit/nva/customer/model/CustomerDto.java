@@ -667,9 +667,8 @@ public class CustomerDto {
 
     public static DoiAgentDto fromJson(String json) throws BadRequestException {
       return attempt(() -> JsonConfig.readValue(json, DoiAgentDto.class))
-          .orElseThrow(
-              fail ->
-                  new BadRequestException("Could not parse input:" + json, fail.getException()));
+          .orElseThrow(fail ->
+              new BadRequestException("Could not parse input:" + json, fail.getException()));
     }
 
     public DoiAgentDto addId(URI doiAgentId) {

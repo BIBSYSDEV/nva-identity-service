@@ -49,9 +49,8 @@ public class CognitoService {
 
   public CreateUserPoolClientResponse createUserPoolClient(
       String appClientName, List<String> scopes) throws BadRequestException {
-    return attempt(
-            () ->
-                client.createUserPoolClient(buildCreateCognitoClientRequest(appClientName, scopes)))
+    return attempt(() ->
+            client.createUserPoolClient(buildCreateCognitoClientRequest(appClientName, scopes)))
         .orElseThrow(fail -> handleUserPoolCreationFailure(fail.getException(), scopes));
   }
 

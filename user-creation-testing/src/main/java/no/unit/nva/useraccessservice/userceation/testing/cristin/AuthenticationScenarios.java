@@ -4,7 +4,6 @@ import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static nva.commons.core.attempt.Try.attempt;
 
 import java.net.URI;
-import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -91,41 +90,6 @@ public class AuthenticationScenarios {
     return person;
   }
 
-  public MockedPersonData personWithExactlyInCustomerWithInactiveFromSetInThePast() {
-    var person = personRegistry.personWithExactlyOneActiveEmployment();
-    var withFeideDomain = true;
-    registerTopOrganizationsAsCustomersWithInactiveFromInThePast(person.nin(), withFeideDomain);
-    return person;
-  }
-
-  private void registerTopOrganizationsAsCustomersWithInactiveFromInThePast(
-      String personNin, boolean withFeideDomain) {
-    var customers =
-        newCustomerRequestsWithInactiveFromInThePast(personNin, withFeideDomain)
-            .map(this::persistCustomer)
-            .collect(Collectors.toList());
-    personNinToCustomers.put(personNin, customers);
-  }
-
-  private Stream<CustomerDto> newCustomerRequestsWithInactiveFromInThePast(
-      String personNin, boolean withFeideDomain) {
-    return personRegistry.getInstitutionUnitCristinUrisByState(personNin, true).stream()
-        .distinct()
-        .map(orgId -> buildCustomerDtoWithInactiveFromInThePast(withFeideDomain, orgId));
-  }
-
-  private CustomerDto buildCustomerDtoWithInactiveFromInThePast(
-      boolean withFeideDomain, URI orgId) {
-    var builder =
-        CustomerDto.builder()
-            .withCristinId(orgId)
-            .withInactiveFrom(OffsetDateTime.now().minusDays(3).toInstant());
-    if (withFeideDomain) {
-      builder.withFeideOrganizationDomain(randomString());
-    }
-    return builder.build();
-  }
-
   public MockedPersonData personWithExactlyOneActiveEmployment() {
     var person = personRegistry.personWithExactlyOneActiveEmployment();
     var withFeideDomain = true;
@@ -193,10 +157,6 @@ public class AuthenticationScenarios {
 
   public MockedPersonData personWithoutAffiliations() {
     return personRegistry.personWithoutAffiliations();
-  }
-
-  public MockedPersonData personWithoutNin() {
-    return personRegistry.personWithoutNin();
   }
 
   public Set<URI> getCristinUriForInstitutionAffiliations(String nin, boolean active) {

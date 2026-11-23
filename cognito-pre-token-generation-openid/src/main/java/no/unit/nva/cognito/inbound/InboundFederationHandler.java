@@ -237,8 +237,8 @@ public class InboundFederationHandler
   }
 
   /**
-   * Remembers what the registry answered, for the pre-token Lambda. Unlike there, the rows are not
-   * best effort here: without the link the pre-token Lambda has nothing to resolve the user from.
+   * Remembers what the registry answered, for the pre-token Lambda. The login fails if the rows
+   * cannot be written: without them the pre-token Lambda has nothing to resolve the user from.
    */
   private void writeLinkAndPersonRows(
       FederatedLogin login, Person person, Set<CustomerDto> customers, Instant registryAnswered) {

@@ -12,6 +12,7 @@ import static no.unit.nva.useraccessservice.usercreation.person.cristin.CristinP
 import static nva.commons.core.attempt.Try.attempt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
@@ -199,6 +200,26 @@ class UserEntriesCreatorForPersonTest {
     var userCreationContext = new UserCreationContext(person, customers);
     var users = userCreator.createUsers(userCreationContext);
     assertThat(users, is(emptyIterable()));
+  }
+
+  @Test
+  void shouldCreateOneUserForInstitutionWithBothAnActiveAndAnInactiveAffiliation() {
+    var personNin = scenarios.personWithOneActiveAndOneInactiveEmploymentInSameInstitution().nin();
+    var nin = NationalIdentityNumber.fromString(personNin);
+    var person = personRegistry.fetchPersonByNin(nin).orElseThrow();
+    var customers = ActiveCustomers.forPerson(person, customerService);
+
+    var users = userCreator.createUsers(new UserCreationContext(person, customers));
+
+    assertThat(users, hasSize(1));
+    assertThat(
+        users.getFirst().getInstitutionCristinId(),
+        is(
+            equalTo(
+                scenarios
+                    .getCristinUriForInstitutionAffiliations(personNin, true)
+                    .iterator()
+                    .next())));
   }
 
   @Test

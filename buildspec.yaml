@@ -31,10 +31,7 @@ phases:
       - sam build
   post_build:
     commands:
-      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
-      # Use timestamp to force update of ApiGatewayCreateDeploymentCustomResource
-      - BUILD_TIMESTAMP=$(date '+%s')
-      - envsubst '${BUILD_TIMESTAMP}' < packaged_raw.yaml > packaged.yaml
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yaml
 artifacts:
   files:
     - packaged.yaml

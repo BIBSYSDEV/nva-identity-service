@@ -17,14 +17,9 @@ phases:
   build:
     commands:
       - sam build
-      - sam package --s3-bucket $SAM_BUCKET --output-template-file transformed_raw.yaml
+      - sam package --s3-bucket $SAM_BUCKET --output-template-file transformed.yaml
       - echo "{}" > configuration-dev.json
       - echo "{}" > configuration-prod.json
-    post_build:
-      commands:
-        # Use timestamp to force update of ApiGatewayCreateDeploymentCustomResource
-        - BUILD_TIMESTAMP=$(date '+%s')
-        - envsubst '${BUILD_TIMESTAMP}' < transformed_raw.yaml > transformed.yaml
 artifacts:
   files:
     - transformed.yaml

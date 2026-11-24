@@ -41,6 +41,7 @@ public class ViewingScopeDb implements Typed {
     this.excludedUnits = nonEmptyOrDefault(excludedUnits);
   }
 
+  @SuppressWarnings("PMD.ReturnEmptyCollectionRatherThanNull")
   private Set<URI> nonEmptyOrDefault(Set<URI> units) {
     return nonEmpty(units) ? units : null;
   }

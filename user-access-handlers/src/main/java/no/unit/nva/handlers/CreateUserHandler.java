@@ -218,7 +218,6 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
   }
 
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private Optional<Person> fetchCristinPersonFromIdentifierOrNin(CreateUserRequest input)
       throws BadGatewayException {
     try {
@@ -231,7 +230,6 @@ public class CreateUserHandler extends HandlerWithEventualConsistency<CreateUser
     }
   }
 
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   private Optional<UserDto> fetchUserAtCustomer(Person person, URI customerId)
       throws BadGatewayException {
     try {

@@ -79,9 +79,8 @@ public interface IdentityService {
    */
   default Optional<LinkedIdentity> fetchLinkedIdentity(String username) {
     return fetchLink(username)
-        .flatMap(
-            link ->
-                fetchLinkedPerson(link.personId()).map(person -> new LinkedIdentity(link, person)));
+        .flatMap(link ->
+            fetchLinkedPerson(link.personId()).map(person -> new LinkedIdentity(link, person)));
   }
 
   final class Constants {

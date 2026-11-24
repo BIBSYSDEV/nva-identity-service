@@ -58,10 +58,9 @@ public class M2MTokenEnricher {
   private ClientDto getClientById(String clientId) {
     var queryObject = ClientDto.newBuilder().withClientId(clientId).build();
     return attempt(() -> identityService.getClient(queryObject))
-        .orElseThrow(
-            failure ->
-                new RuntimeException(
-                    CLIENT_NOT_FOUND_MESSAGE.formatted(clientId), failure.getException()));
+        .orElseThrow(failure ->
+            new RuntimeException(
+                CLIENT_NOT_FOUND_MESSAGE.formatted(clientId), failure.getException()));
   }
 
   private static Map<String, String> createClaims(ClientDto client) {

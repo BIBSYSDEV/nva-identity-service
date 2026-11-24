@@ -6,8 +6,24 @@ nva {
     errorprone {
         allErrorsAsWarnings = true // TODO: Fix reported issues and set to false
     }
+    java {
+        languageVersion = 25
+    }
     pmd {
-        rulesetFile = rootProject.file('config/pmd/ruleset.xml')
+        analyzeTests = false
+        excludedRules = [
+                'AvoidCatchingGenericException',
+                'AvoidPrintStackTrace',
+                'AvoidThrowingRawExceptionTypes',
+                'ClassNamingConventions',
+                'ConfusingTernary',
+                'CyclomaticComplexity',
+                'FieldNamingConventions',
+                'GuardLogStatement',
+                'NonSerializableClass',
+                'SystemPrintln',
+                'VariableCanBeInlined'
+        ]
     }
     spotless {
         enabled = true
@@ -19,4 +35,10 @@ dependencies {
     testImplementation(platform(nvaCatalog.junit.bom))
     testRuntimeOnly(nvaCatalog.junit.jupiter.engine)
     testRuntimeOnly(nvaCatalog.junit.platform.launcher)
+}
+
+test {
+    // DynamoDBLocal loads the native sqlite4java library via System.load, which JDK 24+
+    // (JEP 472) warns about today and will block in a future release.
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
 }

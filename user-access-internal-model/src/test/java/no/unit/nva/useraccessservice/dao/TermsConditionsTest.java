@@ -117,14 +117,13 @@ class TermsConditionsTest {
     when(mockedService.fetch(any())).thenThrow(new NotFoundException(""));
     var fetchedTermsConditions =
         Optional.ofNullable(new TermsConditions.Builder().build())
-            .flatMap(
-                termsConditions -> {
-                  try {
-                    return Optional.of(termsConditions.fetch(mockedService));
-                  } catch (NotFoundException e) {
-                    return Optional.empty();
-                  }
-                });
+            .flatMap(termsConditions -> {
+              try {
+                return Optional.of(termsConditions.fetch(mockedService));
+              } catch (NotFoundException e) {
+                return Optional.empty();
+              }
+            });
 
     assertThat(fetchedTermsConditions, is(equalTo(Optional.empty())));
   }

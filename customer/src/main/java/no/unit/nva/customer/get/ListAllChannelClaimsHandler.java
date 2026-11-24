@@ -54,7 +54,6 @@ public class ListAllChannelClaimsHandler
   }
 
   @Override
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
   protected ChannelClaimsListResponse processInput(
       Void unused, RequestInfo requestInfo, Context context) throws ApiGatewayException {
     try {

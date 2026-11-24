@@ -22,6 +22,54 @@ class PersonNameTest {
         Arguments.of("Pål-Ove Sitter-Nissen", "Pål-Ove", "Sitter-Nissen"));
   }
 
+  static Stream<Arguments> sameNameWrittenDifferently() {
+    return Stream.of(
+        Arguments.of(
+            "middle name only in the other",
+            new PersonName("Kari", "Nordmann"),
+            new PersonName("Kari Anne", "Nordmann")),
+        Arguments.of(
+            "middle name only in this",
+            new PersonName("Kari Anne", "Nordmann"),
+            new PersonName("Kari", "Nordmann")),
+        Arguments.of(
+            "first given name missing in the other",
+            new PersonName("Kari Anne", "Nordmann"),
+            new PersonName("Anne", "Nordmann")),
+        Arguments.of(
+            "double family name split differently",
+            new PersonName("Kari", "Hansen Nordmann"),
+            new PersonName("Kari Hansen", "Nordmann")),
+        Arguments.of(
+            "middle name placed in the family name",
+            new PersonName("Kari Anne", "Nordmann"),
+            new PersonName("Kari", "Anne Nordmann")));
+  }
+
+  static Stream<Arguments> differentNames() {
+    return Stream.of(
+        Arguments.of(
+            "another given name",
+            new PersonName("Kari", "Nordmann"),
+            new PersonName("Ola", "Nordmann")),
+        Arguments.of(
+            "another family name",
+            new PersonName("Kari", "Nordmann"),
+            new PersonName("Kari", "Hansen")),
+        Arguments.of(
+            "family names ending in different words",
+            new PersonName("Kari", "Nordmann"),
+            new PersonName("Kari", "Nordmann Hansen")),
+        Arguments.of(
+            "each has a middle name the other lacks",
+            new PersonName("Kari Anne", "Nordmann"),
+            new PersonName("Kari Marie", "Nordmann")),
+        Arguments.of(
+            "given name and family name swapped",
+            new PersonName("Kari", "Nordmann"),
+            new PersonName("Nordmann", "Kari")));
+  }
+
   @ParameterizedTest
   @MethodSource("fullNames")
   void shouldTakeTheLastWordAsFamilyName(String fullName, String givenName, String familyName) {
@@ -61,7 +109,29 @@ class PersonNameTest {
     var name = new PersonName("Kari", "Nordmann");
 
     assertThat(name.matches(" kari ", "NORDMANN")).isTrue();
-    assertThat(name.matches("Kari", "Nordmann Hansen")).isFalse();
+    assertThat(name.matches("Kari\t", "Nordmann")).isTrue();
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("sameNameWrittenDifferently")
+  void shouldMatchTheSameNameWrittenDifferently(
+      String difference, PersonName name, PersonName other) {
+    assertThat(name.matches(other.givenName(), other.familyName())).isTrue();
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("differentNames")
+  void shouldNotMatchDifferentName(String difference, PersonName name, PersonName other) {
+    assertThat(name.matches(other.givenName(), other.familyName())).isFalse();
+  }
+
+  @Test
+  void shouldNotMatchWhenAPartOfEitherNameIsMissing() {
+    var name = new PersonName("Kari", "Nordmann");
+
     assertThat(name.matches(null, "Nordmann")).isFalse();
+    assertThat(name.matches("Kari", " ")).isFalse();
+    assertThat(new PersonName(null, "Nordmann").matches("Kari", "Nordmann")).isFalse();
+    assertThat(new PersonName("Kari", " ").matches("Kari", "Nordmann")).isFalse();
   }
 }

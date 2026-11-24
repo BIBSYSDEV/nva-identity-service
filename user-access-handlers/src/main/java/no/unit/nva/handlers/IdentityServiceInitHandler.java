@@ -95,20 +95,19 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
               return identityService.getClient(
                   ClientDto.newBuilder().withClientId(backendClientId).build());
             })
-        .or(
-            () -> {
-              logger.info("Client not found. Creating new client...");
-              var clientDto =
-                  ClientDto.newBuilder()
-                      .withClientId(backendClientId)
-                      .withCustomer(sikt.getId())
-                      .withCristinOrgUri(sikt.getCristinId())
-                      .withActingUser(SIKT_ACTING_USER)
-                      .build();
+        .or(() -> {
+          logger.info("Client not found. Creating new client...");
+          var clientDto =
+              ClientDto.newBuilder()
+                  .withClientId(backendClientId)
+                  .withCustomer(sikt.getId())
+                  .withCristinOrgUri(sikt.getCristinId())
+                  .withActingUser(SIKT_ACTING_USER)
+                  .build();
 
-              identityService.addExternalClient(clientDto);
-              return clientDto;
-            })
+          identityService.addExternalClient(clientDto);
+          return clientDto;
+        })
         .orElseThrow();
   }
 
@@ -130,11 +129,10 @@ public class IdentityServiceInitHandler extends ApiGatewayHandler<Void, RoleList
               logger.info("Creating customer...");
               return customerService.createCustomer(customer);
             })
-        .or(
-            () -> {
-              logger.info("Customer already exists. Fetching customer by org domain: {}", SIKT_NO);
-              return customerService.getCustomerByOrgDomain(SIKT_NO);
-            })
+        .or(() -> {
+          logger.info("Customer already exists. Fetching customer by org domain: {}", SIKT_NO);
+          return customerService.getCustomerByOrgDomain(SIKT_NO);
+        })
         .orElseThrow();
   }
 

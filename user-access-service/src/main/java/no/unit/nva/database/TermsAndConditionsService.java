@@ -32,21 +32,15 @@ public class TermsAndConditionsService {
 
   public TermsConditionsResponse getTermsAndConditionsByPerson(URI cristinPersonId) {
     return Optional.of(cristinPersonId)
-        .map(
-            id -> {
-              try {
-                return TermsConditions.builder()
-                    .id(id)
-                    .build()
-                    .fetch(crudService)
-                    .termsConditionsUri();
-              } catch (NotFoundException e) {
-                return null;
-              }
-            })
-        .map(
-            fetchedUri ->
-                TermsConditionsResponse.builder().withTermsConditionsUri(fetchedUri).build())
+        .map(id -> {
+          try {
+            return TermsConditions.builder().id(id).build().fetch(crudService).termsConditionsUri();
+          } catch (NotFoundException e) {
+            return null;
+          }
+        })
+        .map(fetchedUri ->
+            TermsConditionsResponse.builder().withTermsConditionsUri(fetchedUri).build())
         .orElse(null);
   }
 

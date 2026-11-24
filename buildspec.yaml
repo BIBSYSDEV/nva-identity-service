@@ -13,7 +13,7 @@ cache:
 phases:
   install:
     runtime-versions:
-      java: corretto21
+      java: corretto25
     commands:
       - echo "Checking if AWS SAM CLI is installed"
       - |

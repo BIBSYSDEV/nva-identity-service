@@ -57,10 +57,9 @@ public class IdentityServiceImplTest extends LocalIdentityService {
   private DynamoDbClient mockMapperThrowingException() {
     DynamoDbClient failingClient = mock(DynamoDbClient.class);
     when(failingClient.getItem(any(GetItemRequest.class)))
-        .thenAnswer(
-            ignored -> {
-              throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
-            });
+        .thenAnswer(ignored -> {
+          throw new RuntimeException(EXPECTED_EXCEPTION_MESSAGE);
+        });
     return failingClient;
   }
 

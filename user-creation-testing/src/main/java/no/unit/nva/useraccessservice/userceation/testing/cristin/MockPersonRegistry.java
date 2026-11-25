@@ -95,14 +95,6 @@ public class MockPersonRegistry {
     return new MockedPersonData(nin, cristinId);
   }
 
-  public MockedPersonData personWithoutNin() {
-    var cristinId = randomString();
-
-    createPersonWithoutAffiliations(null, cristinId);
-
-    return new MockedPersonData(null, cristinId);
-  }
-
   public MockedPersonData personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions() {
     var nin = randomNin();
     var cristinId = randomString();

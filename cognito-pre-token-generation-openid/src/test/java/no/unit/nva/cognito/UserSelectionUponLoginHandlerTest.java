@@ -1,8 +1,5 @@
 package no.unit.nva.cognito;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static java.util.Objects.nonNull;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleName;
 import static no.unit.nva.RandomUserDataGenerator.randomRoleNameButNot;
@@ -29,7 +26,6 @@ import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_EXCLUDED_CLAIM;
 import static no.unit.nva.cognito.CognitoClaims.VIEWING_SCOPE_INCLUDED_CLAIM;
 import static no.unit.nva.cognito.LoginEventType.FEIDE;
 import static no.unit.nva.cognito.LoginEventType.NON_FEIDE;
-import static no.unit.nva.cognito.UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.ORG_FEIDE_DOMAIN;
 import static no.unit.nva.cognito.UserSelectionUponLoginHandler.TRIGGER_SOURCE_CLIENT_CREDENTIALS;
 import static no.unit.nva.database.TermsAndConditionsService.TERMS_TABLE_NAME_ENV;
@@ -48,40 +44,27 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyString;
-import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.collection.IsIn.in;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolEvent.CallerContext;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2;
 import com.amazonaws.services.lambda.runtime.events.CognitoUserPoolPreTokenGenerationEventV2.Request;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -91,6 +74,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -118,15 +102,15 @@ import no.unit.nva.useraccessservice.model.RoleName;
 import no.unit.nva.useraccessservice.model.UserDto;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.AuthenticationScenarios;
 import no.unit.nva.useraccessservice.userceation.testing.cristin.MockPersonRegistry;
-import no.unit.nva.useraccessservice.usercreation.person.IdentityServiceErrorCodes;
+import no.unit.nva.useraccessservice.usercreation.ActiveCustomers;
+import no.unit.nva.useraccessservice.usercreation.UserCreationContext;
+import no.unit.nva.useraccessservice.usercreation.UserEntriesCreatorForPerson;
 import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
+import no.unit.nva.useraccessservice.usercreation.person.Person;
 import no.unit.nva.useraccessservice.usercreation.person.PersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.CristinPersonRegistry;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.HttpHeaders;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingLinkException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceMissingNinException;
-import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
 import nva.commons.apigateway.AccessRight;
 import nva.commons.apigateway.exceptions.ConflictException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -142,10 +126,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.EnumSource.Mode;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUpdateUserAttributesRequest;
@@ -153,16 +135,17 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeTy
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * The tests of the Cristin path (logins resolved through the person registry, creating persons and
- * users, writing the link and person rows from here) cover transition code that is deprecated in
- * the handler and goes with it in NP-51975. The link path and the password path stay.
+ * In production the inbound federation trigger runs before this handler at every federated login.
+ * It looks the person up in the registry, creates the user entries and writes the link and person
+ * rows. {@link HandlerBehindInboundTrigger} does the same here, so the tests can start from a
+ * person in the registry. The tests keep the identity number on the login event so that the
+ * stand-in knows who is logging in; the handler never reads it.
  */
 @WireMockTest(httpsEnabled = true)
 class UserSelectionUponLoginHandlerTest {
 
   public static final int SINGLE_EXPECTED_USER = 1;
   public static final boolean ACTIVE = true;
-  public static final boolean INACTIVE = false;
   public static final String TERMS_TABLE = "TermsTable";
   public static final URI TERMS_URI = URI.create("https://nva.sikt.no/terms/2024-10-01");
   public static final String TRIGGER_SOURCE_HOSTED_AUTH = "TokenGeneration_HostedAuth";
@@ -231,13 +214,50 @@ class UserSelectionUponLoginHandlerTest {
                 defaultRequestHeaders,
                 new SecretsReader(secretsManagerClient)));
 
-    handler =
-        new UserSelectionUponLoginHandler(
-            cognitoClient,
-            customerService,
-            identityService,
-            personRegistry,
-            termsAndConditionsService);
+    handler = new HandlerBehindInboundTrigger();
+  }
+
+  /** The handler alone, for tests that write the link and person rows themselves. */
+  private UserSelectionUponLoginHandler handlerAlone() {
+    return new UserSelectionUponLoginHandler(
+        cognitoClient, customerService, identityService, termsAndConditionsService);
+  }
+
+  private final class HandlerBehindInboundTrigger extends UserSelectionUponLoginHandler {
+
+    private HandlerBehindInboundTrigger() {
+      super(cognitoClient, customerService, identityService, termsAndConditionsService);
+    }
+
+    @Override
+    public CognitoUserPoolPreTokenGenerationEventV2 handleRequest(
+        CognitoUserPoolPreTokenGenerationEventV2 input, Context context) {
+      if (TRIGGER_SOURCE_HOSTED_AUTH.equals(input.getTriggerSource())) {
+        var attributes = input.getRequest().getUserAttributes();
+        Optional.ofNullable(attributes.get(NIN_FOR_FEIDE_USERS))
+            .or(() -> Optional.ofNullable(attributes.get(NIN_FOR_NON_FEIDE_USERS)))
+            .flatMap(NationalIdentityNumber::fromDigits)
+            .flatMap(personRegistry::fetchPersonByNin)
+            .ifPresent(person -> writeRowsAsTheInboundTriggerDoes(input, person));
+      }
+      return super.handleRequest(input, context);
+    }
+
+    private void writeRowsAsTheInboundTriggerDoes(
+        CognitoUserPoolPreTokenGenerationEventV2 input, Person person) {
+      var attributes = input.getRequest().getUserAttributes();
+      var feideIdentifier = attributes.get(FEIDE_ID);
+      var customers = ActiveCustomers.forPerson(person, customerService);
+      var creator = new UserEntriesCreatorForPerson(identityService);
+      creator.createUsers(new UserCreationContext(person, customers, feideIdentifier));
+      creator.writeLinkAndPersonRows(
+          input.getUserName(),
+          feideIdentifier,
+          attributes.get(ORG_FEIDE_DOMAIN),
+          person,
+          customers,
+          Instant.now());
+    }
   }
 
   private DynamoDBCustomerService initializeCustomerService() {
@@ -256,26 +276,6 @@ class UserSelectionUponLoginHandlerTest {
   public void tearDown() {
     identityServiceDb.closeDB();
     customerServiceDatabase.deleteDatabase();
-  }
-
-  @ParameterizedTest(name = "Login event type: {0}")
-  @DisplayName(
-      "should create user for the person's institution (top org) when person has not "
-          + "logged in before and has one active employment")
-  @EnumSource(LoginEventType.class)
-  void
-      shouldCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOneActiveEmployment(
-          LoginEventType loginEventType) {
-    var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-    handler.handleRequest(event, context);
-    List<UserDto> allUsers = scanAllUsers();
-    var actualUser = allUsers.get(0);
-    assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
-    var expectedAffiliation =
-        mockPersonRegistry.getInstitutionUnitCristinUris(personLoggingIn).stream()
-            .collect(SingletonCollector.collect());
-    assertThat(actualUser.getInstitutionCristinId(), is(equalTo(expectedAffiliation)));
   }
 
   private List<UserDto> scanAllUsers() {
@@ -353,216 +353,6 @@ class UserSelectionUponLoginHandlerTest {
         .findAny()
         .map(CustomerDto::getFeideOrganizationDomain)
         .orElse(null);
-  }
-
-  @ParameterizedTest(name = "Login event type: {0}")
-  @DisplayName("should log and throw exception when Cristin is unavailable during login")
-  @EnumSource(LoginEventType.class)
-  void shouldLogAndThrowExceptionWhenCristinIsUnavailableDuringLogin(
-      LoginEventType loginEventType, WireMockRuntimeInfo wireMockRuntimeInfo) {
-
-    var personLoggingIn = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-
-    var httpClient = WiremockHttpClient.create();
-    var uriWhereCristinIsUnavailable =
-        URI.create("https://localhost:" + (wireMockRuntimeInfo.getHttpsPort() - 1));
-
-    var defaultRequestHeaders =
-        new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
-
-    var personRegistry =
-        CristinPersonRegistry.customPersonRegistry(
-            httpClient,
-            uriWhereCristinIsUnavailable,
-            ServiceConstants.API_DOMAIN,
-            defaultRequestHeaders,
-            new SecretsReader(secretsManagerClient));
-    handler =
-        new UserSelectionUponLoginHandler(
-            cognitoClient,
-            customerService,
-            identityService,
-            personRegistry,
-            termsAndConditionsService);
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-    assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message ->
-            message.contains(IdentityServiceErrorCodes.SERVICE_UNAVAILABLE.getErrorCodeString()));
-  }
-
-  @ParameterizedTest(name = "Login event type: {0}")
-  @DisplayName("should log and throw exception when Cristin returns bad json")
-  @EnumSource(LoginEventType.class)
-  void shouldLogAndThrowExceptionWhenCristinReturnsBadJsonDuringLogin(
-      LoginEventType loginEventType) {
-
-    var personLoggingIn = scenarios.failingPersonRegistryRequestBadJson().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-    assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains("Got unexpected response body from Cristin"));
-  }
-
-  // TODO: is it possible to not have an active employment and be able to login through FEIDE and
-  // what should
-  // happen then?
-  @ParameterizedTest(
-      name =
-          "should not create user for the person's institution (top org) when person has not "
-              + "logged in before and has only inactive employment")
-  @EnumSource(
-      value = LoginEventType.class,
-      names = {"NON_FEIDE"})
-  void
-      shouldNotCreateUserForPersonsTopOrganizationWhenPersonHasNotLoggedInBeforeAndHasOnlyInactiveEmployment(
-          LoginEventType loginEventType) {
-
-    var personLoggingIn = scenarios.personWithExactlyOneInactiveEmployment().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-    handler.handleRequest(event, context);
-    var actualUsers = scanAllUsers();
-    assertThat(actualUsers, is(empty()));
-  }
-
-  @Test
-  void shouldFailWithMissingNinAndNotDumpRequestWhenNothingIdentifiesFederatedUser() {
-    var personLoggingIn = scenarios.personWithoutNin();
-    var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-
-    var exception =
-        assertThrows(
-            IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
-
-    assertThat(exception.getErrorCode(), is(equalTo("1003")));
-    verifyNoInteractions(personRegistry);
-    Assertions.assertThat(logRecorder.messages())
-        .noneMatch(message -> message.contains("userAttributes="))
-        .noneMatch(message -> message.contains("SOME=VALUE"));
-  }
-
-  @Test
-  void shouldFailWithMissingNinWithoutCallingTheRegistryWhenTheNinIsNotElevenDigits() {
-    var event = newLoginEvent(scenarios.personWithExactlyOneActiveEmployment().nin(), NON_FEIDE);
-    var attributes = new HashMap<>(event.getRequest().getUserAttributes());
-    attributes.put(NIN_FOR_NON_FEIDE_USERS, "123456789012");
-    event.getRequest().setUserAttributes(attributes);
-
-    assertThrows(
-        IdentityServiceMissingNinException.class, () -> handler.handleRequest(event, context));
-
-    verifyNoInteractions(personRegistry);
-  }
-
-  @Test
-  void shouldNotCreatePersonIfFetchFails() {
-    var personLoggingIn = scenarios.failingPersonRegistryRequestBadGateway();
-    var event = newLoginEvent(personLoggingIn.nin(), NON_FEIDE);
-
-    assertThrows(Exception.class, () -> handler.handleRequest(event, context));
-
-    verify(personRegistry, never())
-        .createPerson(eq(NationalIdentityNumber.fromString(personLoggingIn.nin())), any(), any());
-  }
-
-  @ParameterizedTest(name = "Login event type: {0}")
-  @DisplayName(
-      "should not create user for the person's institution if the institution is an inactive"
-          + " customer")
-  @EnumSource(LoginEventType.class)
-  void shouldNotCreateUsersWithNoCustomerWhenCustomerHasSetInactiveFromDateToThePast(
-      LoginEventType loginEventType) {
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-    var personLoggingIn = scenarios.personWithExactlyInCustomerWithInactiveFromSetInThePast().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-    handler.handleRequest(event, context);
-    var allUsers = scanAllUsers();
-    assertThat(allUsers, is(empty()));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains("Customer is inactive"));
-  }
-
-  @ParameterizedTest(
-      name =
-          "should not create user for institutions (top orgs) that the user has only inactive "
-              + "employments with when person has not logged in before and has active and inactive "
-              + "affiliations in different institutions")
-  @EnumSource(LoginEventType.class)
-  void shouldNotCreateUserForTopOrgsWithInactiveEmployments(LoginEventType loginEventType) {
-
-    var personLoggingIn =
-        scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-    handler.handleRequest(event, context);
-
-    var activeEmployments =
-        scenarios.getCristinUriForInstitutionAffiliations(personLoggingIn, ACTIVE);
-    var inactiveEmployments =
-        scenarios.getCristinUriForInstitutionAffiliations(personLoggingIn, INACTIVE);
-    var allUsers = scanAllUsers();
-    var topLevelOrgsForCreatedUsers =
-        allUsers.stream().map(UserDto::getInstitutionCristinId).collect(Collectors.toSet());
-    assertThat(
-        topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
-    assertThat(inactiveEmployments, everyItem(not(in(topLevelOrgsForCreatedUsers))));
-  }
-
-  @ParameterizedTest(
-      name =
-          "should create user for institution (top org) when the user has both active and "
-              + "inactive employment with that institution")
-  @EnumSource(LoginEventType.class)
-  void
-      shouldCreateUserForInstitutionWhenTheUserHasBothActiveAndInactiveEmploymentWithThatInstitution(
-          LoginEventType loginEventType) {
-
-    var personLoggingIn =
-        scenarios.personWithOneActiveAndOneInactiveEmploymentInSameInstitution().nin();
-    var event = newLoginEvent(personLoggingIn, loginEventType);
-    handler.handleRequest(event, context);
-    var activeEmployments =
-        scenarios.getCristinUriForInstitutionAffiliations(personLoggingIn, ACTIVE);
-    var inactiveEmployments =
-        scenarios.getCristinUriForInstitutionAffiliations(personLoggingIn, INACTIVE);
-    var allUsers = scanAllUsers();
-    var topLevelOrgsForCreatedUsers =
-        allUsers.stream().map(UserDto::getInstitutionCristinId).collect(Collectors.toSet());
-    assertThat(allUsers, hasSize(SINGLE_EXPECTED_USER));
-    assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
-        topLevelOrgsForCreatedUsers, activeEmployments, inactiveEmployments);
-  }
-
-  private static void assertThatEmployeeWithInactiveAndActiveEmploymentInSameTopLevelOrgGetsAUser(
-      Set<URI> topLevelOrgsForCreatedUsers,
-      Set<URI> activeEmployments,
-      Set<URI> inactiveEmployments) {
-    assertThat(
-        topLevelOrgsForCreatedUsers, containsInAnyOrder(activeEmployments.toArray(URI[]::new)));
-    assertThat(
-        topLevelOrgsForCreatedUsers, containsInAnyOrder(inactiveEmployments.toArray(URI[]::new)));
-  }
-
-  @ParameterizedTest(
-      name =
-          "should maintain legacy user names for users that have already logged in "
-              + "to avoid missing the reference between publications and users")
-  @EnumSource(LoginEventType.class)
-  void shouldMaintainUsernameInPreexistingUserEntriesForBothActiveAndInactiveEmployments(
-      LoginEventType eventType) {
-    var personLoggingIn =
-        scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
-    var preExistingUsers =
-        scenarios.createUsersForAllActiveAffiliations(personLoggingIn, identityService);
-    var expectedUsernames = preExistingUsers.stream().map(UserDto::getUsername).toList();
-    var event = newLoginEvent(personLoggingIn, eventType);
-    handler.handleRequest(event, context);
-    var users = scanAllUsers();
-    var actualUsernames = users.stream().map(UserDto::getUsername).collect(Collectors.toList());
-    assertThat(actualUsernames, containsInAnyOrder(expectedUsernames.toArray(String[]::new)));
   }
 
   @ParameterizedTest(
@@ -745,28 +535,6 @@ class UserSelectionUponLoginHandlerTest {
     return event.getRequest().getUserAttributes().get(ORG_FEIDE_DOMAIN);
   }
 
-  @ParameterizedTest(name = "should add firstName and lastName in claims when logging in")
-  @EnumSource(value = LoginEventType.class)
-  void shouldStoreGivenNameAndFamilyNameInUserTableWhenLoggingIn(LoginEventType loginEventType)
-      throws NotFoundException {
-    var person = scenarios.personWithExactlyOneActiveEmployment();
-    var user =
-        scenarios.createUsersForAllActiveAffiliations(person.nin(), identityService).stream()
-            .collect(SingletonCollector.collect());
-    var event = newLoginEvent(person.nin(), loginEventType);
-    termsAndConditionsService.updateTermsAndConditions(
-        user.getCristinId(), TERMS_URI, user.getUsername());
-    handler.handleRequest(event, context);
-
-    var expectedFirstName = scenarios.getPersonFromRegistry(person.nin()).getFirstname();
-    var expectedLastName = scenarios.getPersonFromRegistry(person.nin()).getSurname();
-
-    assertThat(
-        extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), containsString(expectedFirstName));
-    assertThat(
-        extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), containsString(expectedLastName));
-  }
-
   @Test
   void shouldIssueClaimsForOwnPersonWhenStaleImpersonatingAttributeIsPresent() {
     var person = scenarios.personWithExactlyOneActiveEmployment().nin();
@@ -783,56 +551,9 @@ class UserSelectionUponLoginHandlerTest {
         actualCristinPersonId, is(not(equalTo(scenarios.getCristinIdForPerson(otherPerson)))));
   }
 
-  @ParameterizedTest(name = "Login event type: {0}")
-  @DisplayName("should write link and person rows when the person registry resolved the person")
-  @EnumSource(LoginEventType.class)
-  void shouldWriteLinkAndPersonRowsWhenPersonIsResolvedFromRegistry(LoginEventType loginEventType) {
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var event = newLoginEvent(nin, loginEventType);
-
-    handler.handleRequest(event, context);
-
-    var expectedCristinId = scenarios.getCristinIdForPerson(nin);
-    var link = identityService.fetchLink(event.getUserName()).orElseThrow();
-    assertThat(link.personId(), is(equalTo(expectedCristinId)));
-    assertThat(link.feideIdentifier(), is(equalTo(extractFeideIdentifierFromInputEvent(event))));
-    assertThat(link.orgFeideDomain(), is(equalTo(extractFeideDomainFromInputEvent(event))));
-    assertThat(link.modified(), is(notNullValue()));
-
-    var registryPerson = scenarios.getPersonFromRegistry(nin);
-    var expectedCustomers =
-        scenarios.fetchCustomersForPerson(nin).stream()
-            .map(CustomerDto::getId)
-            .collect(Collectors.toSet());
-    var linkedPerson = identityService.fetchLinkedPerson(expectedCristinId).orElseThrow();
-    assertThat(linkedPerson.givenName(), is(equalTo(registryPerson.getFirstname())));
-    assertThat(linkedPerson.familyName(), is(equalTo(registryPerson.getSurname())));
-    assertThat(linkedPerson.customers(), is(equalTo(expectedCustomers)));
-    assertThat(linkedPerson.lastVerified(), is(notNullValue()));
-  }
-
   private static String extractFeideIdentifierFromInputEvent(
       CognitoUserPoolPreTokenGenerationEventV2 event) {
     return event.getRequest().getUserAttributes().get(FEIDE_ID);
-  }
-
-  @Test
-  void shouldOnlyRememberCustomersWithActiveAffiliationInPersonRow() {
-    var nin = scenarios.personWithOneActiveAndOneInactiveEmploymentInDifferentInstitutions().nin();
-    var event = newLoginEvent(nin, NON_FEIDE);
-
-    handler.handleRequest(event, context);
-
-    var expectedCustomers =
-        scenarios.getCristinUriForInstitutionAffiliations(nin, ACTIVE).stream()
-            .map(attempt(customerService::getCustomerByCristinId))
-            .map(Try::orElseThrow)
-            .map(CustomerDto::getId)
-            .collect(Collectors.toSet());
-    var linkedPerson =
-        identityService.fetchLinkedPerson(scenarios.getCristinIdForPerson(nin)).orElseThrow();
-    assertThat(linkedPerson.customers(), is(equalTo(expectedCustomers)));
-    assertThat(linkedPerson.customers(), hasSize(1));
   }
 
   @ParameterizedTest(name = "Login event type: {0}")
@@ -852,13 +573,11 @@ class UserSelectionUponLoginHandlerTest {
     var claimsFromRegistry = cognitoClient.getAdminUpdateUserRequest().userAttributes();
     var groupsFromRegistry = groupsToOverride(loginResponse);
     var selectedCustomer = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
-    clearInvocations(personRegistry);
 
     var refresh = refreshFor(login);
     refresh.getRequest().getUserAttributes().put(CURRENT_CUSTOMER_CLAIM, selectedCustomer);
     var refreshResponse = handler.handleRequest(refresh, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(groupsFromRegistry, is(not(empty())));
     assertThat(extractClaimFromCognitoUpdateRequest(ROLES_CLAIM), is(not(emptyString())));
     assertThat(extractClaimFromCognitoUpdateRequest(ACCESS_RIGHTS_CLAIM), is(not(emptyString())));
@@ -875,48 +594,6 @@ class UserSelectionUponLoginHandlerTest {
             .getClaimsAndScopeOverrideDetails()
             .getGroupOverrideDetails()
             .getGroupsToOverride());
-  }
-
-  @Test
-  void shouldUseNinFromNonFeideAttributeWhenFeideNinAttributeIsBlank() {
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var event = newLoginEvent(nin, NON_FEIDE);
-    var attributes = new HashMap<>(event.getRequest().getUserAttributes());
-    attributes.put(NIN_FOR_FEIDE_USERS, " ");
-    attributes.put(NIN_FOR_NON_FEIDE_USERS, nin);
-    event.getRequest().setUserAttributes(attributes);
-
-    handler.handleRequest(event, context);
-
-    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
-    assertThat(identityService.fetchLink(event.getUserName()).isPresent(), is(true));
-  }
-
-  @Test
-  void shouldLogInWithoutRowsWhenWritingLinkAndPersonRowsFails() {
-    var failingIdentityService = spy(identityService);
-    doThrow(new RuntimeException("DynamoDB is unavailable"))
-        .when(failingIdentityService)
-        .saveLinkedPerson(any());
-    handler =
-        new UserSelectionUponLoginHandler(
-            cognitoClient,
-            customerService,
-            failingIdentityService,
-            personRegistry,
-            termsAndConditionsService);
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var event = newLoginEvent(nin, NON_FEIDE);
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-
-    handler.handleRequest(event, context);
-
-    assertThat(
-        extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
-        is(equalTo(scenarios.getCristinIdForPerson(nin).toString())));
-    assertThat(identityService.fetchLink(event.getUserName()).isPresent(), is(false));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message -> message.contains("Could not write link and person rows"));
   }
 
   @Test
@@ -941,56 +618,6 @@ class UserSelectionUponLoginHandlerTest {
         extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
         is(equalTo(customerFromRegistry)));
     assertThat(extractClaimFromCognitoUpdateRequest(FEIDE_ID), is(equalTo(feideIdFromRegistry)));
-  }
-
-  @Test
-  void shouldFailWithMissingLinkOnRefreshWithoutNinWhenLinkPointsToPersonWithoutRow() {
-    var username = FEDERATED_USERNAME_PREFIX + randomString();
-    identityService.saveLink(new IdentityLink(username, randomUri(), null, null, Instant.now()));
-    var event = linkPathRefresh(username);
-
-    var exception =
-        assertThrows(
-            IdentityServiceMissingLinkException.class, () -> handler.handleRequest(event, context));
-
-    assertThat(exception.getErrorCode(), is(equalTo("1004")));
-    verifyNoInteractions(personRegistry);
-  }
-
-  @Test
-  void shouldUsePersonRegistryOnRefreshWithNinWhenLinkPointsToPersonWithoutRow() {
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var cristinId = scenarios.getCristinIdForPerson(nin);
-    var login = feideLogin(nin);
-    var staleCristinId = randomUri();
-    identityService.saveLink(
-        new IdentityLink(login.getUserName(), staleCristinId, null, null, Instant.now()));
-    var refresh = refreshFor(login);
-
-    handler.handleRequest(refresh, context);
-
-    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
-    assertThat(
-        identityService.fetchLink(login.getUserName()).orElseThrow().personId(),
-        is(equalTo(cristinId)));
-    assertThat(identityService.fetchLinkedPerson(cristinId).isPresent(), is(true));
-  }
-
-  @Test
-  void shouldFailWithMissingNinOnLoginWithoutNinEvenWhenUserHasLink() {
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var login = feideLogin(nin);
-    handler.handleRequest(login, context);
-    clearInvocations(personRegistry);
-    var loginWithoutNin = withoutNin(login);
-
-    var exception =
-        assertThrows(
-            IdentityServiceMissingNinException.class,
-            () -> handler.handleRequest(loginWithoutNin, context));
-
-    assertThat(exception.getErrorCode(), is(equalTo("1003")));
-    verifyNoInteractions(personRegistry);
   }
 
   @Test
@@ -1037,11 +664,7 @@ class UserSelectionUponLoginHandlerTest {
         .getUserByPersonCristinIdAndCustomerCristinId(any(), any());
     handler =
         new UserSelectionUponLoginHandler(
-            cognitoClient,
-            customerService,
-            failingIdentityService,
-            personRegistry,
-            termsAndConditionsService);
+            cognitoClient, customerService, failingIdentityService, termsAndConditionsService);
     var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
     var refresh = refreshFor(withoutNin(login));
     refresh
@@ -1076,7 +699,6 @@ class UserSelectionUponLoginHandlerTest {
 
     var loginResponse = handler.handleRequest(login, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(
         extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
         is(equalTo(cristinId.toString())));
@@ -1104,7 +726,6 @@ class UserSelectionUponLoginHandlerTest {
         .put(CURRENT_CUSTOMER_CLAIM, user.getInstitution().toString());
     handler.handleRequest(refresh, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(
         extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
         is(equalTo(user.getInstitution().toString())));
@@ -1119,7 +740,6 @@ class UserSelectionUponLoginHandlerTest {
 
     handler.handleRequest(event, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(
         extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
         is(equalTo(cristinId.toString())));
@@ -1140,7 +760,6 @@ class UserSelectionUponLoginHandlerTest {
             IdentityServiceMissingLinkException.class, () -> handler.handleRequest(event, context));
 
     assertThat(exception.getErrorCode(), is(equalTo("1004")));
-    verifyNoInteractions(personRegistry);
   }
 
   @Test
@@ -1188,7 +807,6 @@ class UserSelectionUponLoginHandlerTest {
 
     handler.handleRequest(event, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(extractClaimFromCognitoUpdateRequest(FIRST_NAME_CLAIM), is(equalTo(firstName)));
     assertThat(extractClaimFromCognitoUpdateRequest(LAST_NAME_CLAIM), is(equalTo(lastName)));
     assertThat(
@@ -1237,7 +855,6 @@ class UserSelectionUponLoginHandlerTest {
 
     handler.handleRequest(event, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(
         extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM), is(equalTo(EMPTY_CLAIM)));
     assertThat(
@@ -1324,29 +941,6 @@ class UserSelectionUponLoginHandlerTest {
                 && message.contains(event.getUserName()));
   }
 
-  @Test
-  void shouldUsePersonRegistryOnRefreshWhenUserHasNoLinkYet() {
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var refresh = refreshFor(newLoginEvent(nin, NON_FEIDE));
-
-    handler.handleRequest(refresh, context);
-
-    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
-    assertThat(identityService.fetchLink(refresh.getUserName()).isPresent(), is(true));
-  }
-
-  @Test
-  void shouldUsePersonRegistryOnLoginEvenWhenUserHasLink() {
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var login = newLoginEvent(nin, NON_FEIDE);
-    handler.handleRequest(login, context);
-    clearInvocations(personRegistry);
-
-    handler.handleRequest(login, context);
-
-    verify(personRegistry).fetchPersonByNin(NationalIdentityNumber.fromString(nin));
-  }
-
   /** The same user refreshing tokens, with the stored attributes as Cognito sends them. */
   private static CognitoUserPoolPreTokenGenerationEventV2 refreshFor(
       CognitoUserPoolPreTokenGenerationEventV2 login) {
@@ -1391,110 +985,6 @@ class UserSelectionUponLoginHandlerTest {
     return event;
   }
 
-  @ParameterizedTest(
-      name = "should handle splitting name into firstName and lastName in claims when logging in")
-  @MethodSource("differentCorrectNames")
-  void shouldHandleDifferentNames(String name, String expectedFirstName, String expectedLastName)
-      throws NotFoundException {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-    mockPersonRegistry.createPostPersonStub(
-        new CristinPerson(
-            mockPerson.getCristinPerson().getId(),
-            expectedFirstName,
-            expectedLastName,
-            null,
-            mockPerson.nin()));
-
-    var event = nonFeideLogin(mockPerson.nin(), name);
-
-    termsAndConditionsService.updateTermsAndConditions(
-        URI.create(mockPerson.getCristinPerson().getId()), TERMS_URI, randomString());
-    var response = handler.handleRequest(event, context);
-
-    var attributes =
-        response
-            .getResponse()
-            .getClaimsAndScopeOverrideDetails()
-            .getIdTokenGeneration()
-            .getClaimsToAddOrOverride();
-    var firstname = attributes.get(FIRST_NAME_CLAIM);
-    var lastName = attributes.get(LAST_NAME_CLAIM);
-
-    assertThat(firstname, containsString(expectedFirstName));
-    assertThat(lastName, containsString(expectedLastName));
-  }
-
-  @ParameterizedTest(name = "should not handle bad names")
-  @MethodSource("differentFailingNames")
-  void shouldNotHandleBadNames(String name) throws NotFoundException {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-
-    var event = nonFeideLogin(mockPerson.nin(), name);
-
-    termsAndConditionsService.updateTermsAndConditions(
-        URI.create(mockPerson.getCristinPerson().getId()), TERMS_URI, randomString());
-    assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
-  }
-
-  public static Stream<Arguments> differentFailingNames() {
-    {
-      return Stream.of(
-          Arguments.of("Alice"),
-          Arguments.of("   "),
-          Arguments.of("a\t"),
-          Arguments.of("   Alice"),
-          Arguments.of((String) null));
-    }
-  }
-
-  public static Stream<Arguments> differentCorrectNames() {
-    {
-      return Stream.of(
-          Arguments.of("John Doe", "John", "Doe"),
-          Arguments.of("Håkon Østby Ærland", "Håkon Østby", "Ærland"),
-          Arguments.of("O'Connor McGregor", "O'Connor", "McGregor"),
-          Arguments.of("李四 王五", "李四", "王五"),
-          Arguments.of("å b c d", "å b", "c d"),
-          Arguments.of("å b c, d", "å b", "c d"));
-    }
-  }
-
-  @Test
-  void shouldFailIfNoGoodFirstNameOptionsLeft() {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-    var event = feideLogin(mockPerson.nin());
-    event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, "   ");
-    assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
-  }
-
-  @Test
-  void shouldFailIfNoGoodLastNameOptionsLeft() {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-    var event = feideLogin(mockPerson.nin());
-    event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, "   ");
-    assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
-  }
-
-  @Test
-  void shouldNameTheFailingNameButNotLogAttributeValuesWhenNameCannotBeExtracted() {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-    var event = feideLogin(mockPerson.nin());
-    event.getRequest().getUserAttributes().put(NAME_CLAIM, "Alice");
-    event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, "   ");
-    var logRecorder = LogRecorder.forRoot(UserSelectionUponLoginHandlerTest.class);
-
-    var exception =
-        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
-
-    assertThat(exception.getMessage(), containsString("Alice"));
-    Assertions.assertThat(logRecorder.messages())
-        .anyMatch(message ->
-            message.contains("Could not extract name from user attributes with keys")
-                && message.contains(FEIDE_ID))
-        .noneMatch(message -> message.contains("feideid@domain.no"))
-        .noneMatch(message -> message.contains(mockPerson.nin()));
-  }
-
   @Test
   void shouldHandleFeideOrgRegardlessOfCase() throws NotFoundException {
     var mockPerson = scenarios.personWithExactlyOneActiveEmployment();
@@ -1519,76 +1009,6 @@ class UserSelectionUponLoginHandlerTest {
             .getClaimsToAddOrOverride()
             .get(CURRENT_CUSTOMER_CLAIM);
     assertThat(currentCustomer, containsString(customer.getId().toString()));
-  }
-
-  @ParameterizedTest(
-      name = "should keep all available names when logging in with encoded Feide names")
-  @MethodSource("differentCorrectNames")
-  void shouldKeepAllAvaliableNamesWhenLoggingInWithEncodedFeideNames(
-      String name, String expectedFirstName, String expectedLastName) {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-    var event = feideLogin(mockPerson.nin());
-
-    event
-        .getRequest()
-        .getUserAttributes()
-        .put(FIRST_NAME_CLAIM, feideEncodeString(expectedFirstName));
-    event
-        .getRequest()
-        .getUserAttributes()
-        .put(LAST_NAME_CLAIM, feideEncodeString(expectedLastName));
-
-    mockPersonRegistry.createPostPersonStub(
-        new CristinPerson(
-            mockPerson.getCristinPerson().getId(),
-            expectedFirstName,
-            expectedLastName,
-            null,
-            mockPerson.nin()));
-
-    // Execute the handler to trigger the request
-    handler.handleRequest(event, context);
-
-    // Verify the request was made with expected JSON body
-    WireMock.verify(
-        postRequestedFor(urlEqualTo("/persons"))
-            .withRequestBody(matchingJsonPath("$.first_name", WireMock.equalTo(expectedFirstName)))
-            .withRequestBody(matchingJsonPath("$.surname", WireMock.equalTo(expectedLastName))));
-  }
-
-  @ParameterizedTest(
-      name = "should keep all available names when logging in with not encoded Feide names")
-  @MethodSource("differentCorrectNames")
-  void shouldKeepAllAvaliableNamesWhenLoggingInWithNotEncodedFeideNames(
-      String name, String expectedFirstName, String expectedLastName) {
-    var mockPerson = mockPersonRegistry.mockResponseForPersonNotFound();
-    var event = feideLogin(mockPerson.nin());
-
-    event.getRequest().getUserAttributes().put(FIRST_NAME_CLAIM, expectedFirstName);
-    event.getRequest().getUserAttributes().put(LAST_NAME_CLAIM, expectedLastName);
-
-    mockPersonRegistry.createPostPersonStub(
-        new CristinPerson(
-            mockPerson.getCristinPerson().getId(),
-            expectedFirstName,
-            expectedLastName,
-            null,
-            mockPerson.nin()));
-
-    // Execute the handler to trigger the request
-    handler.handleRequest(event, context);
-
-    // Verify the request was made with expected JSON body
-    WireMock.verify(
-        postRequestedFor(urlEqualTo("/persons"))
-            .withRequestBody(matchingJsonPath("$.first_name", WireMock.equalTo(expectedFirstName)))
-            .withRequestBody(matchingJsonPath("$.surname", WireMock.equalTo(expectedLastName))));
-  }
-
-  private static String feideEncodeString(String expectedFirstName) {
-    return "[%s]"
-        .formatted(
-            URLEncoder.encode("\"%s\"".formatted(expectedFirstName), StandardCharsets.UTF_8));
   }
 
   @ParameterizedTest(
@@ -1617,6 +1037,7 @@ class UserSelectionUponLoginHandlerTest {
   void shouldNotClearCustomerSelectionClaimsRefreshingToken(LoginEventType loginEventType) {
     var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions().nin();
     var event = newLoginEvent(person, loginEventType);
+    handler.handleRequest(event, context);
     var userAttributes = new HashMap<>(event.getRequest().getUserAttributes());
     var customer = fetchCustomersWithActiveEmploymentsForPerson(person).stream().findFirst();
     userAttributes.put(CURRENT_CUSTOMER_CLAIM, customer.get().toString());
@@ -1639,6 +1060,7 @@ class UserSelectionUponLoginHandlerTest {
     var cristinPersonId = mockPersonRegistry.getCristinIdForPerson(person);
     termsAndConditionsService.updateTermsAndConditions(cristinPersonId, TERMS_URI, randomString());
     var event = newLoginEvent(person, loginEventType);
+    handler.handleRequest(event, context);
     event.setTriggerSource(TRIGGER_SOURCE_REFRESH_TOKENS);
     handler.handleRequest(event, context);
 
@@ -1686,31 +1108,6 @@ class UserSelectionUponLoginHandlerTest {
             .getClaimsAndScopeOverrideDetails()
             .getGroupOverrideDetails()
             .getGroupsToOverride());
-  }
-
-  // The following scenario happens when a customer was deleted and instead of being restored by
-  // backup data,
-  // it wes re-created. As a result, existing users will reference the correct Cristin Org entry,
-  // but the incorrect
-  // (old) NVA Customer entry
-  @ParameterizedTest(
-      name =
-          "should fail when user has inconsistent values for 'institution' (customerId) "
-              + "and  'institutionCristinId' (cristinCustomerId). ")
-  @EnumSource(LoginEventType.class)
-  void shouldFailWhenSelectedUserHasWrongCustomerId(LoginEventType loginEventType)
-      throws NotFoundException {
-    var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-
-    var existingUser =
-        scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
-            .collect(SingletonCollector.collect());
-    existingUser.setInstitution(randomUri());
-    identityService.updateUser(existingUser);
-    var event = newLoginEvent(person, loginEventType);
-    var exception =
-        assertThrows(IllegalStateException.class, () -> handler.handleRequest(event, context));
-    assertThat(exception.getMessage(), containsString(COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR));
   }
 
   @ParameterizedTest(
@@ -2027,30 +1424,6 @@ class UserSelectionUponLoginHandlerTest {
     assertThat(actualAccessRights, containsString(accessRight.toPersistedString()));
   }
 
-  @ParameterizedTest
-  @EnumSource(LoginEventType.class)
-  void shouldStoreAccessRightsToDatabaseWhenUserHasSeveralActiveAffiliations(
-      LoginEventType loginEventType)
-      throws InvalidInputException, NotFoundException, ConflictException {
-    var person = scenarios.personWithTwoActiveEmploymentsInDifferentInstitutions();
-    var role = persistRandomRole();
-    var users = createUsersWithRolesForPerson(person.nin(), role);
-    var accessRight = randomElement(AccessRight.values());
-    addAccessRightToExistingRole(role, accessRight);
-    var firstUser = users.stream().findFirst().get();
-
-    termsAndConditionsService.updateTermsAndConditions(
-        firstUser.getCristinId(), TERMS_URI, firstUser.getUsername());
-
-    var event = newLoginEvent(person.nin(), loginEventType);
-    handler.handleRequest(event, context);
-
-    users.forEach(user -> {
-      var userAfterLogin = attempt(() -> identityService.getUser(user)).orElseThrow();
-      assertThat(userAfterLogin.getAccessRights(), hasItem(accessRight));
-    });
-  }
-
   @ParameterizedTest(
       name =
           "should store user's username in cognito user attributes when user has "
@@ -2096,65 +1469,6 @@ class UserSelectionUponLoginHandlerTest {
     assertThat(actualUsername, is(equalTo(expectedUsername)));
   }
 
-  @ParameterizedTest(
-      name =
-          "should add role (\"Creator\") that distinguishes between logged in people with active "
-              + "employments and logged in people without active employments to new user entries")
-  @EnumSource(LoginEventType.class)
-  void shouldAddRoleCreatorToNewUserEntries(LoginEventType loginEventType) {
-    var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var event = newLoginEvent(person, loginEventType);
-    handler.handleRequest(event, context);
-    var users = scanAllUsers();
-    for (var user : users) {
-      var roleNames =
-          user.getRoles().stream().map(RoleDto::getRoleName).collect(Collectors.toSet());
-      assertThat(roleNames, hasItem(RoleName.CREATOR));
-    }
-  }
-
-  @ParameterizedTest
-  @EnumSource(LoginEventType.class)
-  void shouldAddUserAffiliationToNewUserEntryWhenUserEntryDoesNotPreexist(
-      LoginEventType loginEventType) {
-    var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var employment =
-        scenarios.getCristinUriForUnitAffiliations(person).stream()
-            .collect(SingletonCollector.collect());
-    var event = newLoginEvent(person, loginEventType);
-    handler.handleRequest(event, context);
-    var user = scanAllUsers().stream().collect(SingletonCollector.collect());
-    assertThat(user.getAffiliation(), is(equalTo(employment)));
-  }
-
-  @ParameterizedTest
-  @EnumSource(LoginEventType.class)
-  void
-      shouldAddUserEmploymentMentionedInPersonRegistryToExistingUserDatabaseEntryWhenUserEntryPreexists(
-          LoginEventType loginEventType) throws NotFoundException {
-    var person = scenarios.personWithExactlyOneActiveEmployment().nin();
-    var existingUser =
-        scenarios.createUsersForAllActiveAffiliations(person, identityService).stream()
-            .collect(SingletonCollector.collect());
-    removeEmployment(existingUser);
-    var userBeforeLogIn = identityService.getUser(existingUser);
-    assertThat(userBeforeLogIn.getAffiliation(), is(nullValue()));
-
-    var event = newLoginEvent(person, loginEventType);
-    handler.handleRequest(event, context);
-    var userAfterLogin = identityService.getUser(existingUser);
-    var expectedAffiliation =
-        scenarios.getCristinUriForUnitAffiliations(person).stream()
-            .collect(SingletonCollector.collect());
-
-    assertThat(userAfterLogin.getAffiliation(), is(equalTo(expectedAffiliation)));
-  }
-
-  private void removeEmployment(UserDto existingUser) throws NotFoundException {
-    existingUser.setAffiliation(null);
-    identityService.updateUser(existingUser);
-  }
-
   @ParameterizedTest
   @EnumSource(LoginEventType.class)
   void shouldUpdateCognitoUserInfoDetailsWithCurrentUserAffiliation(LoginEventType loginEventType)
@@ -2173,30 +1487,6 @@ class UserSelectionUponLoginHandlerTest {
             .collect(SingletonCollector.collect());
     var cognitoAttribute = extractClaimFromCognitoUpdateRequest(PERSON_AFFILIATION_CLAIM);
     assertThat(cognitoAttribute, is(equalTo(expectedAffiliation.toString())));
-  }
-
-  @ParameterizedTest
-  @EnumSource(LoginEventType.class)
-  void shouldNotAllowPeopleWhoAreNotRegisteredInCristin(LoginEventType loginEventType) {
-    var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
-    var event = newLoginEvent(person.nin(), loginEventType);
-    assertThrows(IdentityServiceException.class, () -> handler.handleRequest(event, context));
-  }
-
-  @ParameterizedTest
-  @EnumSource(LoginEventType.class)
-  void shouldCreateCristinUserWhenNotFoundInRegistry(LoginEventType loginEventType) {
-    var person = scenarios.personThatIsNotRegisteredInPersonRegistry();
-    mockPersonRegistry.createPostPersonStub(person.getCristinPerson());
-
-    var event = newLoginEvent(person.nin(), loginEventType);
-    var response = handler.handleRequest(event, context);
-
-    var accessRights = extractAccessRights(response);
-    var nin = NationalIdentityNumber.fromString(person.nin());
-
-    assertThat(accessRights, is((empty())));
-    verify(personRegistry, times(1)).createPerson(eq(nin), any(), any());
   }
 
   @Test
@@ -2346,22 +1636,6 @@ class UserSelectionUponLoginHandlerTest {
         accessTokenClaims, hasEntry(CURRENT_CUSTOMER_CLAIM, client.getCustomer().toString()));
   }
 
-  @Test
-  void shouldNotLookUpPersonWhenTriggeredByClientCredentials() {
-    var client =
-        ClientDto.newBuilder()
-            .withClientId(randomString())
-            .withCustomer(randomUri())
-            .withCristinOrgUri(randomUri())
-            .withActingUser(randomString())
-            .build();
-    identityService.addExternalClient(client);
-
-    handler.handleRequest(clientCredentialsEvent(client.getClientId()), context);
-
-    verifyNoInteractions(personRegistry);
-  }
-
   private static CognitoUserPoolPreTokenGenerationEventV2 clientCredentialsEvent(String clientId) {
     var event = new CognitoUserPoolPreTokenGenerationEventV2();
     event.setTriggerSource(TRIGGER_SOURCE_CLIENT_CREDENTIALS);
@@ -2384,38 +1658,14 @@ class UserSelectionUponLoginHandlerTest {
         .getCustomer(any(URI.class));
     handler =
         new UserSelectionUponLoginHandler(
-            cognitoClient,
-            failingCustomerService,
-            identityService,
-            personRegistry,
-            termsAndConditionsService);
+            cognitoClient, failingCustomerService, identityService, termsAndConditionsService);
     var refresh = refreshFor(login);
 
     assertThrows(RuntimeException.class, () -> handler.handleRequest(refresh, context));
   }
 
   @Test
-  void shouldWriteEmptyNinAttributesWhenInboundFederationIsEnabled() {
-    handler =
-        new UserSelectionUponLoginHandler(
-            cognitoClient,
-            customerService,
-            identityService,
-            personRegistry,
-            termsAndConditionsService,
-            true);
-    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
-
-    handler.handleRequest(newLoginEvent(nin, FEIDE), context);
-
-    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
-        .filteredOn(attribute -> NIN_ATTRIBUTES.contains(attribute.name()))
-        .extracting(AttributeType::value)
-        .containsExactly("", "");
-  }
-
-  @Test
-  void shouldLeaveNinAttributesAloneByDefault() {
+  void shouldNotWriteTheIdentityNumberAttributes() {
     var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
 
     handler.handleRequest(newLoginEvent(nin, FEIDE), context);
@@ -2426,31 +1676,21 @@ class UserSelectionUponLoginHandlerTest {
   }
 
   @Test
-  void shouldResolveLoginWithoutNinFromLinkWhenInboundFederationIsEnabled() {
+  void shouldResolveLoginWithoutNinFromLink() {
     var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
     var login = feideLogin(nin);
     handler.handleRequest(login, context);
     var customerFromRegistry = extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM);
-    clearInvocations(personRegistry);
-    handler =
-        new UserSelectionUponLoginHandler(
-            cognitoClient,
-            customerService,
-            identityService,
-            personRegistry,
-            termsAndConditionsService,
-            true);
 
     handler.handleRequest(withoutNin(login), context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(
         extractClaimFromCognitoUpdateRequest(CURRENT_CUSTOMER_CLAIM),
         is(equalTo(customerFromRegistry)));
   }
 
   @Test
-  void shouldResolveLoginFromRowsBeforeStoredNinWhenInboundFederationIsEnabled() {
+  void shouldResolveLoginFromRowsWhateverNumberTheUserStillCarries() {
     var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
     handler.handleRequest(login, context);
     var otherNin = scenarios.personWithExactlyOneActiveEmployment().nin();
@@ -2467,60 +1707,40 @@ class UserSelectionUponLoginHandlerTest {
             Instant.now()));
     identityService.saveLink(
         new IdentityLink(login.getUserName(), otherCristinId, null, null, Instant.now()));
-    clearInvocations(personRegistry);
-    handler = handlerWithInboundFederationEnabled();
+    handler = handlerAlone();
 
     handler.handleRequest(login, context);
 
-    verifyNoInteractions(personRegistry);
     assertThat(
         extractClaimFromCognitoUpdateRequest(PERSON_CRISTIN_ID_CLAIM),
         is(equalTo(otherCristinId.toString())));
   }
 
   @Test
-  void shouldFailWithMissingNinOnLoginWithoutNinAndRowsWhenInboundFederationIsEnabled() {
-    handler = handlerWithInboundFederationEnabled();
+  void shouldFailWhenThePersonHasTwoUserEntriesAtTheSelectedCustomer() throws ConflictException {
+    var nin = scenarios.personWithExactlyOneActiveEmployment().nin();
+    var user =
+        scenarios.createUsersForAllActiveAffiliations(nin, identityService).stream()
+            .collect(SingletonCollector.collect());
+    identityService.addUser(user.copy().withUsername(randomString()).build());
+    var login = passwordLogin(scenarios.getCristinIdForPerson(nin), null);
+
+    var exception =
+        assertThrows(IllegalStateException.class, () -> handler.handleRequest(login, context));
+
+    assertThat(
+        exception.getMessage(),
+        containsString(UserSelectionUponLoginHandler.COULD_NOT_FIND_USER_FOR_CUSTOMER_ERROR));
+  }
+
+  @Test
+  void shouldRefuseAFederatedUserWithoutTheRowsTheInboundTriggerWrites() {
     var login = withoutNin(feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin()));
 
     var exception =
         assertThrows(
-            IdentityServiceMissingNinException.class, () -> handler.handleRequest(login, context));
+            IdentityServiceMissingLinkException.class, () -> handler.handleRequest(login, context));
 
-    assertThat(exception.getErrorCode(), is(equalTo("1003")));
-    verifyNoInteractions(personRegistry);
-  }
-
-  @Test
-  void shouldWriteEmptyNinAttributesOnRefreshAndForPasswordUsersWhenInboundFederationIsEnabled() {
-    handler = handlerWithInboundFederationEnabled();
-    var login = feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
-    handler.handleRequest(login, context);
-
-    handler.handleRequest(refreshFor(login), context);
-    assertThatNinAttributesAreCleared();
-
-    var passwordUsersNin = scenarios.personWithExactlyOneActiveEmployment().nin();
-    scenarios.createUsersForAllActiveAffiliations(passwordUsersNin, identityService);
-    handler.handleRequest(
-        passwordLogin(scenarios.getCristinIdForPerson(passwordUsersNin), null), context);
-    assertThatNinAttributesAreCleared();
-  }
-
-  private UserSelectionUponLoginHandler handlerWithInboundFederationEnabled() {
-    return new UserSelectionUponLoginHandler(
-        cognitoClient,
-        customerService,
-        identityService,
-        personRegistry,
-        termsAndConditionsService,
-        true);
-  }
-
-  private void assertThatNinAttributesAreCleared() {
-    Assertions.assertThat(cognitoClient.getAdminUpdateUserRequest().userAttributes())
-        .filteredOn(attribute -> NIN_ATTRIBUTES.contains(attribute.name()))
-        .extracting(AttributeType::value)
-        .containsExactly("", "");
+    assertThat(exception.getErrorCode(), is(equalTo("1004")));
   }
 }

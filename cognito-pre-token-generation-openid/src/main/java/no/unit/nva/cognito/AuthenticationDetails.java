@@ -1,12 +1,9 @@
 package no.unit.nva.cognito;
 
-import java.util.Optional;
 import no.unit.nva.useraccessservice.model.IdentityLink;
-import no.unit.nva.useraccessservice.usercreation.person.NationalIdentityNumber;
 import nva.commons.core.JacocoGenerated;
 
 public class AuthenticationDetails {
-  private final NationalIdentityNumber nin;
   private final String feideIdentifier;
   private final String feideDomain;
   private final String userPoolId;
@@ -14,23 +11,16 @@ public class AuthenticationDetails {
   private final boolean federated;
 
   public AuthenticationDetails(
-      NationalIdentityNumber nin,
       String feideIdentifier,
       String feideDomain,
       String userPoolId,
       String username,
       boolean federated) {
-    this.nin = nin;
     this.feideIdentifier = feideIdentifier;
     this.feideDomain = feideDomain;
     this.userPoolId = userPoolId;
     this.username = username;
     this.federated = federated;
-  }
-
-  /** The national identity number, present only when the identity provider delivered one. */
-  public Optional<NationalIdentityNumber> getNin() {
-    return Optional.ofNullable(nin);
   }
 
   public String getFeideIdentifier() {
@@ -57,16 +47,14 @@ public class AuthenticationDetails {
   /** The same login, with the Feide details the link remembered instead of the user attributes. */
   public AuthenticationDetails withFeideDetailsFrom(IdentityLink link) {
     return new AuthenticationDetails(
-        nin, link.feideIdentifier(), link.orgFeideDomain(), userPoolId, username, federated);
+        link.feideIdentifier(), link.orgFeideDomain(), userPoolId, username, federated);
   }
 
   @JacocoGenerated
   @Override
   public String toString() {
     return "AuthenticationDetails{"
-        + "hasNin="
-        + (nin != null)
-        + ", feideIdentifier='"
+        + "feideIdentifier='"
         + feideIdentifier
         + '\''
         + ", feideDomain='"

@@ -45,6 +45,7 @@ class InboundFederationThroughTheRegistryTest extends InboundFederationHandlerTe
   void shouldCreateUserEntriesAndLinkAndPersonRowsOnFirstLogin() {
     var person = scenarios.personWithExactlyOneActiveEmployment();
     var cristinId = scenarios.getCristinIdForPerson(person.nin());
+    var inRegistry = mockPersonRegistry.getPerson(person.nin());
     var event = events.feideLogin(person.nin());
     var before = clock.instant();
 
@@ -69,6 +70,8 @@ class InboundFederationThroughTheRegistryTest extends InboundFederationHandlerTe
     assertThat(identityService.fetchLinkedPerson(cristinId))
         .get()
         .satisfies(linkedPerson -> {
+          assertThat(linkedPerson.givenName()).isEqualTo(inRegistry.getFirstname());
+          assertThat(linkedPerson.familyName()).isEqualTo(inRegistry.getSurname());
           assertThat(linkedPerson.customers())
               .isEqualTo(customerIds(scenarios.fetchCustomersForPerson(person.nin())));
           assertThat(linkedPerson.lastVerified()).isBetween(before, clock.instant());

@@ -2286,6 +2286,8 @@ Resources:
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
+          # Experiment: Lambda's own default on Java 21, which Java 25 drops for provisioned concurrency.
+          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
       Timeout: 5 # Cognito gives up after 5 seconds
 
   InboundFederationHandlerLogGroup:

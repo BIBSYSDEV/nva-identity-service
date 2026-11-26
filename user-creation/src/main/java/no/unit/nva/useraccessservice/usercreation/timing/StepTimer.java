@@ -9,7 +9,10 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -31,11 +34,13 @@ public final class StepTimer {
       "Call {} in this JVM: initializationType={} tieredStopAtLevel={} uptimeMs={} cpuMs={}"
           + " jitCpuMs={}";
   private static final String STEP_MESSAGE = "Step {} took wallMs={} cpuMs={} jitCpuMs={}";
+  private static final String THREADS_MESSAGE = "Threads in this JVM by CPU in ms: {}";
   private static final String INITIALIZATION_TYPE_VARIABLE = "AWS_LAMBDA_INITIALIZATION_TYPE";
   private static final String TIERED_STOP_AT_LEVEL_OPTION = "TieredStopAtLevel";
   private static final String UNKNOWN = "unknown";
   private static final long NANOSECONDS_PER_MILLISECOND = 1_000_000L;
   private static final AtomicInteger CALLS_IN_THIS_JVM = new AtomicInteger();
+  private static final int FIRST_CALL = 1;
 
   private static final Path THREADS_OF_THIS_PROCESS = Path.of("/proc/self/task");
   private static final String THREAD_STAT_FILE = "stat";
@@ -91,14 +96,46 @@ public final class StepTimer {
    * The CPU times are totals since the JVM started, so for call 1 they show what init cost.
    */
   public static void logCallStart() {
+    var callNumber = CALLS_IN_THIS_JVM.incrementAndGet();
     LOGGER.info(
         CALL_START_MESSAGE,
-        CALLS_IN_THIS_JVM.incrementAndGet(),
+        callNumber,
         initializationType(),
         tieredStopAtLevel(),
         ManagementFactory.getRuntimeMXBean().getUptime(),
         processCpuMilliseconds(),
         compilerThreadsCpuMilliseconds(THREADS_OF_THIS_PROCESS));
+    if (callNumber == FIRST_CALL) {
+      LOGGER.info(THREADS_MESSAGE, threadsByCpu(THREADS_OF_THIS_PROCESS));
+    }
+  }
+
+  /**
+   * Every thread's name and CPU time in milliseconds as Linux sees them, busiest first, plus how
+   * many stat files could not be read. Shows the real names of the JIT compiler threads.
+   */
+  static String threadsByCpu(Path threadsDirectory) {
+    var threads = new ArrayList<Map.Entry<String, Long>>();
+    var unreadable = 0;
+    try (var threadDirectories = Files.newDirectoryStream(threadsDirectory)) {
+      for (var threadDirectory : threadDirectories) {
+        try {
+          var statLine = Files.readString(threadDirectory.resolve(THREAD_STAT_FILE));
+          threads.add(
+              Map.entry(threadName(statLine), clockTicks(statLine) * MILLISECONDS_PER_CLOCK_TICK));
+        } catch (IOException threadEndedOrUnreadable) {
+          unreadable++;
+        }
+      }
+    } catch (IOException | DirectoryIteratorException noProc) {
+      return UNKNOWN;
+    }
+    threads.sort(Map.Entry.<String, Long>comparingByValue().reversed());
+    var summary = new StringJoiner(", ");
+    for (var thread : threads) {
+      summary.add(thread.getKey() + "=" + thread.getValue());
+    }
+    return summary + " unreadable=" + unreadable;
   }
 
   public void finish() {
@@ -138,17 +175,21 @@ public final class StepTimer {
     }
   }
 
-  /** A stat line reads "tid (name) state ...", and the name itself may hold spaces. */
   static long compilerThreadClockTicks(String statLine) {
+    return isCompilerThread(threadName(statLine)) ? clockTicks(statLine) : 0;
+  }
+
+  /** A stat line reads "tid (name) state ...", and the name itself may hold spaces. */
+  private static String threadName(String statLine) {
     var nameStart = statLine.indexOf('(');
     var nameEnd = statLine.lastIndexOf(')');
-    if (nameStart < 0 || nameEnd < nameStart) {
-      return 0;
-    }
-    if (!isCompilerThread(statLine.substring(nameStart + 1, nameEnd))) {
-      return 0;
-    }
-    var fields = statLine.substring(nameEnd + 1).trim().split("\\s+");
+    return nameStart < 0 || nameEnd < nameStart
+        ? UNKNOWN
+        : statLine.substring(nameStart + 1, nameEnd);
+  }
+
+  private static long clockTicks(String statLine) {
+    var fields = statLine.substring(statLine.lastIndexOf(')') + 1).trim().split("\\s+");
     if (fields.length <= SYSTEM_TIME_FIELD) {
       return 0;
     }

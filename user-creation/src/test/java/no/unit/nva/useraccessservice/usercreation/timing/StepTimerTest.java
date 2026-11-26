@@ -95,10 +95,24 @@ class StepTimerTest {
   void shouldTellTheInitializationTypeAsUnknownOutsideLambda() {
     StepTimer.logCallStart();
 
-    assertThat(logRecorder.messages())
-        .singleElement()
-        .asString()
-        .contains("initializationType=unknown");
+    assertThat(logRecorder.asString()).contains("initializationType=unknown");
+  }
+
+  @Test
+  void shouldListEveryThreadByCpuTimeWithTheUnreadableOnesCounted(@TempDir Path threads)
+      throws IOException {
+    writeThreadStat(threads, "101", C2_COMPILER_THREAD_STAT);
+    writeThreadStat(threads, "102", C1_COMPILER_THREAD_STAT);
+    writeThreadStat(threads, "103", MAIN_THREAD_STAT);
+    Files.createDirectory(threads.resolve("104"));
+
+    assertThat(StepTimer.threadsByCpu(threads))
+        .isEqualTo("java=10000, C2 CompilerThre=350, C1 CompilerThre=100 unreadable=1");
+  }
+
+  @Test
+  void shouldListNoThreadsWithoutProc(@TempDir Path threads) {
+    assertThat(StepTimer.threadsByCpu(threads.resolve("missing"))).isEqualTo("unknown");
   }
 
   @Test

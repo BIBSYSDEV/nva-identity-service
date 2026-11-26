@@ -86,6 +86,32 @@ class InboundFederationThroughTheRegistryTest extends InboundFederationHandlerTe
   }
 
   @Test
+  void shouldLogTheTimingOfEveryStepOfTheLogin() {
+    var event = events.feideLogin(scenarios.personWithExactlyOneActiveEmployment().nin());
+
+    handler.handleRequest(event, context);
+
+    assertThat(logRecorder.messages())
+        .anySatisfy(message -> assertThat(message).startsWith("Call "))
+        .anySatisfy(message -> assertThat(message).startsWith("Step inbound-federation took "))
+        .anySatisfy(
+            message -> assertThat(message).startsWith("Step inbound-federation/parse-event took "))
+        .anySatisfy(message ->
+            assertThat(message).startsWith("Step inbound-federation/person-registry-lookup took "))
+        .anySatisfy(
+            message -> assertThat(message).startsWith("Step person-registry/secrets-read took "))
+        .anySatisfy(message ->
+            assertThat(message)
+                .startsWith("Step person-registry/cristin GET /persons/resolve took "))
+        .anySatisfy(message ->
+            assertThat(message).startsWith("Step inbound-federation/customer-lookup took "))
+        .anySatisfy(message ->
+            assertThat(message).startsWith("Step inbound-federation/user-creation took "))
+        .anySatisfy(message ->
+            assertThat(message).startsWith("Step inbound-federation/link-and-person-rows took "));
+  }
+
+  @Test
   void shouldQueryTheRegistryAgainAndWriteTheRowsAgainWhenTheUserHasALink() {
     var person = scenarios.personWithExactlyOneActiveEmployment();
     var cristinId = scenarios.getCristinIdForPerson(person.nin());

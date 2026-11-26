@@ -31,6 +31,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.Iden
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUnavailableException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamBodyParsingException;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.IdentityServiceUpstreamInternalServerErrorException;
+import no.unit.nva.useraccessservice.usercreation.timing.StepTimer;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,14 @@ public class InboundFederationHandler
   private static final String LINK_TOO_OLD =
       "link older than " + IdentityLink.MAX_AGE.toDays() + " days";
   private static final String NAME_MISMATCH = "name does not match the linked person";
+  private static final String CALL_STEP = "inbound-federation";
+  private static final String PARSE_EVENT_STEP = "inbound-federation/parse-event";
+  private static final String REGISTRY_LOOKUP_STEP = "inbound-federation/person-registry-lookup";
+  private static final String REGISTRY_CREATE_STEP = "inbound-federation/person-registry-create";
+  private static final String CUSTOMER_LOOKUP_STEP = "inbound-federation/customer-lookup";
+  private static final String USER_CREATION_STEP = "inbound-federation/user-creation";
+  private static final String LINK_AND_PERSON_ROWS_STEP = "inbound-federation/link-and-person-rows";
+  private static final String LINK_LOOKUP_STEP = "inbound-federation/link-lookup";
 
   private final CustomerService customerService;
   private final IdentityService identityService;
@@ -114,9 +123,11 @@ public class InboundFederationHandler
 
   @Override
   public InboundFederationEvent handleRequest(InboundFederationEvent event, Context context) {
+    StepTimer.logCallStart();
+    var callTimer = StepTimer.start(CALL_STEP);
     var start = clock.instant();
     try {
-      var login = FederatedLogin.from(event);
+      var login = StepTimer.time(PARSE_EVENT_STEP, () -> FederatedLogin.from(event));
       var admitted = admit(login);
       LOGGER.info(
           DONE_MESSAGE,
@@ -126,6 +137,8 @@ public class InboundFederationHandler
           Duration.between(start, clock.instant()).toMillis());
     } catch (RuntimeException e) { // every failure gets a known error code
       throw asKnownFailure(FederatedLogin.usernameOf(event), e);
+    } finally {
+      callTimer.finish();
     }
     event.getResponse().setUserAttributesToMap(new HashMap<>());
     return event;
@@ -150,7 +163,8 @@ public class InboundFederationHandler
     var nin = Optional.ofNullable(login.nin()).orElseThrow(() -> missingNin(login));
     final Optional<Person> existingPerson;
     try {
-      existingPerson = personRegistry.fetchPersonByNin(nin);
+      existingPerson =
+          StepTimer.time(REGISTRY_LOOKUP_STEP, () -> personRegistry.fetchPersonByNin(nin));
     } catch (IdentityServiceUnavailableException
         | IdentityServiceUpstreamInternalServerErrorException
         | IdentityServiceUpstreamBodyParsingException
@@ -159,7 +173,9 @@ public class InboundFederationHandler
     }
     var person =
         existingPerson
-            .or(() -> createPerson(personRegistry, login, nin))
+            .or(() ->
+                StepTimer.time(
+                    REGISTRY_CREATE_STEP, () -> createPerson(personRegistry, login, nin)))
             .orElseThrow(IdentityServiceLoginNotCompletedException::new);
     var registryAnswered = clock.instant();
     // TODO: Measures how often the name check behind admitOnLink would pass. Remove in NP-51975.
@@ -168,9 +184,17 @@ public class InboundFederationHandler
         login.providerName(),
         login.username(),
         login.hasName(person.getFirstname(), person.getSurname()));
-    var customers = ActiveCustomers.forPerson(person, customerService);
-    userCreator.createUsers(new UserCreationContext(person, customers, login.feideIdentifier()));
-    writeLinkAndPersonRows(login, person, customers, registryAnswered);
+    var customers =
+        StepTimer.time(
+            CUSTOMER_LOOKUP_STEP, () -> ActiveCustomers.forPerson(person, customerService));
+    StepTimer.run(
+        USER_CREATION_STEP,
+        () ->
+            userCreator.createUsers(
+                new UserCreationContext(person, customers, login.feideIdentifier())));
+    StepTimer.run(
+        LINK_AND_PERSON_ROWS_STEP,
+        () -> writeLinkAndPersonRows(login, person, customers, registryAnswered));
     return new Admitted(person.getId(), REGISTRY);
   }
 
@@ -191,8 +215,8 @@ public class InboundFederationHandler
    */
   private Admitted admitOnLink(FederatedLogin login, IdentityServiceException registryFailure) {
     var identity =
-        identityService
-            .fetchLinkedIdentity(login.username())
+        StepTimer.time(
+                LINK_LOOKUP_STEP, () -> identityService.fetchLinkedIdentity(login.username()))
             .orElseThrow(() -> notAdmitted(login, NO_LINK, registryFailure));
     if (identity.link().isOlderThanMaxAge(clock)) {
       throw notAdmitted(login, LINK_TOO_OLD, registryFailure);

@@ -46,6 +46,7 @@ import no.unit.nva.useraccessservice.usercreation.person.cristin.exceptions.Iden
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinAffiliation;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinInstitution;
 import no.unit.nva.useraccessservice.usercreation.person.cristin.model.CristinPerson;
+import no.unit.nva.useraccessservice.usercreation.timing.StepTimer;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.attempt.Failure;
 import nva.commons.core.paths.UriWrapper;
@@ -95,6 +96,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
       "Person existed in Cristin when creating it, fetching it instead";
   private static final String COULD_NOT_READ_CREDENTIALS_MESSAGE =
       "Could not read the Cristin credentials";
+  private static final String SECRETS_READ_STEP = "person-registry/secrets-read";
+  private static final String CRISTIN_CALL_STEP_FORMAT = "person-registry/cristin %s %s";
 
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
@@ -156,7 +159,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
   private static Supplier<CristinCredentials> secretsReaderCristinCredentialsSupplier(
       SecretsReader secretsReader) {
-    return () -> readCristinCredentials(secretsReader);
+    return () -> StepTimer.time(SECRETS_READ_STEP, () -> readCristinCredentials(secretsReader));
   }
 
   /** Without its credentials the registry cannot be queried, as when it is unreachable. */
@@ -422,6 +425,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
   private <T> T executeRequest(HttpRequest request, Class<T> type) {
     final HttpResponse<String> response;
     var start = Instant.now();
+    var timer = StepTimer.start(cristinCallStepName(request));
     try {
       response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
     } catch (HttpTimeoutException e) {
@@ -438,6 +442,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
       conditionallyInterrupt(e);
       throw IdentityServiceUnavailableException.withDetails(maskedUri, e);
     } finally {
+      timer.finish();
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug(
             "Called {} and got response in {} ms.",
@@ -449,6 +454,11 @@ public final class CristinPersonRegistry implements PersonRegistry {
     assertSuccessResponse(request, response);
 
     return fromJson(response.body(), type);
+  }
+
+  /** The path only: the query of a lookup by national identity number holds the number. */
+  private static String cristinCallStepName(HttpRequest request) {
+    return String.format(CRISTIN_CALL_STEP_FORMAT, request.method(), request.uri().getPath());
   }
 
   private void assertSuccessResponse(HttpRequest request, HttpResponse<String> response) {

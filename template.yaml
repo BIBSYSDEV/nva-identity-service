@@ -2098,6 +2098,11 @@ Resources:
         ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
+          # From Java 25 Lambda no longer stops tiered compilation at level 1 for functions with
+          # provisioned concurrency. These functions do not run their code paths during
+          # initialization, so with the full compiler the first calls in an idle environment got
+          # slow enough to pass the five seconds Cognito waits for a trigger.
+          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
           USERPOOL_NAME: !GetAtt UserPoolName.Value
           API_DOMAIN: !Ref ApiDomain
           COGNITO_CREDENTIALS_SECRET_NAME: BackendCognitoClientCredentials
@@ -2134,6 +2139,8 @@ Resources:
         ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
+          # See PreTokenGenerationHandler.
+          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
       Timeout: 5 # Amazon Cognito invokes Lambda functions synchronously. When Amazon Cognito calls your Lambda function, it must respond within 5 seconds...
 
@@ -2281,6 +2288,8 @@ Resources:
         ProvisionedConcurrentExecutions: 1
       Environment:
         Variables:
+          # See PreTokenGenerationHandler.
+          JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
           API_DOMAIN: !Ref ApiDomain
           ID_NAMESPACE: !Sub "https://${ApiDomain}/${CustomerDomainBasePath}"
           CUSTOMERS_TABLE_NAME: !Ref NvaCustomersTable

@@ -247,11 +247,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
   }
 
-  /**
-   * Reads the credentials while building the request, before any call is made, so an unreadable
-   * secret fails as an unavailable Cristin even in the lookup that turns failed calls into an empty
-   * result.
-   */
   private HttpRequest createGetRequest(URI uri) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)

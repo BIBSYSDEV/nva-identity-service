@@ -265,7 +265,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
               createGetRequest(cristinBaseUri, PRIMING_TIMEOUT),
               BodyHandlers.ofString(StandardCharsets.UTF_8));
       LOGGER.info(PRIMED_MESSAGE, response.statusCode());
-      if (response.statusCode() == HTTP_UNAUTHORIZED) {
+      if (rejectsCredentials(response)) {
         LOGGER.warn(CREDENTIALS_REJECTED_MESSAGE);
         credentials.readAgain();
       }

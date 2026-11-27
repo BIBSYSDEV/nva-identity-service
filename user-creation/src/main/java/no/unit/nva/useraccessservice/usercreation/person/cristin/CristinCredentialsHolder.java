@@ -46,13 +46,6 @@ final class CristinCredentialsHolder {
     }
   }
 
-  /**
-   * Reads the credentials if needed, and fails as an unavailable Cristin when they cannot be read.
-   */
-  void ensureAvailable() {
-    current();
-  }
-
   /** Without its credentials the registry cannot be queried, as when it is unreachable. */
   CristinCredentials current() {
     var current = credentials.get();

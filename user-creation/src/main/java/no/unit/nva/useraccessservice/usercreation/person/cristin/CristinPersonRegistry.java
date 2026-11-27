@@ -209,13 +209,8 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return fetchPersonByNinFromCristin(nin).map(this::asPerson);
   }
 
-  /**
-   * Checks the credentials before the lookup, which turns every failure into an empty result: an
-   * unreadable secret must fail as an unreachable Cristin, not read as "no such person".
-   */
   @Override
   public Optional<Person> fetchPersonByIdentifier(String cristinIdentifier) {
-    credentials.ensureAvailable();
     return fetchPersonByIdentifierFromCristin(cristinIdentifier).map(this::asPerson);
   }
 
@@ -252,9 +247,17 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
   }
 
-  /** Without the Authorization header, which is added when the request is sent. */
+  /**
+   * Reads the credentials while building the request, before any call is made, so an unreadable
+   * secret fails as an unavailable Cristin even in the lookup that turns failed calls into an empty
+   * result.
+   */
   private HttpRequest createGetRequest(URI uri) {
-    var requestBuilder = HttpRequest.newBuilder(uri).timeout(requestTimeout).GET();
+    var requestBuilder =
+        HttpRequest.newBuilder(uri)
+            .timeout(requestTimeout)
+            .GET()
+            .header(AUTHORIZATION, generateBasicAuthorization(credentials.current()));
 
     defaultRequestHeaders.stream()
         .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
@@ -262,13 +265,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return requestBuilder.build();
   }
 
-  /** Without the Authorization header, which is added when the request is sent. */
   private HttpRequest createPostRequest(URI uri, String body) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)
             .timeout(requestTimeout)
             .POST(HttpRequest.BodyPublishers.ofString(body))
-            .header(CONTENT_TYPE, APPLICATION_JSON);
+            .header(CONTENT_TYPE, APPLICATION_JSON)
+            .header(AUTHORIZATION, generateBasicAuthorization(credentials.current()));
 
     defaultRequestHeaders.stream()
         .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
@@ -386,7 +389,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
    * the call is repeated once. A second rejection is handled like any other error answer.
    */
   private HttpResponse<String> sendWithCredentials(HttpRequest request) {
-    var response = send(withAuthorization(request, credentials.current()));
+    var response = send(request);
     if (response.statusCode() != HTTP_UNAUTHORIZED) {
       return response;
     }

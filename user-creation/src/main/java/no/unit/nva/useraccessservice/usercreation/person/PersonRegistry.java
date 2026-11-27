@@ -13,4 +13,10 @@ public interface PersonRegistry {
    * this number already exists.
    */
   Optional<Person> createPerson(NationalIdentityNumber nin, String firstName, String lastName);
+
+  /**
+   * Runs the code a lookup uses once without looking anyone up, so that the first lookup does not
+   * pay for loading and compiling it. Keeps no connection open afterwards.
+   */
+  void prime();
 }

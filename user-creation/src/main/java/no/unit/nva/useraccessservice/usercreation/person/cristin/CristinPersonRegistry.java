@@ -88,6 +88,28 @@ public final class CristinPersonRegistry implements PersonRegistry {
    */
   private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(4);
 
+  /**
+   * Time limit for the priming call, connecting included. Priming normally runs before any login,
+   * but a runtime restarted after a timeout initializes again inside the next login.
+   */
+  private static final Duration PRIMING_TIMEOUT = Duration.ofSeconds(1);
+
+  private static final String PRIMING_PERSON =
+      """
+      {
+        "cristin_person_id": "0",
+        "first_name": "Priming",
+        "surname": "Priming",
+        "affiliations": [
+          {
+            "institution": {"cristin_institution_id": "0", "url": "https://example.org/0"},
+            "unit": {"cristin_unit_id": "0.0.0.0", "url": "https://example.org/0.0.0.0"},
+            "active": true
+          }
+        ]
+      }
+      """;
+
   private static final String NATIONAL_ID_PARAMETER = "national_id=[^&]*";
   private static final String MASKED_PARAMETER = "national_id=***********";
   private static final String NO_PERSON_FOUND_MESSAGE =
@@ -96,6 +118,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
       "Person existed in Cristin when creating it, fetching it instead";
   private static final String CREDENTIALS_REJECTED_MESSAGE =
       "Cristin rejected the credentials, reading them again";
+  private static final String PRIMED_MESSAGE = "Cristin answered the priming call with {}";
 
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
@@ -124,19 +147,23 @@ public final class CristinPersonRegistry implements PersonRegistry {
     var defaultRequestHeaders =
         new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE);
     return personRegistry(
-        HttpClient.newBuilder()
-            // Pinned since NP-44746 (May 2023) as a fix for connectivity problems against Cristin,
-            // copied from nva-cristin-service. Whether it is still needed is unknown. Cristin
-            // negotiates HTTP/2 when offered, so removing this changes behaviour, not latency.
-            .version(Version.HTTP_1_1)
-            .followRedirects(Redirect.NEVER)
-            .connectTimeout(CONNECT_TIMEOUT)
-            .build(),
+        newHttpClient(),
         ServiceConstants.CRISTIN_BASE_URI,
         ServiceConstants.API_DOMAIN,
         defaultRequestHeaders,
         new SecretsReader(),
         DEFAULT_REQUEST_TIMEOUT);
+  }
+
+  private static HttpClient newHttpClient() {
+    return HttpClient.newBuilder()
+        // Pinned since NP-44746 (May 2023) as a fix for connectivity problems against Cristin,
+        // copied from nva-cristin-service. Whether it is still needed is unknown. Cristin
+        // negotiates HTTP/2 when offered, so removing this changes behaviour, not latency.
+        .version(Version.HTTP_1_1)
+        .followRedirects(Redirect.NEVER)
+        .connectTimeout(CONNECT_TIMEOUT)
+        .build();
   }
 
   /**
@@ -222,6 +249,32 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return createOrFetchPerson(person, nin).map(this::asPerson);
   }
 
+  /**
+   * Reads a made-up person, and sends the request a lookup builds to the root of the API through a
+   * client of its own, closed afterwards so that no connection is kept. The JVM keeps what this
+   * loaded and compiled, so the first lookup through the real client runs warm. The root checks the
+   * credentials it is sent and otherwise redirects to the documentation, so rejected credentials
+   * are read again here, before a lookup needs them.
+   */
+  @Override
+  public void prime() {
+    fromJson(PRIMING_PERSON, CristinPerson.class);
+    try (var primingClient = newHttpClient()) {
+      var response =
+          primingClient.send(
+              createGetRequest(cristinBaseUri, PRIMING_TIMEOUT),
+              BodyHandlers.ofString(StandardCharsets.UTF_8));
+      LOGGER.info(PRIMED_MESSAGE, response.statusCode());
+      if (rejectsCredentials(response)) {
+        LOGGER.warn(CREDENTIALS_REJECTED_MESSAGE);
+        credentials.readAgain();
+      }
+    } catch (IOException | InterruptedException e) {
+      conditionallyInterrupt(e);
+      throw IdentityServiceUnavailableException.withDetails(cristinBaseUri.toString(), e);
+    }
+  }
+
   /** A person that another login created in the meantime answers 409 and is fetched instead. */
   private Optional<CristinPerson> createOrFetchPerson(
       CristinPerson person, NationalIdentityNumber nin) {
@@ -249,9 +302,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
   }
 
   private HttpRequest createGetRequest(URI uri) {
+    return createGetRequest(uri, requestTimeout);
+  }
+
+  private HttpRequest createGetRequest(URI uri, Duration timeout) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)
-            .timeout(requestTimeout)
+            .timeout(timeout)
             .GET()
             .header(AUTHORIZATION, generateBasicAuthorization(credentials.current()));
 

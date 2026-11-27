@@ -2238,6 +2238,9 @@ Resources:
           USERS_AND_ROLES_TABLE: !Ref UserRoleMappings
           CRISTIN_API_URL: !Ref CristinApiUrl
           AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
+          # Redacts these query parameters in the span URLs: national_id carries the national identity
+          # number to Cristin. The list replaces the agent's defaults, so it repeats them.
+          OTEL_INSTRUMENTATION_SANITIZATION_URL_EXPERIMENTAL_SENSITIVE_QUERY_PARAMETERS: "national_id,AWSAccessKeyId,Signature,sig,X-Goog-Signature,X-Amz-Signature,X-Amz-Credential,X-Amz-Security-Token"
           # Lambda's own default on Java 21, which Java 25 drops for provisioned concurrency.
           # Here so the prototype compares with the earlier sandbox numbers; the wrapper keeps it.
           JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"

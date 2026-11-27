@@ -204,26 +204,24 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
   }
 
-  /**
-   * Each lookup first makes sure the credentials can be read, so an unreadable secret fails it as
-   * an unreachable Cristin would, even where a later failure is turned into an empty result.
-   */
   @Override
   public Optional<Person> fetchPersonByNin(NationalIdentityNumber nin) {
-    credentials.current();
     return fetchPersonByNinFromCristin(nin).map(this::asPerson);
   }
 
+  /**
+   * Checks the credentials before the lookup, which turns every failure into an empty result: an
+   * unreadable secret must fail as an unreachable Cristin, not read as "no such person".
+   */
   @Override
   public Optional<Person> fetchPersonByIdentifier(String cristinIdentifier) {
-    credentials.current();
+    credentials.ensureAvailable();
     return fetchPersonByIdentifierFromCristin(cristinIdentifier).map(this::asPerson);
   }
 
   @Override
   public Optional<Person> createPerson(
       NationalIdentityNumber nin, String firstName, String lastName) {
-    credentials.current();
     var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());
     return createOrFetchPerson(person, nin).map(this::asPerson);
   }

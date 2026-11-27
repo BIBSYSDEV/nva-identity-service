@@ -118,6 +118,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
       "Person existed in Cristin when creating it, fetching it instead";
   private static final String CREDENTIALS_REJECTED_MESSAGE =
       "Cristin rejected the credentials, reading them again";
+  private static final String PRIMED_MESSAGE = "Cristin answered the priming call with {}";
 
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
@@ -250,16 +251,24 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
   /**
    * Reads a made-up person, and sends the request a lookup builds to the root of the API through a
-   * client of its own, closed afterwards so that no connection is kept. Any answer will do. The JVM
-   * keeps what this loaded and compiled, so the first lookup through the real client runs warm.
+   * client of its own, closed afterwards so that no connection is kept. The JVM keeps what this
+   * loaded and compiled, so the first lookup through the real client runs warm. The root checks the
+   * credentials it is sent and otherwise redirects to the documentation, so rejected credentials
+   * are read again here, before a lookup needs them.
    */
   @Override
   public void prime() {
     fromJson(PRIMING_PERSON, CristinPerson.class);
     try (var primingClient = newHttpClient()) {
-      primingClient.send(
-          createGetRequest(cristinBaseUri, PRIMING_TIMEOUT),
-          BodyHandlers.ofString(StandardCharsets.UTF_8));
+      var response =
+          primingClient.send(
+              createGetRequest(cristinBaseUri, PRIMING_TIMEOUT),
+              BodyHandlers.ofString(StandardCharsets.UTF_8));
+      LOGGER.info(PRIMED_MESSAGE, response.statusCode());
+      if (response.statusCode() == HTTP_UNAUTHORIZED) {
+        LOGGER.warn(CREDENTIALS_REJECTED_MESSAGE);
+        credentials.readAgain();
+      }
     } catch (IOException | InterruptedException e) {
       conditionallyInterrupt(e);
       throw IdentityServiceUnavailableException.withDetails(cristinBaseUri.toString(), e);

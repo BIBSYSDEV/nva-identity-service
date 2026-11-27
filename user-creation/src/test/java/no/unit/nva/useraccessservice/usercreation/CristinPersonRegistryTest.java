@@ -508,16 +508,47 @@ class CristinPersonRegistryTest {
     Assertions.assertThat(elapsed).isLessThan(PRIMING_GIVE_UP_LIMIT);
   }
 
+  @Test
+  void shouldReadTheCredentialsAgainWhenCristinRejectsThemWhilePriming(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var staleUsername = randomString();
+    var stalePassword = randomString();
+    var rotatingSecrets = new FakeSecretsManagerClient();
+    putCristinCredentials(rotatingSecrets, staleUsername, stalePassword);
+    var secretsReader = spy(new SecretsReader(rotatingSecrets));
+    var registry = registryOverPlainHttp(wireMockRuntimeInfo, secretsReader);
+    putCristinCredentials(rotatingSecrets, cristinUsername, cristinPassword);
+    var staleAuthorization = basicAuthorization(staleUsername, stalePassword);
+    stubFor(
+        get(urlEqualTo("/"))
+            .withHeader(CristinPersonRegistry.AUTHORIZATION, WireMock.equalTo(staleAuthorization))
+            .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_UNAUTHORIZED)));
+
+    registry.prime();
+    registry.prime();
+
+    verify(secretsReader, times(2)).fetchClassSecret(any(), any());
+    WireMock.verify(
+        1,
+        getRequestedFor(urlEqualTo("/"))
+            .withHeader(CristinPersonRegistry.AUTHORIZATION, WireMock.equalTo(staleAuthorization)));
+  }
+
+  private PersonRegistry registryOverPlainHttp(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    return registryOverPlainHttp(wireMockRuntimeInfo, new SecretsReader(secretsManagerClient));
+  }
+
   /**
    * Priming sends its request through a client of its own, which does not trust WireMock's
    * certificate, so Cristin is served over plain HTTP here.
    */
-  private PersonRegistry registryOverPlainHttp(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  private PersonRegistry registryOverPlainHttp(
+      WireMockRuntimeInfo wireMockRuntimeInfo, SecretsReader secretsReader) {
     return CristinPersonRegistry.customPersonRegistry(
         WiremockHttpClient.create(),
         URI.create(wireMockRuntimeInfo.getHttpBaseUrl()),
         ServiceConstants.API_DOMAIN,
         new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE),
-        new SecretsReader(secretsManagerClient));
+        secretsReader);
   }
 }

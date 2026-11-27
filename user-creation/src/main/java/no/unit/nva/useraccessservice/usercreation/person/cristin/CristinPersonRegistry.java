@@ -2,8 +2,10 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -26,7 +28,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.useraccessservice.constants.ServiceConstants;
@@ -93,14 +94,14 @@ public final class CristinPersonRegistry implements PersonRegistry {
       "No person found in Cristin for the given national identity number";
   private static final String PERSON_EXISTED_MESSAGE =
       "Person existed in Cristin when creating it, fetching it instead";
-  private static final String COULD_NOT_READ_CREDENTIALS_MESSAGE =
-      "Could not read the Cristin credentials";
+  private static final String CREDENTIALS_REJECTED_MESSAGE =
+      "Cristin rejected the credentials, reading them again";
 
   private final HttpClient httpClient;
   private final URI cristinBaseUri;
   private final String apiDomain;
   private final HttpHeaders defaultRequestHeaders;
-  private final Supplier<CristinCredentials> cristinCredentialsSupplier;
+  private final CristinCredentialsHolder credentials;
   private final Duration requestTimeout;
 
   private CristinPersonRegistry(
@@ -108,13 +109,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
       URI cristinBaseUri,
       String apiDomain,
       HttpHeaders defaultRequestHeaders,
-      Supplier<CristinCredentials> credentialsSupplier,
+      CristinCredentialsHolder credentials,
       Duration requestTimeout) {
     this.httpClient = httpClient;
     this.cristinBaseUri = cristinBaseUri;
     this.apiDomain = apiDomain;
     this.defaultRequestHeaders = defaultRequestHeaders;
-    this.cristinCredentialsSupplier = credentialsSupplier;
+    this.credentials = credentials;
     this.requestTimeout = requestTimeout;
   }
 
@@ -138,6 +139,10 @@ public final class CristinPersonRegistry implements PersonRegistry {
         DEFAULT_REQUEST_TIMEOUT);
   }
 
+  /**
+   * Reads the Cristin credentials while the registry is built, which in a Lambda is during init, so
+   * that the first call does not have to.
+   */
   private static PersonRegistry personRegistry(
       HttpClient httpClient,
       URI cristinBaseUri,
@@ -145,28 +150,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
       HttpHeaders defaultRequestHeaders,
       SecretsReader secretsReader,
       Duration requestTimeout) {
+    var credentials = CristinCredentialsHolder.readAheadFrom(secretsReader);
     return new CristinPersonRegistry(
-        httpClient,
-        cristinBaseUri,
-        apiDomain,
-        defaultRequestHeaders,
-        secretsReaderCristinCredentialsSupplier(secretsReader),
-        requestTimeout);
-  }
-
-  private static Supplier<CristinCredentials> secretsReaderCristinCredentialsSupplier(
-      SecretsReader secretsReader) {
-    return () -> readCristinCredentials(secretsReader);
-  }
-
-  /** Without its credentials the registry cannot be queried, as when it is unreachable. */
-  private static CristinCredentials readCristinCredentials(SecretsReader secretsReader) {
-    return attempt(() ->
-            secretsReader.fetchClassSecret(
-                CRISTIN_CREDENTIALS_SECRET_NAME, CristinCredentials.class))
-        .orElseThrow(failure ->
-            new IdentityServiceUnavailableException(
-                COULD_NOT_READ_CREDENTIALS_MESSAGE, failure.getException()));
+        httpClient, cristinBaseUri, apiDomain, defaultRequestHeaders, credentials, requestTimeout);
   }
 
   public static PersonRegistry customPersonRegistry(
@@ -221,66 +207,39 @@ public final class CristinPersonRegistry implements PersonRegistry {
 
   @Override
   public Optional<Person> fetchPersonByNin(NationalIdentityNumber nin) {
-    var start = Instant.now();
-    var cristinCredentials = this.cristinCredentialsSupplier.get();
-
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(
-          "Read cristin credentials from secrets manager in {} ms.",
-          Instant.now().toEpochMilli() - start.toEpochMilli());
-    }
-
-    return fetchPersonByNinFromCristin(nin, cristinCredentials)
-        .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    return fetchPersonByNinFromCristin(nin).map(this::asPerson);
   }
 
   @Override
   public Optional<Person> fetchPersonByIdentifier(String cristinIdentifier) {
-    var start = Instant.now();
-    var cristinCredentials = this.cristinCredentialsSupplier.get();
-
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(
-          "Read cristin credentials from secrets manager in {} ms.",
-          Instant.now().toEpochMilli() - start.toEpochMilli());
-    }
-
-    return fetchPersonByIdentifierFromCristin(cristinIdentifier, cristinCredentials)
-        .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    return fetchPersonByIdentifierFromCristin(cristinIdentifier).map(this::asPerson);
   }
 
   @Override
   public Optional<Person> createPerson(
       NationalIdentityNumber nin, String firstName, String lastName) {
-    var cristinCredentials = this.cristinCredentialsSupplier.get();
-
     var person = new CristinPerson(null, firstName, lastName, null, nin.getNin());
-    return createOrFetchPerson(person, nin, cristinCredentials)
-        .map(cristinPerson -> asPerson(cristinPerson, cristinCredentials));
+    return createOrFetchPerson(person, nin).map(this::asPerson);
   }
 
   /** A person that another login created in the meantime answers 409 and is fetched instead. */
   private Optional<CristinPerson> createOrFetchPerson(
-      CristinPerson person, NationalIdentityNumber nin, CristinCredentials cristinCredentials) {
+      CristinPerson person, NationalIdentityNumber nin) {
     try {
-      return createPerson(person, cristinCredentials);
+      return createPerson(person);
     } catch (IdentityServiceAlreadyExistsException e) {
       LOGGER.info(PERSON_EXISTED_MESSAGE);
-      return fetchPersonByNinFromCristin(nin, cristinCredentials);
+      return fetchPersonByNinFromCristin(nin);
     }
   }
 
-  private Optional<CristinPerson> createPerson(
-      CristinPerson person, CristinCredentials cristinCredentials) {
-    var request =
-        createPostRequest(
-            creatNewPersonQueryUri(), generatePersonPayload(person), cristinCredentials);
+  private Optional<CristinPerson> createPerson(CristinPerson person) {
+    var request = createPostRequest(creatNewPersonQueryUri(), generatePersonPayload(person));
     return Optional.ofNullable(executeRequest(request, CristinPerson.class));
   }
 
-  private Optional<CristinInstitution> fetchInstitutionFromCristin(
-      URI institutionUri, CristinCredentials cristinCredentials) {
-    var request = createGetRequest(institutionUri, cristinCredentials);
+  private Optional<CristinInstitution> fetchInstitutionFromCristin(URI institutionUri) {
+    var request = createGetRequest(institutionUri);
     try {
       return Optional.of(executeRequest(request, CristinInstitution.class));
     } catch (IdentityServiceRedirectException e) {
@@ -289,12 +248,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
   }
 
-  private HttpRequest createGetRequest(URI uri, CristinCredentials cristinCredentials) {
+  private HttpRequest createGetRequest(URI uri) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)
             .timeout(requestTimeout)
             .GET()
-            .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
+            .header(AUTHORIZATION, generateBasicAuthorization(credentials.current()));
 
     defaultRequestHeaders.stream()
         .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
@@ -302,14 +261,13 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return requestBuilder.build();
   }
 
-  private HttpRequest createPostRequest(
-      URI uri, String body, CristinCredentials cristinCredentials) {
+  private HttpRequest createPostRequest(URI uri, String body) {
     var requestBuilder =
         HttpRequest.newBuilder(uri)
             .timeout(requestTimeout)
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .header(CONTENT_TYPE, APPLICATION_JSON)
-            .header(AUTHORIZATION, generateBasicAuthorization(cristinCredentials));
+            .header(AUTHORIZATION, generateBasicAuthorization(credentials.current()));
 
     defaultRequestHeaders.stream()
         .forEach(entry -> requestBuilder.header(entry.getKey(), entry.getValue()));
@@ -317,12 +275,12 @@ public final class CristinPersonRegistry implements PersonRegistry {
     return requestBuilder.build();
   }
 
-  private Person asPerson(CristinPerson cristinPerson, CristinCredentials cristinCredentials) {
+  private Person asPerson(CristinPerson cristinPerson) {
 
     var personAffiliations =
         cristinPerson.getAffiliations().stream()
             .filter(CristinAffiliation::isActive)
-            .map(activeAffiliation -> collectAffiliation(activeAffiliation, cristinCredentials))
+            .map(this::collectAffiliation)
             .flatMap(Optional::stream)
             .collect(
                 Collectors.groupingBy(
@@ -367,10 +325,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
         .getUri();
   }
 
-  private Optional<GenericPair<URI>> collectAffiliation(
-      CristinAffiliation cristinAffiliation, CristinCredentials cristinCredentials) {
+  private Optional<GenericPair<URI>> collectAffiliation(CristinAffiliation cristinAffiliation) {
     var institutionUri = URI.create(cristinAffiliation.getInstitution().getUrl());
-    return fetchInstitutionFromCristin(institutionUri, cristinCredentials)
+    return fetchInstitutionFromCristin(institutionUri)
         .map(cristinInstitution -> {
           var institutionId = cristinInstitution.getCorrespondingUnit().getId();
           return new GenericPair<>(
@@ -379,10 +336,9 @@ public final class CristinPersonRegistry implements PersonRegistry {
         });
   }
 
-  private Optional<CristinPerson> fetchPersonByNinFromCristin(
-      NationalIdentityNumber nin, CristinCredentials cristinCredentials) {
+  private Optional<CristinPerson> fetchPersonByNinFromCristin(NationalIdentityNumber nin) {
 
-    var request = createGetRequest(createByNationalIdentityNumberQueryUri(nin), cristinCredentials);
+    var request = createGetRequest(createByNationalIdentityNumberQueryUri(nin));
 
     try {
       var person = executeRequest(request, CristinPerson.class);
@@ -393,10 +349,19 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
   }
 
-  private Optional<CristinPerson> fetchPersonByIdentifierFromCristin(
-      String identifier, CristinCredentials cristinCredentials) {
-    var request = createGetRequest(creatByIdentifierQueryUri(identifier), cristinCredentials);
-    return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
+  /**
+   * Any answer that is not a person counts as no person. A Cristin that cannot be queried, because
+   * it does not answer in time or its credentials cannot be read, is reported as unavailable.
+   */
+  private Optional<CristinPerson> fetchPersonByIdentifierFromCristin(String identifier) {
+    var request = createGetRequest(creatByIdentifierQueryUri(identifier));
+    try {
+      return Optional.ofNullable(executeRequest(request, CristinPerson.class));
+    } catch (IdentityServiceUnavailableException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      return Optional.empty();
+    }
   }
 
   private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {
@@ -420,10 +385,43 @@ public final class CristinPersonRegistry implements PersonRegistry {
   }
 
   private <T> T executeRequest(HttpRequest request, Class<T> type) {
-    final HttpResponse<String> response;
+    var response = sendWithCredentials(request);
+    assertSuccessResponse(request, response);
+    return fromJson(response.body(), type);
+  }
+
+  /**
+   * Cristin rejects kept credentials once the secret has been rotated, so they are read again and
+   * the call is repeated once. A second rejection is handled like any other error answer.
+   */
+  private HttpResponse<String> sendWithCredentials(HttpRequest request) {
+    var response = send(request);
+    if (!rejectsCredentials(response)) {
+      return response;
+    }
+    LOGGER.warn(CREDENTIALS_REJECTED_MESSAGE);
+    return send(withAuthorization(request, credentials.readAgain()));
+  }
+
+  /**
+   * Cristin answers 401 to wrong credentials. A 403 would mean that they no longer give access,
+   * which fresh credentials may fix too.
+   */
+  private static boolean rejectsCredentials(HttpResponse<String> response) {
+    return response.statusCode() == HTTP_UNAUTHORIZED || response.statusCode() == HTTP_FORBIDDEN;
+  }
+
+  private HttpRequest withAuthorization(
+      HttpRequest request, CristinCredentials cristinCredentials) {
+    return HttpRequest.newBuilder(request, (name, value) -> true)
+        .setHeader(AUTHORIZATION, generateBasicAuthorization(cristinCredentials))
+        .build();
+  }
+
+  private HttpResponse<String> send(HttpRequest request) {
     var start = Instant.now();
     try {
-      response = this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+      return this.httpClient.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
     } catch (HttpTimeoutException e) {
       var maskedUri = maskSensitiveData(request.uri());
       LOGGER.error(
@@ -445,10 +443,6 @@ public final class CristinPersonRegistry implements PersonRegistry {
             Instant.now().toEpochMilli() - start.toEpochMilli());
       }
     }
-
-    assertSuccessResponse(request, response);
-
-    return fromJson(response.body(), type);
   }
 
   private void assertSuccessResponse(HttpRequest request, HttpResponse<String> response) {

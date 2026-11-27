@@ -133,6 +133,10 @@ Mappings:
       ExternalUserPoolNamePrefix: IdentityService-ExternalUserPool-
 
 Conditions:
+  # Outside prod the person registry times out now and then, and nobody acts on the alarm for users
+  # let in on their link. The template has no environment parameter; the authentication domain
+  # prefix is "nva-<environment>".
+  AdmittedOnLinkAlarmToSlack: !Equals [!Ref AuthenticationDomainPrefix, "nva-prod"]
   WithSuffix: !Not [!Equals [!Ref Suffix, ""]]
   NativeLoginOnApplicationClient: !Equals [!Ref EnableNativeLoginOnApplicationClient, "true"]
   # Transition, removed in NP-51975.
@@ -2377,8 +2381,7 @@ Resources:
     Properties:
       AlarmName: Inbound federation admitted users on their link
       AlarmDescription: The person registry did not answer in time and users were let in on their stored link. Check the person registry.
-      AlarmActions:
-        - !Ref SlackSnsArn
+      AlarmActions: !If [AdmittedOnLinkAlarmToSlack, [!Ref SlackSnsArn], []]
       MetricName: InboundFederationAdmittedOnLink
       Namespace: NvaIdentityService
       Statistic: Sum

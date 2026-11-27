@@ -149,8 +149,7 @@ public final class CristinPersonRegistry implements PersonRegistry {
       HttpHeaders defaultRequestHeaders,
       SecretsReader secretsReader,
       Duration requestTimeout) {
-    var credentials = new CristinCredentialsHolder(secretsReader);
-    credentials.readAhead();
+    var credentials = CristinCredentialsHolder.readAheadFrom(secretsReader);
     return new CristinPersonRegistry(
         httpClient, cristinBaseUri, apiDomain, defaultRequestHeaders, credentials, requestTimeout);
   }

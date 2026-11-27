@@ -25,12 +25,21 @@ final class CristinCredentialsHolder {
   private final SecretsReader secretsReader;
   private final AtomicReference<CristinCredentials> credentials = new AtomicReference<>();
 
-  CristinCredentialsHolder(SecretsReader secretsReader) {
+  private CristinCredentialsHolder(SecretsReader secretsReader) {
     this.secretsReader = secretsReader;
   }
 
-  /** Reads the credentials before the first call needs them; a failure is left for that call. */
-  void readAhead() {
+  /**
+   * Reads the credentials right away, so the first call does not have to. A failed read is not an
+   * error here: the first call reads them again, and fails only if that read fails too.
+   */
+  static CristinCredentialsHolder readAheadFrom(SecretsReader secretsReader) {
+    var holder = new CristinCredentialsHolder(secretsReader);
+    holder.readAhead();
+    return holder;
+  }
+
+  private void readAhead() {
     var attemptedRead = attempt(this::current);
     if (attemptedRead.isFailure()) {
       LOGGER.warn(READ_AHEAD_FAILED_MESSAGE, attemptedRead.getException());

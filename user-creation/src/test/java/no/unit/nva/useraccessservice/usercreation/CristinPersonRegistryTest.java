@@ -59,6 +59,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @WireMockTest(httpsEnabled = true)
 class CristinPersonRegistryTest {
@@ -366,9 +368,10 @@ class CristinPersonRegistryTest {
     verify(secretsReader, times(1)).fetchClassSecret(any(), any());
   }
 
-  @Test
+  @ParameterizedTest
+  @ValueSource(ints = {HttpURLConnection.HTTP_UNAUTHORIZED, HttpURLConnection.HTTP_FORBIDDEN})
   void shouldReadTheCredentialsAgainAndRetryOnceWhenCristinRejectsThem(
-      WireMockRuntimeInfo wireMockRuntimeInfo) {
+      int rejectionStatus, WireMockRuntimeInfo wireMockRuntimeInfo) {
     var staleUsername = randomString();
     var stalePassword = randomString();
     var rotatingSecrets = new FakeSecretsManagerClient();
@@ -380,7 +383,7 @@ class CristinPersonRegistryTest {
     stubFor(
         WireMock.any(anyUrl())
             .withHeader(CristinPersonRegistry.AUTHORIZATION, WireMock.equalTo(staleAuthorization))
-            .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_UNAUTHORIZED)));
+            .willReturn(aResponse().withStatus(rejectionStatus)));
     var person = scenarios.personWithExactlyOneActiveEmployment();
 
     var fetchedPerson = registry.fetchPersonByNin(NationalIdentityNumber.fromString(person.nin()));

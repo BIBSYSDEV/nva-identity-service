@@ -2,6 +2,7 @@ package no.unit.nva.useraccessservice.usercreation.person.cristin;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -395,11 +396,19 @@ public final class CristinPersonRegistry implements PersonRegistry {
    */
   private HttpResponse<String> sendWithCredentials(HttpRequest request) {
     var response = send(request);
-    if (response.statusCode() != HTTP_UNAUTHORIZED) {
+    if (!rejectsCredentials(response)) {
       return response;
     }
     LOGGER.warn(CREDENTIALS_REJECTED_MESSAGE);
     return send(withAuthorization(request, credentials.readAgain()));
+  }
+
+  /**
+   * Cristin answers 401 to wrong credentials. A 403 would mean that they no longer give access,
+   * which fresh credentials may fix too.
+   */
+  private static boolean rejectsCredentials(HttpResponse<String> response) {
+    return response.statusCode() == HTTP_UNAUTHORIZED || response.statusCode() == HTTP_FORBIDDEN;
   }
 
   private HttpRequest withAuthorization(

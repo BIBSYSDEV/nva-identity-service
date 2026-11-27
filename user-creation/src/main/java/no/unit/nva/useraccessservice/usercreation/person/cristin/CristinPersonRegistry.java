@@ -348,9 +348,19 @@ public final class CristinPersonRegistry implements PersonRegistry {
     }
   }
 
+  /**
+   * Any answer that is not a person counts as no person. A Cristin that cannot be queried, because
+   * it does not answer in time or its credentials cannot be read, is reported as unavailable.
+   */
   private Optional<CristinPerson> fetchPersonByIdentifierFromCristin(String identifier) {
     var request = createGetRequest(creatByIdentifierQueryUri(identifier));
-    return attempt(() -> executeRequest(request, CristinPerson.class)).toOptional();
+    try {
+      return Optional.ofNullable(executeRequest(request, CristinPerson.class));
+    } catch (IdentityServiceUnavailableException e) {
+      throw e;
+    } catch (RuntimeException e) {
+      return Optional.empty();
+    }
   }
 
   private URI createByNationalIdentityNumberQueryUri(NationalIdentityNumber nin) {

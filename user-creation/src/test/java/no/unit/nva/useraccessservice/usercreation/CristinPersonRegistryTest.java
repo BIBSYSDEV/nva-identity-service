@@ -20,6 +20,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -322,6 +323,35 @@ class CristinPersonRegistryTest {
     assertThrows(
         IdentityServiceUnavailableException.class,
         () -> registryWithoutCredentials.fetchPersonByIdentifier(randomString()));
+  }
+
+  @Test
+  void shouldReportCristinAsUnavailableWhenALookupByIdentifierTimesOut(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    stubCristinRespondingSlowly();
+    var registry = personRegistryWithShortRequestTimeout(wireMockRuntimeInfo);
+
+    assertThrows(
+        IdentityServiceUnavailableException.class,
+        () -> registry.fetchPersonByIdentifier(randomString()));
+  }
+
+  @Test
+  void shouldReportCristinAsUnavailableWhenRejectedCredentialsCannotBeReadAgain(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var secretsReader = spy(new SecretsReader(secretsManagerClient));
+    doCallRealMethod()
+        .doThrow(new IllegalStateException("The secret is gone"))
+        .when(secretsReader)
+        .fetchClassSecret(any(), any());
+    var registry = registryReadingSecretsWith(wireMockRuntimeInfo, secretsReader);
+    stubFor(
+        WireMock.any(anyUrl())
+            .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_UNAUTHORIZED)));
+
+    assertThrows(
+        IdentityServiceUnavailableException.class,
+        () -> registry.fetchPersonByIdentifier(randomString()));
   }
 
   @Test

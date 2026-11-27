@@ -4,7 +4,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static no.unit.nva.testutils.RandomDataGenerator.randomString;
 import static no.unit.nva.useraccessservice.constants.ServiceConstants.BOT_FILTER_BYPASS_HEADER_VALUE;
@@ -68,6 +70,8 @@ class CristinPersonRegistryTest {
   private static final String BOT_FILTER_BYPASS_HEADER_NAME = randomString();
   private static final Duration SHORT_REQUEST_TIMEOUT = Duration.ofMillis(100);
   private static final Duration CRISTIN_RESPONSE_DELAY = Duration.ofSeconds(1);
+  private static final Duration PRIMING_RESPONSE_DELAY = Duration.ofSeconds(3);
+  private static final Duration PRIMING_GIVE_UP_LIMIT = Duration.ofSeconds(2);
   private static final String MASKED_NUMBER = "***********";
   private PersonRegistry personRegistry;
   private FakeSecretsManagerClient secretsManagerClient;
@@ -467,5 +471,53 @@ class CristinPersonRegistryTest {
         .doesNotContain(notANumber)
         .contains("national_id=" + MASKED_NUMBER);
     Assertions.assertThat(logRecorder.asString()).doesNotContain(notANumber);
+  }
+
+  @Test
+  void shouldPrimeBySendingTheRequestALookupBuildsToTheApiRoot(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var registry = registryOverPlainHttp(wireMockRuntimeInfo);
+
+    registry.prime();
+
+    WireMock.verify(
+        getRequestedFor(urlEqualTo("/"))
+            .withHeader(
+                CristinPersonRegistry.AUTHORIZATION,
+                WireMock.equalTo(basicAuthorization(cristinUsername, cristinPassword)))
+            .withHeader(
+                BOT_FILTER_BYPASS_HEADER_NAME, WireMock.equalTo(BOT_FILTER_BYPASS_HEADER_VALUE)));
+  }
+
+  @Test
+  void shouldGiveUpPrimingAfterAboutASecondWhenCristinDoesNotAnswer(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    stubFor(
+        get(anyUrl())
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withFixedDelay((int) PRIMING_RESPONSE_DELAY.toMillis())));
+    var registry = registryOverPlainHttp(wireMockRuntimeInfo);
+
+    var start = Instant.now();
+    var exception = assertThrows(IdentityServiceUnavailableException.class, registry::prime);
+    var elapsed = Duration.between(start, Instant.now());
+
+    Assertions.assertThat(exception).hasCauseInstanceOf(HttpTimeoutException.class);
+    Assertions.assertThat(elapsed).isLessThan(PRIMING_GIVE_UP_LIMIT);
+  }
+
+  /**
+   * Priming sends its request through a client of its own, which does not trust WireMock's
+   * certificate, so Cristin is served over plain HTTP here.
+   */
+  private PersonRegistry registryOverPlainHttp(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    return CristinPersonRegistry.customPersonRegistry(
+        WiremockHttpClient.create(),
+        URI.create(wireMockRuntimeInfo.getHttpBaseUrl()),
+        ServiceConstants.API_DOMAIN,
+        new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE),
+        new SecretsReader(secretsManagerClient));
   }
 }

@@ -98,6 +98,8 @@ public class InboundFederationHandler
         defaultIdentityService(DEFAULT_DYNAMO_CLIENT),
         CristinPersonRegistry.defaultPersonRegistry(),
         Clock.systemUTC());
+    new ClientPriming(personRegistry, identityService, customerService, clock)
+        .primeFor(System.getenv(ClientPriming.INITIALIZATION_TYPE_VARIABLE));
   }
 
   public InboundFederationHandler(

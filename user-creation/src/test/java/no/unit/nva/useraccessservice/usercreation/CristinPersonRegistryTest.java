@@ -1,6 +1,7 @@
 package no.unit.nva.useraccessservice.usercreation;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -18,13 +19,21 @@ import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import no.unit.nva.customer.service.impl.DynamoDBCustomerService;
 import no.unit.nva.customer.testing.LocalCustomerServiceDatabase;
 import no.unit.nva.database.IdentityService;
@@ -65,18 +74,17 @@ class CristinPersonRegistryTest {
   private IdentityService identityService;
   private DynamoDBCustomerService customerService;
   private MockPersonRegistry mockPersonRegistry;
+  private String cristinUsername;
+  private String cristinPassword;
 
   @BeforeEach
   void beforeEach(WireMockRuntimeInfo wireMockRuntimeInfo)
       throws InvalidInputException, ConflictException {
     setupCustomerAndIdentityService();
-    var cristinUsername = randomString();
-    var cristinPassword = randomString();
+    cristinUsername = randomString();
+    cristinPassword = randomString();
     secretsManagerClient = new FakeSecretsManagerClient();
-    secretsManagerClient.putSecret(
-        CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, cristinUsername);
-    secretsManagerClient.putSecret(
-        CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, cristinPassword);
+    putCristinCredentials(secretsManagerClient, cristinUsername, cristinPassword);
     var apiDomain = ServiceConstants.API_DOMAIN;
     var wiremockUri = URI.create(wireMockRuntimeInfo.getHttpsBaseUrl());
     var httpClient = WiremockHttpClient.create();
@@ -302,6 +310,80 @@ class CristinPersonRegistryTest {
     assertThrows(
         IdentityServiceUnavailableException.class,
         () -> registryWithoutCredentials.fetchPersonByNin(nin));
+  }
+
+  @Test
+  void shouldReportCristinAsUnavailableWhenTheCredentialsCannotBeReadForALookupByIdentifier(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var registryWithoutCredentials =
+        registryReadingSecretsWith(
+            wireMockRuntimeInfo, new SecretsReader(new FakeSecretsManagerClient()));
+
+    assertThrows(
+        IdentityServiceUnavailableException.class,
+        () -> registryWithoutCredentials.fetchPersonByIdentifier(randomString()));
+  }
+
+  @Test
+  void shouldReadTheCredentialsOnceForSeveralLookups(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var secretsReader = spy(new SecretsReader(secretsManagerClient));
+    var registry = registryReadingSecretsWith(wireMockRuntimeInfo, secretsReader);
+    var person = scenarios.personWithExactlyOneActiveEmployment();
+
+    registry.fetchPersonByNin(NationalIdentityNumber.fromString(person.nin()));
+    registry.fetchPersonByIdentifier(person.cristinIdentifier());
+
+    verify(secretsReader, times(1)).fetchClassSecret(any(), any());
+  }
+
+  @Test
+  void shouldReadTheCredentialsAgainAndRetryOnceWhenCristinRejectsThem(
+      WireMockRuntimeInfo wireMockRuntimeInfo) {
+    var staleUsername = randomString();
+    var stalePassword = randomString();
+    var rotatingSecrets = new FakeSecretsManagerClient();
+    putCristinCredentials(rotatingSecrets, staleUsername, stalePassword);
+    var secretsReader = spy(new SecretsReader(rotatingSecrets));
+    var registry = registryReadingSecretsWith(wireMockRuntimeInfo, secretsReader);
+    putCristinCredentials(rotatingSecrets, cristinUsername, cristinPassword);
+    var staleAuthorization = basicAuthorization(staleUsername, stalePassword);
+    stubFor(
+        WireMock.any(anyUrl())
+            .withHeader(CristinPersonRegistry.AUTHORIZATION, WireMock.equalTo(staleAuthorization))
+            .willReturn(aResponse().withStatus(HttpURLConnection.HTTP_UNAUTHORIZED)));
+    var person = scenarios.personWithExactlyOneActiveEmployment();
+
+    var fetchedPerson = registry.fetchPersonByNin(NationalIdentityNumber.fromString(person.nin()));
+
+    Assertions.assertThat(fetchedPerson)
+        .get()
+        .satisfies(found -> Assertions.assertThat(found.getAffiliations()).isNotEmpty());
+    verify(secretsReader, times(2)).fetchClassSecret(any(), any());
+    WireMock.verify(
+        1,
+        anyRequestedFor(anyUrl())
+            .withHeader(CristinPersonRegistry.AUTHORIZATION, WireMock.equalTo(staleAuthorization)));
+  }
+
+  private PersonRegistry registryReadingSecretsWith(
+      WireMockRuntimeInfo wireMockRuntimeInfo, SecretsReader secretsReader) {
+    return CristinPersonRegistry.customPersonRegistry(
+        WiremockHttpClient.create(),
+        URI.create(wireMockRuntimeInfo.getHttpsBaseUrl()),
+        ServiceConstants.API_DOMAIN,
+        new HttpHeaders().withHeader(BOT_FILTER_BYPASS_HEADER_NAME, BOT_FILTER_BYPASS_HEADER_VALUE),
+        secretsReader);
+  }
+
+  private static void putCristinCredentials(
+      FakeSecretsManagerClient secrets, String username, String password) {
+    secrets.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_USERNAME_SECRET_KEY, username);
+    secrets.putSecret(CRISTIN_CREDENTIALS_SECRET_NAME, CRISTIN_PASSWORD_SECRET_KEY, password);
+  }
+
+  private static String basicAuthorization(String username, String password) {
+    var credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
+    return "Basic " + Base64.getEncoder().encodeToString(credentials);
   }
 
   @Test
